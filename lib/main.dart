@@ -59,10 +59,16 @@ class JournalPage extends StatefulWidget {
 }
 
 class TagData {
+  TagData(this.tag, this.value);
+  factory TagData.fromJson(Map<String, dynamic> json) {
+    return TagData(
+      json['tag'],
+      json['value'],
+    );
+  }
+
   final String tag;
   final String value;
-
-  TagData(this.tag, this.value);
 
   Map<String, dynamic> toJson() {
     return <String, String>{
@@ -70,21 +76,14 @@ class TagData {
       'value': value,
     };
   }
-
-  factory TagData.fromJson(Map<String, dynamic> json) {
-    return TagData(
-      json['tag'],
-      json['value'],
-    );
-  }
 }
 
 class _JournalPageState extends State<JournalPage> {
   final int _initialPage = 500;
 
   Map<String, List<String>> _tagNames = <String, List<String>>{};
-  // TODO: Change this to Map<String, Map<String, String>>
-  //       so that each day can have multiple tags
+  // TODO(Hop): Change this to Map<String, Map<String, String>>
+  //            so that each day can have multiple tags
   Map<DateTime, TagData> _appliedTags = <DateTime, TagData>{};
 
   late DateTime _startMonth;
@@ -136,16 +135,16 @@ class _JournalPageState extends State<JournalPage> {
         final Map<String, dynamic> decodedData = json.decode(savedData);
 
         _tagNames = (decodedData['tagNames'] as Map<String, dynamic>)
-          .map((String key, dynamic value) =>
-            MapEntry<String, List<String>>(key, List<String>.from(value)));
+          .map((String key, dynamic value) => MapEntry<String, List<String>>(
+            key,
+            List<String>.from(value),
+          ));
 
         _appliedTags = (decodedData['appliedTags'] as Map<String, dynamic>)
-          .map((String key, dynamic value) =>
-            MapEntry<DateTime, TagData>(
-              DateTime.parse(key),
-              TagData.fromJson(value),
-            ),
-          );
+          .map((String key, dynamic value) => MapEntry<DateTime, TagData>(
+            DateTime.parse(key),
+            TagData.fromJson(value),
+          ));
       });
     }
   }
@@ -155,12 +154,10 @@ class _JournalPageState extends State<JournalPage> {
     final Map<String, dynamic> dataToSave = <String, dynamic>{
       'tagNames': _tagNames,
       'appliedTags': _appliedTags
-        .map((DateTime key, TagData value) =>
-          MapEntry<String, dynamic>(
-            key.toIso8601String(),
-            value.toJson(),
-          ),
-        ),
+        .map((DateTime key, TagData value) => MapEntry<String, dynamic>(
+          key.toIso8601String(),
+          value.toJson(),
+        )),
     };
 
     await prefs.setString('tags', json.encode(dataToSave));
@@ -227,11 +224,10 @@ class _JournalPageState extends State<JournalPage> {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: Navigator.of(context).pop,
               child: const Text('Cancel'),
             ),
+            // TODO(Christoffer): Save buttons can be purple when a valid save
             TextButton(
               onPressed: () {
                   setDialogState(() {
@@ -241,8 +237,8 @@ class _JournalPageState extends State<JournalPage> {
                         .where((String text) => text.isNotEmpty)
                         .toList();
                     } else {
-                      // TODO: Think through this, rather have small text +
-                      //       strikethrough when checked?
+                      // TODO(Hop): Think through this, rather have small text +
+                      //            strikethrough when checked?
                       _tagNames[tagController.text] = <String>['✅', '❎'];
                     }
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -269,79 +265,75 @@ class _JournalPageState extends State<JournalPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setDialogState) {
-          return AlertDialog(
-            title: Text('Add Tag for $formattedDate'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
+        builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
+          title: Text('Add Tag for $formattedDate'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              DropdownButton<String>(
+                value: selectedTagname,
+                hint: const Text('Select Tag'),
+                items: _tagNames.keys.map((String key) => DropdownMenuItem<String>(
+                  value: key,
+                  child: Text(key),
+                )).toList(),
+                onChanged: (String? value) {
+                  setDialogState(() {
+                    selectedTagname = value;
+                    if (value != null && _tagNames[value] != null) {
+                      optionsList = _tagNames[value]!;
+                    }
+                  });
+                },
+              ),
+              if (optionsList.isNotEmpty) ...<Widget>[
+                const Text('Select an option:'),
                 DropdownButton<String>(
-                  value: selectedTagname,
-                  hint: const Text('Select Tag'),
-                  items: _tagNames.keys.map((String key) {
-                    return DropdownMenuItem<String>(
-                      value: key,
-                      child: Text(key),
-                    );
-                  }).toList(),
+                  value: selectedTagvalue,
+                  hint: const Text('Options'),
+                  items: optionsList.map((String option) => DropdownMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  )).toList(),
                   onChanged: (String? value) {
                     setDialogState(() {
-                      selectedTagname = value;
-                      if (value != null && _tagNames[value] != null) {
-                        optionsList = _tagNames[value]!;
-                      }
+                      selectedTagvalue = value;
                     });
                   },
                 ),
-                if (optionsList.isNotEmpty) ...<Widget>[
-                  const Text('Select an option:'),
-                  DropdownButton<String>(
-                    value: selectedTagvalue,
-                    hint: const Text('Options'),
-                    items: optionsList.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Text(option),
-                      );
-                    }).toList(),
-                    onChanged: (String? value) {
-                      setDialogState(() {
-                        selectedTagvalue = value;
-                      });
-                    },
-                  ),
-                ],
               ],
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: selectedTagname != null
-                  ? () {
-                      setState(() {
-                        final TagData td = TagData(
-                          selectedTagname!,
-                          selectedTagvalue!,
-                        );
-                        _appliedTags[date] = td;
-                      });
-                      _saveTags();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Tag applied to date')),
-                      );
-                      Navigator.of(context).pop();
-                    }
-                  : null,
-                child: const Text('Save'),
-              ),
             ],
-          );
-        },
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: const Text('Cancel'),
+            ),
+            // TODO(Christoffer): Save buttons can be purple when a valid save
+            TextButton(
+              onPressed: selectedTagname != null
+                ? () {
+                    setState(() {
+                      final TagData td = TagData(
+                        selectedTagname!,
+                        // TODO(Hop): Crashes if no value is selected.
+                        //            perhaps should grey out "Save" button
+                        //            instead.
+                        selectedTagvalue!,
+                      );
+                      _appliedTags[date] = td;
+                    });
+                    _saveTags();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Tag applied to date')),
+                    );
+                    Navigator.of(context).pop();
+                  }
+                : null,
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -385,17 +377,16 @@ class _JournalPageState extends State<JournalPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => _jumpToPage(-1),
         ),
-        // TODO: Pressing this might open a selection for manually inputting a
-        //       date with the builtin flutter picker. And it should calculate
-        //       the new `offset` and then call `_jumpToPage(offset)` with that.
+        // TODO(Hop): Pressing this might open a selection for manually
+        //            inputting a date with the builtin flutter picker. And it
+        //            should calculate the new `offset` and then call
+        //            `_jumpToPage(offset)` with that.
         ValueListenableBuilder<DateTime>(
           valueListenable: _focusedMonthNotifier,
-          builder: (BuildContext context, DateTime focusedMonth, Widget? child) {
-            return Text(
-              DateFormat.yMMMM('sv_SE').format(focusedMonth),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            );
-          },
+          builder: (BuildContext context, DateTime focusedMonth, Widget? child) => Text(
+            DateFormat.yMMMM('sv_SE').format(focusedMonth),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
         IconButton(
           icon: const Icon(Icons.arrow_forward),
@@ -422,23 +413,29 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   Widget _buildCalendarMonth(DateTime month) {
+    const double edgeInset = 8.0;
+    const double mainAxisSpacing = 10.0;
+
     final int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final int firstDayOffset = DateTime(month.year, month.month).weekday - 1;
     final int totalBoxes = ((firstDayOffset + daysInMonth) / 7).ceil() * 7;
+    final int rowCount = (totalBoxes / 7).ceil();
 
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final double calendarHeight = constraints.maxHeight - 40;
+        final double calendarHeight = constraints.maxHeight - (
+          (rowCount - 1) * mainAxisSpacing + 2 * edgeInset
+        );
         final double itemHeight = calendarHeight / (totalBoxes / 7).ceil();
 
         return Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(edgeInset),
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
               mainAxisExtent: itemHeight,
-              mainAxisSpacing: 10.0,
+              mainAxisSpacing: mainAxisSpacing,
               crossAxisSpacing: 10.0,
             ),
             itemCount: totalBoxes,
@@ -447,38 +444,37 @@ class _JournalPageState extends State<JournalPage> {
               final bool isDayInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
               final DateTime curDay = DateTime(month.year, month.month, dayNumber);
 
-              return GestureDetector(
-                onTap: isDayInMonth ? () => _applyTag(curDay) : null,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              return TextButton(
+                onPressed: isDayInMonth ? () => _applyTag(curDay) : null,
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: Center(
-                    child: isDayInMonth
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              '$dayNumber',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            if (_appliedTags.containsKey(curDay))
-                              Text(
-                                _appliedTags[curDay]!.value,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                              ),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                  ),
+                  padding: EdgeInsets.zero,
                 ),
+                child: isDayInMonth
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          '$dayNumber',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        if (_appliedTags.containsKey(curDay))
+                          Text(
+                            _appliedTags[curDay]!.value,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
               );
             },
           ),
@@ -487,4 +483,3 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 }
-
