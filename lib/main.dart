@@ -117,8 +117,33 @@ class _JournalPageState extends State<JournalPage> {
     super.dispose();
   }
 
+  void _showClearPreferencesWindow(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: _buildClearPreferencesDialog,
+    );
+  }
+
+  Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
+    title: const Text('Add Tag'),
+    content: const Text('Are you sure you want to clear data?'),
+    actions: <Widget>[
+      TextButton(
+        onPressed: Navigator.of(context).pop,
+        child: const Text('Cancel'),
+      ),
+      TextButton(
+        onPressed: () {
+          _clearPreferences(context);
+          _showSnackBar(context, 'Preferences cleared');
+          Navigator.of(context).pop();
+        },
+        child: const Text('Yes'),
+      ),
+    ],
+  );
+
   Future<void> _clearPreferences(BuildContext context) async {
-    _showSnackBar(context, 'Clearing preferences...');
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     setState(() {
@@ -194,6 +219,9 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
+  // TODO(Christoffer): These dialogs could be Form-widgets in a new page.
+  //                    We don't need to see what's behind it and we are
+  //                    interacting with it for a longer time.
   Widget _buildAddTagDialog(
     TextEditingController tagController,
     List<TextEditingController> optionControllers,
@@ -260,7 +288,6 @@ class _JournalPageState extends State<JournalPage> {
           onPressed: Navigator.of(context).pop,
           child: const Text('Cancel'),
         ),
-        // TODO(Christoffer): Save buttons can be purple when a valid save
         TextButton(
           onPressed: _isTagValid(tagController, selectedType, optionControllers)
           ? () {
@@ -323,6 +350,9 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
+  // TODO(Christoffer): These dialogs could be Form-widgets in a new page.
+  //                    We don't need to see what's behind it and we are
+  //                    interacting with it for a longer time.
   Widget _buildApplyTagDialog(
     DateTime date,
     String? selectedTagname,
@@ -373,7 +403,6 @@ class _JournalPageState extends State<JournalPage> {
           onPressed: Navigator.of(context).pop,
           child: const Text('Cancel'),
         ),
-        // TODO(Christoffer): Save buttons can be purple when a valid save
         TextButton(
           onPressed: (selectedTagname != null && selectedTagvalue != null)
             ? () {
@@ -412,7 +441,7 @@ class _JournalPageState extends State<JournalPage> {
         ),
         IconButton(
           icon: const Icon(Icons.delete),
-          onPressed: () => _clearPreferences(context),
+          onPressed: () => _showClearPreferencesWindow(context),
         ),
       ],
     ),
@@ -495,6 +524,10 @@ class _JournalPageState extends State<JournalPage> {
 
         return TextButton(
           onPressed: isDayInMonth
+            // TODO(Christoffer): Display a page with the applied tags,
+            //                    with a plus button to add a new tag.
+            //                    Reason being to be able to edit/remove tags
+            //                    as well as view/add them in a single screen.
             ? () => _showApplyTagWindow(context, curDay)
             : null,
           style: _buttonStyle(context),
