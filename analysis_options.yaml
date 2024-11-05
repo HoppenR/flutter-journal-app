@@ -184,6 +184,7 @@ linter:
     void_checks: true
     # Additions
     avoid_web_libraries_in_flutter: true
+    lines_longer_than_80_chars: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
