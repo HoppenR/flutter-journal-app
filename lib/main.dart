@@ -78,9 +78,20 @@ class TagData {
   }
 }
 
-class _JournalPageState extends State<JournalPage> {
-  final int _initialPage = 500;
+enum TagType {
+  list,
+  boolean,
+}
 
+// --- _JournalPageState ---
+
+class _JournalPageState extends State<JournalPage> {
+  static const int _initialPage = 500;
+  static const double calendarGridEdgeInset = 8.0;
+  static const double calendarGridMainAxisSpacing = 10.0;
+
+  // TODO(Hop): Save the tag type as well in this, so we can differentiate
+  //            between boolean and list (Use `TagType` enum)
   Map<String, List<String>> _tagNames = <String, List<String>>{};
   // TODO(Hop): Change this to Map<String, Map<String, String>>
   //            so that each day can have multiple tags
@@ -106,10 +117,8 @@ class _JournalPageState extends State<JournalPage> {
     super.dispose();
   }
 
-  Future<void> _clearPreferences() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Clearing preferences...')),
-    );
+  Future<void> _clearPreferences(BuildContext context) async {
+    _showSnackBar(context, 'Clearing preferences...');
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     setState(() {
@@ -163,323 +172,367 @@ class _JournalPageState extends State<JournalPage> {
     await prefs.setString('tags', json.encode(dataToSave));
   }
 
-  void _showAddTagWindow() {
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  void _showAddTagWindow(BuildContext context) {
     final TextEditingController tagController = TextEditingController();
     final List<TextEditingController>
       optionControllers = <TextEditingController>[TextEditingController()];
-    String? selectedType;
+    TagType? selectedType;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
-          title: const Text('Add Tag'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: tagController,
-                decoration: const InputDecoration(hintText: 'Enter a tag'),
-              ),
-              DropdownButton<String>(
-                value: selectedType,
-                hint: const Text('Select tag type'),
-                items: const <DropdownMenuItem<String>>[
-                  DropdownMenuItem<String>(
-                    value: 'boolean',
-                    child: Text('Checkmark'),
-                  ),
-                  DropdownMenuItem<String>(
-                    value: 'list',
-                    child: Text('Options'),
-                  ),
-                ],
-                onChanged: (String? value) {
-                  setDialogState(() {
-                    selectedType = value;
-                  });
-                },
-              ),
-              if (selectedType == 'list') ...<Widget>[
-                for (final TextEditingController controller in optionControllers)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: TextField(
-                      controller: controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter an option',
-                      ),
-                    ),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    setDialogState(() {
-                      optionControllers.add(TextEditingController());
-                    });
-                  },
-                ),
-              ],
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: Navigator.of(context).pop,
-              child: const Text('Cancel'),
-            ),
-            // TODO(Christoffer): Save buttons can be purple when a valid save
-            TextButton(
-              onPressed: () {
-                  setDialogState(() {
-                    if (selectedType == 'list') {
-                      _tagNames[tagController.text] = optionControllers
-                        .map((TextEditingController controller) => controller.text)
-                        .where((String text) => text.isNotEmpty)
-                        .toList();
-                    } else {
-                      // TODO(Hop): Think through this, rather have small text +
-                      //            strikethrough when checked?
-                      _tagNames[tagController.text] = <String>['✅', '❎'];
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tag added')),
-                    );
-                  });
-                _saveTags();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+      builder: (BuildContext context) => _buildAddTagDialog(
+        tagController,
+        optionControllers,
+        selectedType,
       ),
     );
   }
 
-  void _applyTag(DateTime date) {
-    final String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-    String? selectedTagname;
-    String? selectedTagvalue;
-    List<String> optionsList = <String>[];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => StatefulBuilder(
-        builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
-          title: Text('Add Tag for $formattedDate'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              DropdownButton<String>(
-                value: selectedTagname,
-                hint: const Text('Select Tag'),
-                items: _tagNames.keys.map((String key) => DropdownMenuItem<String>(
-                  value: key,
-                  child: Text(key),
-                )).toList(),
-                onChanged: (String? value) {
-                  setDialogState(() {
-                    selectedTagname = value;
-                    if (value != null && _tagNames[value] != null) {
-                      optionsList = _tagNames[value]!;
-                    }
-                  });
-                },
-              ),
-              if (optionsList.isNotEmpty) ...<Widget>[
-                const Text('Select an option:'),
-                DropdownButton<String>(
-                  value: selectedTagvalue,
-                  hint: const Text('Options'),
-                  items: optionsList.map((String option) => DropdownMenuItem<String>(
-                    value: option,
-                    child: Text(option),
-                  )).toList(),
-                  onChanged: (String? value) {
-                    setDialogState(() {
-                      selectedTagvalue = value;
-                    });
-                  },
-                ),
-              ],
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: Navigator.of(context).pop,
-              child: const Text('Cancel'),
-            ),
-            // TODO(Christoffer): Save buttons can be purple when a valid save
-            TextButton(
-              onPressed: selectedTagname != null
-                ? () {
-                    setState(() {
-                      final TagData td = TagData(
-                        selectedTagname!,
-                        // TODO(Hop): Crashes if no value is selected.
-                        //            perhaps should grey out "Save" button
-                        //            instead.
-                        selectedTagvalue!,
-                      );
-                      _appliedTags[date] = td;
-                    });
-                    _saveTags();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tag applied to date')),
-                    );
-                    Navigator.of(context).pop();
-                  }
-                : null,
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  DateTime _calculateMonth(int index) {
-    final int monthOffset = index - _initialPage;
-    return DateTime(_startMonth.year, _startMonth.month + monthOffset);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddTagWindow,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _clearPreferences,
-          ),
-        ],
-      ),
-      body: Column(
+  Widget _buildAddTagDialog(
+    TextEditingController tagController,
+    List<TextEditingController> optionControllers,
+    TagType? selectedType,
+  ) => StatefulBuilder(
+    builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
+      title: const Text('Add Tag'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          _calendarNavigation(),
-          _calendarBody(),
+          TextField(
+            controller: tagController,
+            decoration: const InputDecoration(hintText: 'Enter a tag'),
+            onChanged: (String value) {
+              setDialogState(() {
+                // Trigger an update for the save-button state
+              });
+            },
+          ),
+          DropdownButton<TagType>(
+            value: selectedType,
+            hint: const Text('Select tag type'),
+            items: const <DropdownMenuItem<TagType>>[
+              DropdownMenuItem<TagType>(
+                value: TagType.boolean,
+                child: Text('Checkmark'),
+              ),
+              DropdownMenuItem<TagType>(
+                value: TagType.list,
+                child: Text('Options'),
+              ),
+            ],
+            onChanged: (TagType? value) {
+              setDialogState(() {
+                selectedType = value;
+              });
+            },
+          ),
+          if (selectedType == TagType.list) ...<Widget>[
+            ...optionControllers.map(
+              (TextEditingController controller) => TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: 'Enter an option'),
+                onChanged: (String value) {
+                  setDialogState(() {
+                    // Trigger an update for the save-button state
+                  });
+                },
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                setDialogState(() {
+                  optionControllers.add(TextEditingController());
+                });
+              },
+            ),
+          ],
         ],
       ),
-    );
-  }
-
-  Widget _calendarNavigation() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => _jumpToPage(-1),
+      actions: <Widget>[
+        TextButton(
+          onPressed: Navigator.of(context).pop,
+          child: const Text('Cancel'),
         ),
-        // TODO(Hop): Pressing this might open a selection for manually
-        //            inputting a date with the builtin flutter picker. And it
-        //            should calculate the new `offset` and then call
-        //            `_jumpToPage(offset)` with that.
-        ValueListenableBuilder<DateTime>(
-          valueListenable: _focusedMonthNotifier,
-          builder: (BuildContext context, DateTime focusedMonth, Widget? child) => Text(
-            DateFormat.yMMMM('sv_SE').format(focusedMonth),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.arrow_forward),
-          onPressed: () => _jumpToPage(1),
+        // TODO(Christoffer): Save buttons can be purple when a valid save
+        TextButton(
+          onPressed: _isTagValid(tagController, selectedType, optionControllers)
+          ? () {
+            setDialogState(() {
+              if (selectedType == TagType.list) {
+                _tagNames[tagController.text] = optionControllers
+                  .map((TextEditingController controller) => controller.text)
+                  .where((String text) => text.isNotEmpty)
+                  .toList();
+              } else if(selectedType == TagType.boolean) {
+                // TODO(Hop): Think through this, rather have small text +
+                //            strikethrough when checked?
+                //            Need to rethink the entire boolean type
+                _tagNames[tagController.text] = <String>['✅', '❎'];
+              }
+              _showSnackBar(context, 'Tag added');
+            });
+            _saveTags();
+            Navigator.of(context).pop();
+          }
+          : null,
+          child: const Text('Save'),
         ),
       ],
-    );
+    ),
+  );
+
+  bool _isTagValid(
+    TextEditingController tagController,
+    TagType? selectedType,
+    List<TextEditingController> optionControllers,
+  ) {
+    if (tagController.text.isEmpty) {
+      return false;
+    }
+    if (selectedType == null) {
+      return false;
+    }
+    if (selectedType == TagType.list) {
+      return optionControllers.any(
+        (TextEditingController controller) => controller.text.isNotEmpty,
+      );
+    }
+    return true;
   }
 
-  Widget _calendarBody() {
-    return Expanded(
-      child: PageView.builder(
-        controller: _pageController,
-        // scrollDirection: Axis.horizontal,
-        onPageChanged: (int index) {
-          _focusedMonthNotifier.value = _calculateMonth(index);
-        },
-        itemBuilder: (BuildContext context, int index) {
-          final DateTime monthToDisplay = _calculateMonth(index);
-          return _buildCalendarMonth(monthToDisplay);
-        }
+  void _showApplyTagWindow(BuildContext context, DateTime date) {
+    String? selectedTagname;
+    String? selectedTagvalue;
+    final List<String> optionsList = <String>[];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => _buildApplyTagDialog(
+        date,
+        selectedTagname,
+        selectedTagvalue,
+        optionsList,
       ),
     );
   }
 
-  Widget _buildCalendarMonth(DateTime month) {
-    const double edgeInset = 8.0;
-    const double mainAxisSpacing = 10.0;
+  Widget _buildApplyTagDialog(
+    DateTime date,
+    String? selectedTagname,
+    String? selectedTagvalue,
+    List<String> optionsList,
+  ) => StatefulBuilder(
+    builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
+      title: Text('Add Tag for ${DateFormat('yyyy-MM-dd').format(date)}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          DropdownButton<String>(
+            value: selectedTagname,
+            hint: const Text('Select Tag'),
+            items: _tagNames.keys.map((String key) => DropdownMenuItem<String>(
+              value: key,
+              child: Text(key),
+            )).toList(),
+            onChanged: (String? value) {
+              setDialogState(() {
+                selectedTagname = value;
+                if (value != null && _tagNames[value] != null) {
+                  optionsList = _tagNames[value]!;
+                }
+              });
+            },
+          ),
+          if (optionsList.isNotEmpty) ...<Widget>[
+            const Text('Select an option:'),
+            DropdownButton<String>(
+              value: selectedTagvalue,
+              hint: const Text('Options'),
+              items: optionsList.map((String opt) => DropdownMenuItem<String>(
+                value: opt,
+                child: Text(opt),
+              )).toList(),
+              onChanged: (String? value) {
+                setDialogState(() {
+                  selectedTagvalue = value;
+                });
+              },
+            ),
+          ],
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: Navigator.of(context).pop,
+          child: const Text('Cancel'),
+        ),
+        // TODO(Christoffer): Save buttons can be purple when a valid save
+        TextButton(
+          onPressed: (selectedTagname != null && selectedTagvalue != null)
+            ? () {
+                setState(() {
+                  final TagData td = TagData(
+                    selectedTagname!,
+                    selectedTagvalue!,
+                  );
+                  _appliedTags[date] = td;
+                });
+                _saveTags();
+                _showSnackBar(context, 'Tag applied to date');
+                Navigator.of(context).pop();
+              }
+            : null,
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 
+  DateTime _calculateMonth(int index) => DateTime(
+    _startMonth.year,
+    _startMonth.month + index - _initialPage,
+  );
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      title: Text(widget.title),
+      actions: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () => _showAddTagWindow(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: () => _clearPreferences(context),
+        ),
+      ],
+    ),
+    body: Column(
+      children: <Widget>[
+        _calendarNavigation(),
+        _calendarBody(),
+      ],
+    ),
+  );
+
+  Widget _calendarNavigation() => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: <Widget>[
+      IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => _jumpToPage(-1),
+      ),
+      // TODO(Hop): Pressing this might open a selection for manually
+      //            inputting a date with the builtin flutter picker. And it
+      //            should calculate the new `offset` and then call
+      //            `_jumpToPage(offset)` with that.
+      ValueListenableBuilder<DateTime>(
+        valueListenable: _focusedMonthNotifier,
+        builder: (BuildContext context, DateTime month, Widget? child) => Text(
+          DateFormat.yMMMM('sv_SE').format(month),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.arrow_forward),
+        onPressed: () => _jumpToPage(1),
+      ),
+    ],
+  );
+
+  Widget _calendarBody() => Expanded(
+    child: PageView.builder(
+      controller: _pageController,
+      // scrollDirection: Axis.horizontal,
+      onPageChanged: (int index) {
+        _focusedMonthNotifier.value = _calculateMonth(index);
+      },
+      itemBuilder: (BuildContext context, int index) => LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) => Padding(
+          padding: const EdgeInsets.all(calendarGridEdgeInset),
+          child: _buildCalendarMonth(constraints, index),
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildCalendarMonth(
+    BoxConstraints constraints,
+    int index,
+  ) {
+    final DateTime month = _calculateMonth(index);
     final int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     final int firstDayOffset = DateTime(month.year, month.month).weekday - 1;
     final int totalBoxes = ((firstDayOffset + daysInMonth) / 7).ceil() * 7;
     final int rowCount = (totalBoxes / 7).ceil();
+    final double calendarHeight = constraints.maxHeight - (
+      (rowCount - 1) * calendarGridMainAxisSpacing + 2 * calendarGridEdgeInset
+    );
+    final double itemHeight = calendarHeight / (totalBoxes / 7).ceil();
 
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final double calendarHeight = constraints.maxHeight - (
-          (rowCount - 1) * mainAxisSpacing + 2 * edgeInset
-        );
-        final double itemHeight = calendarHeight / (totalBoxes / 7).ceil();
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+        mainAxisExtent: itemHeight,
+        mainAxisSpacing: calendarGridMainAxisSpacing,
+        crossAxisSpacing: 10.0,
+      ),
+      itemCount: totalBoxes,
+      itemBuilder: (BuildContext context, int index) {
+        final int dayNumber = index - firstDayOffset + 1;
+        final bool isDayInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+        final DateTime curDay = DateTime(month.year, month.month, dayNumber);
 
-        return Padding(
-          padding: const EdgeInsets.all(edgeInset),
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              mainAxisExtent: itemHeight,
-              mainAxisSpacing: mainAxisSpacing,
-              crossAxisSpacing: 10.0,
-            ),
-            itemCount: totalBoxes,
-            itemBuilder: (BuildContext context, int index) {
-              final int dayNumber = index - firstDayOffset + 1;
-              final bool isDayInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
-              final DateTime curDay = DateTime(month.year, month.month, dayNumber);
-
-              return TextButton(
-                onPressed: isDayInMonth ? () => _applyTag(curDay) : null,
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-                child: isDayInMonth
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Text(
-                          '$dayNumber',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        if (_appliedTags.containsKey(curDay))
-                          Text(
-                            _appliedTags[curDay]!.value,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
-              );
-            },
-          ),
+        return TextButton(
+          onPressed: isDayInMonth
+            ? () => _showApplyTagWindow(context, curDay)
+            : null,
+          style: _buttonStyle(context),
+          child: isDayInMonth
+            ? _buttonContent(context, curDay)
+            : const SizedBox.shrink(),
         );
       },
     );
   }
+
+  ButtonStyle _buttonStyle(BuildContext context) => TextButton.styleFrom(
+    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+    padding: EdgeInsets.zero,
+  );
+
+  Widget _buttonContent(
+    BuildContext context,
+    DateTime curDay,
+  ) => Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: <Widget>[
+      Text(
+        '${curDay.day}',
+        style: TextStyle(
+          fontSize: 18,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+      if (_appliedTags.containsKey(curDay))
+        Text(
+          _appliedTags[curDay]!.value,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
+    ],
+  );
 }
