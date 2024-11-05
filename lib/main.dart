@@ -8,6 +8,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'add_tag_form.dart';
+
 class JournalScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
@@ -76,11 +78,6 @@ class TagData {
       'value': value,
     };
   }
-}
-
-enum TagType {
-  list,
-  boolean,
 }
 
 // --- _JournalPageState ---
@@ -204,134 +201,19 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   void _showAddTagWindow(BuildContext context) {
-    final TextEditingController tagController = TextEditingController();
-    final List<TextEditingController>
-      optionControllers = <TextEditingController>[TextEditingController()];
-    TagType? selectedType;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => _buildAddTagDialog(
-        tagController,
-        optionControllers,
-        selectedType,
-      ),
-    );
-  }
-
-  // TODO(Christoffer): These dialogs could be Form-widgets in a new page.
-  //                    We don't need to see what's behind it and we are
-  //                    interacting with it for a longer time.
-  Widget _buildAddTagDialog(
-    TextEditingController tagController,
-    List<TextEditingController> optionControllers,
-    TagType? selectedType,
-  ) => StatefulBuilder(
-    builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
-      title: const Text('Add Tag'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          TextField(
-            controller: tagController,
-            decoration: const InputDecoration(hintText: 'Enter a tag'),
-            onChanged: (String value) {
-              setDialogState(() {
-                // Trigger an update for the save-button state
-              });
-            },
-          ),
-          DropdownButton<TagType>(
-            value: selectedType,
-            hint: const Text('Select tag type'),
-            items: const <DropdownMenuItem<TagType>>[
-              DropdownMenuItem<TagType>(
-                value: TagType.boolean,
-                child: Text('Checkmark'),
-              ),
-              DropdownMenuItem<TagType>(
-                value: TagType.list,
-                child: Text('Options'),
-              ),
-            ],
-            onChanged: (TagType? value) {
-              setDialogState(() {
-                selectedType = value;
-              });
-            },
-          ),
-          if (selectedType == TagType.list) ...<Widget>[
-            ...optionControllers.map(
-              (TextEditingController controller) => TextField(
-                controller: controller,
-                decoration: const InputDecoration(hintText: 'Enter an option'),
-                onChanged: (String value) {
-                  setDialogState(() {
-                    // Trigger an update for the save-button state
-                  });
-                },
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
-                setDialogState(() {
-                  optionControllers.add(TextEditingController());
-                });
-              },
-            ),
-          ],
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: Navigator.of(context).pop,
-          child: const Text('Cancel'),
+    Navigator.push(
+      context,
+      MaterialPageRoute<bool?>(
+        builder: (BuildContext context) => FullScreenTagForm(
+          tagNames: _tagNames,
         ),
-        TextButton(
-          onPressed: _isTagValid(tagController, selectedType, optionControllers)
-          ? () {
-            setDialogState(() {
-              if (selectedType == TagType.list) {
-                _tagNames[tagController.text] = optionControllers
-                  .map((TextEditingController controller) => controller.text)
-                  .where((String text) => text.isNotEmpty)
-                  .toList();
-              } else if(selectedType == TagType.boolean) {
-                // TODO(Hop): Think through this, rather have small text +
-                //            strikethrough when checked?
-                //            Need to rethink the entire boolean type
-                _tagNames[tagController.text] = <String>['✅', '❎'];
-              }
-              _showSnackBar(context, 'Tag added');
-            });
-            _saveTags();
-            Navigator.of(context).pop();
-          }
-          : null,
-          child: const Text('Save'),
-        ),
-      ],
-    ),
-  );
-
-  bool _isTagValid(
-    TextEditingController tagController,
-    TagType? selectedType,
-    List<TextEditingController> optionControllers,
-  ) {
-    if (tagController.text.isEmpty) {
-      return false;
-    }
-    if (selectedType == null) {
-      return false;
-    }
-    if (selectedType == TagType.list) {
-      return optionControllers.any(
-        (TextEditingController controller) => controller.text.isNotEmpty,
-      );
-    }
-    return true;
+      ),
+    ).then((bool? result) {
+      if (result != null && result) {
+        _showSnackBar(context, 'tag added');
+        _saveTags();
+      }
+    });
   }
 
   void _showApplyTagWindow(BuildContext context, DateTime date) {
