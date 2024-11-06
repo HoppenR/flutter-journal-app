@@ -1,5 +1,5 @@
 // Vim: set shiftwidth=2 :
-// import 'dart:convert';
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -133,40 +133,64 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   Future<void> _loadTags() async {
-    // final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // final String? savedData = prefs.getString('tags');
-    //
-    // if (savedData != null) {
-    //   setState(() {
-    //     final Map<String, dynamic> decodedData = json.decode(savedData);
-    //
-    //     _tagNames = (decodedData['tagNames'] as Map<String, dynamic>)
-    //       .map((String key, dynamic value) => MapEntry<String, List<String>>(
-    //         key,
-    //         List<String>.from(value),
-    //       ));
-    //
-    //     _appliedTags = (decodedData['appliedTags'] as Map<String, dynamic>)
-    //       .map((String key, dynamic value) => MapEntry<DateTime, TagData>(
-    //         DateTime.parse(key),
-    //         TagData.fromJson(value),
-    //       ));
-    //   });
-    // }
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? savedData = prefs.getString('tags');
+
+    if (savedData == null) {
+      return;
+    }
+
+    final Map<String, dynamic> decodedData = json.decode(savedData);
+
+    tagNames = (decodedData['tagNames'] as Map<String, dynamic>).map(
+      (String key, dynamic value) {
+        return MapEntry<String, TagData>(
+          key,
+          TagData.fromJson(value),
+        );
+      },
+    );
+
+    appliedTags = (decodedData['appliedTags'] as Map<String, dynamic>).map(
+      (String key, dynamic value) {
+        return MapEntry<DateTime, List<AppliedTagData>>(
+          DateTime.parse(key),
+          (value as List<dynamic>).map((dynamic item) {
+            return AppliedTagData.fromJson(item as Map<String, dynamic>);
+          }).toList(),
+        );
+      },
+    );
   }
 
   Future<void> _saveTags() async {
-    // final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // final Map<String, dynamic> dataToSave = <String, dynamic>{
-    //   'tagNames': _tagNames,
-    //   'appliedTags': _appliedTags
-    //     .map((DateTime key, TagData value) => MapEntry<String, dynamic>(
-    //       key.toIso8601String(),
-    //       value.toJson(),
-    //     )),
-    // };
-    //
-    // await prefs.setString('tags', json.encode(dataToSave));
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    final Map<String, Map<String, dynamic>> tagNamesJson = tagNames.map(
+      (String key, TagData value) {
+        return MapEntry<String, Map<String, dynamic>>(
+          key,
+          value.toJson(),
+        );
+      },
+    );
+
+    final Map<String, List<Map<String, dynamic>>>
+      appliedTagsJson = appliedTags.map(
+        (DateTime key, List<AppliedTagData> value) {
+          return MapEntry<String, List<Map<String, dynamic>>>(
+            key.toIso8601String(),
+            value.map((AppliedTagData tag) => tag.toJson()).toList(),
+          );
+        },
+    );
+
+    final String dataToSave = json.encode(<String, dynamic>{
+      'tagNames': tagNamesJson,
+      'appliedTags': appliedTagsJson,
+    });
+
+    await prefs.setString('tags', dataToSave);
   }
 
   void _showSnackBar(BuildContext context, String message) {
@@ -282,14 +306,18 @@ class _JournalPageState extends State<JournalPage> {
                         selectedTagData!,
                       );
                   }
-                  // TODO(Christoffer): This can add the same tag multiple times
-                  //                    do we want to overwrite instead?
-                  //                    Requires restructuring of data yet
-                  //                    again in that case...
-                  appliedTags.putIfAbsent(
+                  final List<AppliedTagData> tagList = appliedTags.putIfAbsent(
                     date,
                     () => <AppliedTagData>[],
-                  ).add(td);
+                  );
+                  final int existingTagIndex = tagList.indexWhere(
+                    (AppliedTagData tag) => tag.name == selectedTagName,
+                  );
+                  if (existingTagIndex != -1) {
+                    tagList[existingTagIndex] = td;
+                  } else {
+                    tagList.add(td);
+                  }
                 });
                 _saveTags();
                 _showSnackBar(context, 'Tag applied to date');
