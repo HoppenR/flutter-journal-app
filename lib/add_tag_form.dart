@@ -20,20 +20,12 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TagType? selectedType;
 
-  bool get _isSaveButtonEnabled {
-    _formKey.currentState?.validate();
-    if (tagController.text.isEmpty) {
-      return false;
+  @override void dispose() {
+    tagController.dispose();
+    for (final TextEditingController controller in optionControllers) {
+      controller.dispose();
     }
-    if (selectedType == null) {
-      return false;
-    }
-    if (selectedType == TagType.list) {
-      return optionControllers.any(
-        (TextEditingController controller) => controller.text.isNotEmpty,
-      );
-    }
-    return true;
+    super.dispose();
   }
 
   @override
@@ -44,8 +36,8 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
         title: const Text('Add Tag'),
         actions: <Widget>[
           TextButton(
-            onPressed: _isSaveButtonEnabled
-              ? () {
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
                 if (selectedType == TagType.list) {
                   widget.tagNames[tagController.text] = optionControllers
                     .map((TextEditingController controller) => controller.text)
@@ -59,7 +51,7 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 }
                 Navigator.of(context).pop(true);
               }
-              : null,
+            },
             child: const Text('Save'),
           ),
         ],
@@ -78,6 +70,7 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 validator: (String? value) => value == null || value.isEmpty
                   ? 'Tag is required'
                   : null,
+                autofocus: true,
               ),
               DropdownButtonFormField<TagType>(
                 value: selectedType,
@@ -127,7 +120,7 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 onChanged: (String? value) => setState(() {}),
               ),
             ),
-            IconButton(
+            if (entry.key > 0) IconButton(
               icon: const Icon(Icons.remove_circle),
               onPressed: () => setState(() {
                 optionControllers.removeAt(entry.key);
