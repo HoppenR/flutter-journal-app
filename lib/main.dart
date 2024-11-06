@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_date_pickers/flutter_date_pickers.dart';
 
 import 'add_tag_form.dart';
 
@@ -232,9 +233,6 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  // TODO(Christoffer): These dialogs could be Form-widgets in a new page.
-  //                    We don't need to see what's behind it and we are
-  //                    interacting with it for a longer time.
   Widget _buildApplyTagDialog(
     DateTime date,
     String? selectedTagname,
@@ -342,15 +340,42 @@ class _JournalPageState extends State<JournalPage> {
         icon: const Icon(Icons.arrow_back),
         onPressed: () => _jumpToPage(-1),
       ),
-      // TODO(Hop): Pressing this might open a selection for manually
-      //            inputting a date with the builtin flutter picker. And it
-      //            should calculate the new `offset` and then call
-      //            `_jumpToPage(offset)` with that.
       ValueListenableBuilder<DateTime>(
         valueListenable: _focusedMonthNotifier,
-        builder: (BuildContext context, DateTime month, Widget? child) => Text(
-          DateFormat.yMMMM('sv_SE').format(month),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        builder: (BuildContext context, DateTime month, Widget? child) => InkWell(
+          onTap: () {
+            final DatePickerStyles styles = DatePickerStyles(
+              selectedDateStyle: Theme.of(context).textTheme.bodyMedium,
+              selectedSingleDateDecoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                shape: BoxShape.circle,
+              ),
+            );
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Dialog(
+                  child: MonthPicker.single(
+                    selectedDate: _focusedMonthNotifier.value,
+                    firstDate: _calculateMonth(0),
+                    lastDate: _calculateMonth(_initialPage * 2),
+                    datePickerStyles: styles,
+                    onChanged: (DateTime value) {
+                      final int monthOffset = 12 *
+                          (value.year - _focusedMonthNotifier.value.year) +
+                          (value.month - _focusedMonthNotifier.value.month);
+                      _jumpToPage(monthOffset);
+                      Navigator.pop(context);
+                    },
+                  ),
+                );
+              },
+            );
+          },
+          child: Text(
+            DateFormat.yMMMM('sv_SE').format(month),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       IconButton(
