@@ -78,6 +78,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_date_pickers:
+    dependency: "direct main"
+    description:
+      name: flutter_date_pickers
+      sha256: "302b1200d8859ec0bfe51c4eaea5f4911d1dbfc3c3f7d256dcf32d99fec219ee"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.3"
   flutter_lints:
     dependency: "direct dev"
     description:
