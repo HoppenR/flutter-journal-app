@@ -1,12 +1,9 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
-
-enum TagType { boolean, list }
+import 'tag.dart';
 
 class FullScreenTagForm extends StatefulWidget {
-  const FullScreenTagForm({super.key, required this.tagNames});
-
-  final Map<String, List<String>> tagNames;
+  const FullScreenTagForm({super.key});
 
   @override
   FullScreenTagFormState createState() => FullScreenTagFormState();
@@ -39,15 +36,16 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
             onPressed: () {
               if (_formKey.currentState?.validate() ?? false) {
                 if (selectedType == TagType.list) {
-                  widget.tagNames[tagController.text] = optionControllers
-                    .map((TextEditingController controller) => controller.text)
-                    .where((String text) => text.isNotEmpty)
-                    .toList();
-                } else if(selectedType == TagType.boolean) {
-                  // TODO(Hop): Think through this, rather have small text +
-                  //            strikethrough when checked?
-                  //            Need to rethink the entire boolean type
-                  widget.tagNames[tagController.text] = <String>['✅', '❎'];
+                  tagNames[tagController.text] = TagData.list(
+                    optionControllers
+                      .map(
+                        (TextEditingController controller) => controller.text,
+                      ).toList(),
+                  );
+                } else if(selectedType == TagType.strikethrough) {
+                  tagNames[tagController.text] = TagData.strikethrough(
+                    tagController.text,
+                  );
                 }
                 Navigator.of(context).pop(true);
               }
@@ -77,12 +75,12 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 hint: const Text('Select tag type'),
                 items: const <DropdownMenuItem<TagType>>[
                   DropdownMenuItem<TagType>(
-                    value: TagType.boolean,
-                    child: Text('Checkmark'),
+                    value: TagType.list,
+                    child: Text('List'),
                   ),
                   DropdownMenuItem<TagType>(
-                    value: TagType.list,
-                    child: Text('Options'),
+                    value: TagType.strikethrough,
+                    child: Text('Strikethrough'),
                   ),
                 ],
                 onChanged: (TagType? value) => setState(() {
@@ -117,7 +115,6 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 validator: (String? value) => value == null || value.isEmpty ?
                   'Option is required'
                   : null,
-                onChanged: (String? value) => setState(() {}),
               ),
             ),
             if (entry.key > 0) IconButton(
