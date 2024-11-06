@@ -351,6 +351,7 @@ class _JournalPageState extends State<JournalPage> {
         ),
       ],
     ),
+    resizeToAvoidBottomInset: false,
     body: Column(
       children: <Widget>[
         _calendarNavigation(),
