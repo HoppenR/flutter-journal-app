@@ -35,17 +35,20 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
           TextButton(
             onPressed: () {
               if (_formKey.currentState?.validate() ?? false) {
-                if (selectedType == TagType.list) {
-                  tagNames[tagController.text] = TagData.list(
-                    optionControllers
-                      .map(
-                        (TextEditingController controller) => controller.text,
-                      ).toList(),
-                  );
-                } else if(selectedType == TagType.strikethrough) {
-                  tagNames[tagController.text] = TagData.strikethrough(
-                    tagController.text,
-                  );
+                // NOTE: selectedType validator asserts not null before this
+                switch (selectedType!) {
+                  case TagType.list:
+                    tagNames[tagController.text] = TagData.list(
+                      tagController.text,
+                      optionControllers
+                        .map(
+                          (TextEditingController controller) => controller.text,
+                        ).toList(),
+                    );
+                  case TagType.strikethrough:
+                    tagNames[tagController.text] = TagData.strikethrough(
+                      tagController.text,
+                    );
                 }
                 Navigator.of(context).pop(true);
               }
@@ -115,6 +118,7 @@ class FullScreenTagFormState extends State<FullScreenTagForm> {
                 validator: (String? value) => value == null || value.isEmpty ?
                   'Option is required'
                   : null,
+                onChanged: (String? value) => setState(() {}),
               ),
             ),
             if (entry.key > 0) IconButton(

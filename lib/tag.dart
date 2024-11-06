@@ -8,20 +8,33 @@ enum TagType {
 }
 
 class TagData {
-  TagData.list(this.listData) : type = TagType.list;
-  TagData.strikethrough(this.strikethroughData) : type = TagType.strikethrough;
+  TagData.list(this.name, this.listData) : type = TagType.list;
+  TagData.strikethrough(this.name) : type = TagType.strikethrough;
 
+  List<String> get list {
+    return listData ?? (throw ArgumentError('called list on non-list type'));
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'name': name,
+      'type': type.toString().split('.').last,
+      'listData': listData,
+    };
+  }
+
+  static TagData fromJson(Map<String, dynamic> json) {
+    if (json['type'] == 'list') {
+      return TagData.list(json['name'], List<String>.from(json['listData']));
+    } else {
+      return TagData.strikethrough(json['name']);
+    }
+  }
+
+  final String name;
   final TagType type;
 
   List<String>? listData;
-  String? strikethroughData;
-
-  List<String> get list {
-    return listData ?? (throw ArgumentError('Expected List<String> data'));
-  }
-  String get strikethrough {
-    return strikethroughData ?? (throw ArgumentError('Expected String data'));
-  }
 }
 
 class AppliedTagData {
@@ -33,10 +46,27 @@ class AppliedTagData {
       case TagType.list:
         return tagData.list[listOption!];
       case TagType.strikethrough:
-        return tagData.strikethroughData!;
+        return tagData.name;
     }
   }
 
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'tagData': tagData.toJson(),
+      'listOption': listOption,
+    };
+  }
+
+  static AppliedTagData fromJson(Map<String, dynamic> json) {
+    final TagData tagData = TagData.fromJson(json['tagData']);
+    if (tagData.type == TagType.list) {
+      return AppliedTagData.list(tagData, json['listOption']);
+    } else {
+      return AppliedTagData.strikethrough(tagData);
+    }
+  }
+
+  String get name => tagData.name;
   TagType get type => tagData.type;
 
   final TagData tagData;
