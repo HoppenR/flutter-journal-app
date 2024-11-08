@@ -72,6 +72,7 @@ class JournalPage extends StatefulWidget {
 
 class _JournalPageState extends State<JournalPage> {
   static const int _initialPage = 1000;
+  static const double calendarGridEdgeInset = 8.0;
 
   late DateTime _startDate;
   late ValueNotifier<int> _focusedPageNotifier;
@@ -318,7 +319,7 @@ class _JournalPageState extends State<JournalPage> {
       },
       itemBuilder: (BuildContext context, int index) => LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) => Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(calendarGridEdgeInset),
           child: _buildCalendarWeek(constraints, index),
         ),
       ),
@@ -331,14 +332,11 @@ class _JournalPageState extends State<JournalPage> {
   ) {
     final DateTime weekStartDate = _pageIndexToDate(index);
 
-    final double itemHeight = constraints.maxHeight;
-
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
-        mainAxisExtent: itemHeight,
-        mainAxisSpacing: 10.0,
+        mainAxisExtent: constraints.maxHeight - 2 * calendarGridEdgeInset,
         crossAxisSpacing: 10.0,
       ),
       itemCount: DateTime.daysPerWeek,
