@@ -277,6 +277,7 @@ class _JournalPageState extends State<JournalPage> {
       IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => _jumpToPage(_pageController.page!.toInt() - 1),
+        tooltip: 'Föregående månad',
       ),
       ValueListenableBuilder<int>(
         valueListenable: _focusedPageNotifier,
@@ -285,7 +286,10 @@ class _JournalPageState extends State<JournalPage> {
           final int weekNumber = _dateToWeekNumber(currentDate);
 
           return InkWell(
-            onTap: () async {
+            onTap: () {
+              _jumpToPage(_initialPage);
+            },
+            onLongPress: () async {
               final DateTime? selectedDate = await showDatePicker(
                 context: context,
                 initialDate: currentDate,
@@ -297,7 +301,7 @@ class _JournalPageState extends State<JournalPage> {
               }
             },
             child: Text(
-              '${currentDate.year} v${weekNumber}',
+              '${currentDate.year} v$weekNumber',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           );
@@ -306,6 +310,7 @@ class _JournalPageState extends State<JournalPage> {
       IconButton(
         icon: const Icon(Icons.arrow_forward),
         onPressed: () => _jumpToPage(_pageController.page!.toInt() + 1),
+        tooltip: 'Nästa månad',
       ),
     ],
   );
@@ -361,8 +366,15 @@ class _JournalPageState extends State<JournalPage> {
     BuildContext context,
     DateTime curDay,
   ) => Column(
-    mainAxisAlignment: MainAxisAlignment.center,
     children: <Widget>[
+      const SizedBox(height: 8),
+      Text(
+        _getWeekdayAbbreviation(curDay.weekday),
+        style: TextStyle(
+          fontSize: 12,
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+        ),
+      ),
       Text(
         '${curDay.day}',
         style: TextStyle(
@@ -375,7 +387,7 @@ class _JournalPageState extends State<JournalPage> {
           return Text(
             tag.string,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 18,
               color: Theme.of(context).colorScheme.secondary,
               decoration: tag.tagData.type == TagType.strikethrough
                 ? TextDecoration.lineThrough
@@ -385,4 +397,17 @@ class _JournalPageState extends State<JournalPage> {
         }),
     ],
   );
+}
+
+String _getWeekdayAbbreviation(int weekday) {
+  switch (weekday) {
+    case DateTime.monday: return 'M';
+    case DateTime.tuesday: return 'T';
+    case DateTime.wednesday: return 'O';
+    case DateTime.thursday: return 'T';
+    case DateTime.friday: return 'F';
+    case DateTime.saturday: return 'L';
+    case DateTime.sunday: return 'S';
+    default: throw AssertionError('invalid day');
+  }
 }
