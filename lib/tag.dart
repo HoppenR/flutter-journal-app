@@ -26,8 +26,10 @@ class TagData {
   static TagData fromJson(Map<String, dynamic> json) {
     if (json['type'] == 'list') {
       return TagData.list(json['name'], List<String>.from(json['listData']));
-    } else {
+    } else if (json['type'] == 'strikethrough') {
       return TagData.strikethrough(json['name']);
+    } else {
+      throw AssertionError('invalid type in json');
     }
   }
 

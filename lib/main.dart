@@ -3,14 +3,20 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_date_pickers/flutter_date_pickers.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_tag_form.dart';
 import 'tag.dart';
+import 'tag_overview.dart';
+
+// TODO(Christoffer): More tag types
+//                    - [ ] multi-selections
+//                    - [ ] on/off
+//                    - [ ] levels
+//                    - [x] free-text fields
+//                    - [_] strike-through (remove)
 
 class JournalScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -65,26 +71,26 @@ class JournalPage extends StatefulWidget {
 // --- _JournalPageState ---
 
 class _JournalPageState extends State<JournalPage> {
-  static const int _initialPage = 500;
-  static const double calendarGridEdgeInset = 8.0;
-  static const double calendarGridMainAxisSpacing = 10.0;
+  static const int _initialPage = 1000;
 
-  late DateTime _startMonth;
-  late ValueNotifier<DateTime> _focusedMonthNotifier;
+  late DateTime _startDate;
+  late ValueNotifier<int> _focusedPageNotifier;
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _startMonth = DateTime(DateTime.now().year, DateTime.now().month);
-    _focusedMonthNotifier = ValueNotifier<DateTime>(_startMonth);
+    final DateTime now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
+    _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
     _loadTags();
   }
 
   @override
   void dispose() {
-    _focusedMonthNotifier.dispose();
+    _focusedPageNotifier.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -124,9 +130,9 @@ class _JournalPageState extends State<JournalPage> {
     });
   }
 
-  void _jumpToPage(int offset) {
+  void _jumpToPage(int page) {
     _pageController.animateToPage(
-      _pageController.page!.toInt() + offset,
+      page,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -193,6 +199,7 @@ class _JournalPageState extends State<JournalPage> {
     await prefs.setString('tags', dataToSave);
   }
 
+  // TODO(Christoffer): Should be in a utility.dart file or something?
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -203,7 +210,7 @@ class _JournalPageState extends State<JournalPage> {
     Navigator.push(
       context,
       MaterialPageRoute<bool?>(
-        builder: (BuildContext context) => const FullScreenTagForm(),
+        builder: (BuildContext context) => const AddTagForm(),
       ),
     ).then((bool? result) {
       if (result != null && result) {
@@ -213,127 +220,30 @@ class _JournalPageState extends State<JournalPage> {
     });
   }
 
-  void _showApplyTagWindow(BuildContext context, DateTime date) {
-    String? selectedTagName;
-    TagData? selectedTagData;
-    Object? tagData;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => _buildApplyTagDialog(
-        date,
-        selectedTagName,
-        selectedTagData,
-        tagData,
+  void _showTagDayOverview(BuildContext context, DateTime day) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => TagDayOverview(day),
       ),
-    );
+    ).then((void value) {
+      setState(() {
+        _saveTags();
+      });
+    });
   }
 
-  Widget _buildApplyTagDialog(
-    DateTime date,
-    String? selectedTagName,
-    TagData? selectedTagData,
-    Object? selectedTagOption,
-  ) => StatefulBuilder(
-    builder: (BuildContext context, StateSetter setDialogState) => AlertDialog(
-      title: Text('Add Tag for ${DateFormat('yyyy-MM-dd').format(date)}'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          DropdownButton<String>(
-            value: selectedTagName,
-            hint: const Text('Select Tag'),
-            items: tagNames.keys.map((String key) => DropdownMenuItem<String>(
-              value: key,
-              child: Text(key),
-            )).toList(),
-            onChanged: (String? value) {
-              setDialogState(() {
-                selectedTagName = value;
-                if (value != null && tagNames.containsKey(value)) {
-                  selectedTagData = tagNames[value];
-                }
-                selectedTagOption = null;
-              });
-            },
-          ),
-          if (selectedTagData != null && selectedTagData!.type == TagType.list)
-            ...<Widget>[
-              const Text('Select an option:'),
-              DropdownButton<String>(
-                value: selectedTagOption != null
-                  ? selectedTagData!.list[selectedTagOption! as int]
-                  : null,
-                hint: const Text('Options'),
-                items: selectedTagData!.list.map(
-                  (String opt) => DropdownMenuItem<String>(
-                    value: opt,
-                    child: Text(opt),
-                  ),
-                ).toList(),
-                onChanged: (String? value) {
-                  setDialogState(() {
-                    selectedTagOption = selectedTagData!.list.indexOf(value!);
-                  });
-                },
-              ),
-            ],
-        ],
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: Navigator.of(context).pop,
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: (
-            selectedTagData?.type == TagType.strikethrough ||
-            (
-              selectedTagData?.type == TagType.list &&
-              selectedTagOption != null
-            )
-          ) ? () {
-                setState(() {
-                  AppliedTagData? td;
-                  switch (selectedTagData!.type) {
-                    case TagType.list:
-                      td = AppliedTagData.list(
-                        selectedTagData!,
-                        selectedTagOption! as int,
-                      );
-                    case TagType.strikethrough:
-                      td = AppliedTagData.strikethrough(
-                        selectedTagData!,
-                      );
-                  }
-                  final List<AppliedTagData> tagList = appliedTags.putIfAbsent(
-                    date,
-                    () => <AppliedTagData>[],
-                  );
-                  final int existingTagIndex = tagList.indexWhere(
-                    (AppliedTagData tag) => tag.name == selectedTagName,
-                  );
-                  if (existingTagIndex != -1) {
-                    tagList[existingTagIndex] = td;
-                  } else {
-                    tagList.add(td);
-                  }
-                });
-                _saveTags();
-                _showSnackBar(context, 'Tag applied to date');
-                Navigator.of(context).pop();
-              }
-            : null,
-          child: const Text('Save'),
-        ),
-      ],
-    ),
-  );
+  DateTime _pageIndexToDate(int pageIndex) {
+    return _startDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
+  }
 
-  DateTime _calculateMonth(int index) => DateTime(
-    _startMonth.year,
-    _startMonth.month + index - _initialPage,
-  );
+  int _dateToPageIndex(DateTime date) {
+    return (date.difference(_startDate).inDays / 7).floor() + _initialPage;
+  }
+
+  int _dateToWeekNumber(DateTime date) {
+    return (date.difference(DateTime(date.year)).inDays / 7).ceil() + 1;
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -365,49 +275,36 @@ class _JournalPageState extends State<JournalPage> {
     children: <Widget>[
       IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => _jumpToPage(-1),
+        onPressed: () => _jumpToPage(_pageController.page!.toInt() - 1),
       ),
-      ValueListenableBuilder<DateTime>(
-        valueListenable: _focusedMonthNotifier,
-        builder: (BuildContext context, DateTime month, _) => InkWell(
-          onTap: () {
-            final DatePickerStyles styles = DatePickerStyles(
-              selectedDateStyle: Theme.of(context).textTheme.bodyMedium,
-              selectedSingleDateDecoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.inversePrimary,
-                shape: BoxShape.circle,
-              ),
-            );
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return Dialog(
-                  child: MonthPicker.single(
-                    selectedDate: _focusedMonthNotifier.value,
-                    firstDate: _calculateMonth(0),
-                    lastDate: _calculateMonth(_initialPage * 2),
-                    datePickerStyles: styles,
-                    onChanged: (DateTime value) {
-                      final int monthOffset = 12 *
-                          (value.year - _focusedMonthNotifier.value.year) +
-                          (value.month - _focusedMonthNotifier.value.month);
-                      _jumpToPage(monthOffset);
-                      Navigator.pop(context);
-                    },
-                  ),
-                );
-              },
-            );
-          },
-          child: Text(
-            DateFormat.yMMMM('sv_SE').format(month),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ),
+      ValueListenableBuilder<int>(
+        valueListenable: _focusedPageNotifier,
+        builder: (BuildContext context, int pageIndex, _) {
+          final DateTime currentDate = _pageIndexToDate(pageIndex);
+          final int weekNumber = _dateToWeekNumber(currentDate);
+
+          return InkWell(
+            onTap: () async {
+              final DateTime? selectedDate = await showDatePicker(
+                context: context,
+                initialDate: currentDate,
+                firstDate: _pageIndexToDate(0),
+                lastDate: _pageIndexToDate(_initialPage * 2),
+              );
+              if (selectedDate != null) {
+                _jumpToPage(_dateToPageIndex(selectedDate));
+              }
+            },
+            child: Text(
+              '${currentDate.year} v${weekNumber}',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          );
+        }
       ),
       IconButton(
         icon: const Icon(Icons.arrow_forward),
-        onPressed: () => _jumpToPage(1),
+        onPressed: () => _jumpToPage(_pageController.page!.toInt() + 1),
       ),
     ],
   );
@@ -417,57 +314,40 @@ class _JournalPageState extends State<JournalPage> {
       controller: _pageController,
       // scrollDirection: Axis.horizontal,
       onPageChanged: (int index) {
-        _focusedMonthNotifier.value = _calculateMonth(index);
+        _focusedPageNotifier.value = index;
       },
       itemBuilder: (BuildContext context, int index) => LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) => Padding(
-          padding: const EdgeInsets.all(calendarGridEdgeInset),
-          child: _buildCalendarMonth(constraints, index),
+          padding: const EdgeInsets.all(8.0),
+          child: _buildCalendarWeek(constraints, index),
         ),
       ),
     ),
   );
 
-  Widget _buildCalendarMonth(
+  Widget _buildCalendarWeek(
     BoxConstraints constraints,
     int index,
   ) {
-    final DateTime month = _calculateMonth(index);
-    final int daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-    final int firstDayOffset = DateTime(month.year, month.month).weekday - 1;
-    final int totalBoxes = ((firstDayOffset + daysInMonth) / 7).ceil() * 7;
-    final int rowCount = (totalBoxes / 7).ceil();
-    final double calendarHeight = constraints.maxHeight - (
-      (rowCount - 1) * calendarGridMainAxisSpacing + 2 * calendarGridEdgeInset
-    );
-    final double itemHeight = calendarHeight / (totalBoxes / 7).ceil();
+    final DateTime weekStartDate = _pageIndexToDate(index);
+
+    final double itemHeight = constraints.maxHeight;
 
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
         mainAxisExtent: itemHeight,
-        mainAxisSpacing: calendarGridMainAxisSpacing,
+        mainAxisSpacing: 10.0,
         crossAxisSpacing: 10.0,
       ),
-      itemCount: totalBoxes,
-      itemBuilder: (BuildContext context, int index) {
-        final int dayNumber = index - firstDayOffset + 1;
-        final bool isDayInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
-        final DateTime curDay = DateTime(month.year, month.month, dayNumber);
-
+      itemCount: DateTime.daysPerWeek,
+      itemBuilder: (BuildContext context, int dayIndex) {
+        final DateTime curDay = weekStartDate.add(Duration(days: dayIndex));
         return TextButton(
-          onPressed: isDayInMonth
-            // TODO(Christoffer): Display a page with the applied tags,
-            //                    with a plus button to add a new tag.
-            //                    Reason being to be able to edit/remove tags
-            //                    as well as view/add them in a single screen.
-            ? () => _showApplyTagWindow(context, curDay)
-            : null,
+          onPressed: () => _showTagDayOverview(context, curDay),
           style: _buttonStyle(context),
-          child: isDayInMonth
-            ? _buttonContent(context, curDay)
-            : const SizedBox.shrink(),
+          child: _buttonContent(context, curDay)
         );
       },
     );

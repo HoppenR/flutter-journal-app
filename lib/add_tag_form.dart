@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 import 'tag.dart';
 
-class FullScreenTagForm extends StatefulWidget {
-  const FullScreenTagForm({super.key});
+class AddTagForm extends StatefulWidget {
+  const AddTagForm({super.key});
 
   @override
-  FullScreenTagFormState createState() => FullScreenTagFormState();
+  AddTagFormState createState() => AddTagFormState();
 }
 
-class FullScreenTagFormState extends State<FullScreenTagForm> {
+class AddTagFormState extends State<AddTagForm> {
   final TextEditingController tagController = TextEditingController();
   final List<TextEditingController> optionControllers = <TextEditingController>[
     TextEditingController(),
