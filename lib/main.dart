@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -10,13 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'add_tag_form.dart';
 import 'tag.dart';
 import 'tag_overview.dart';
-
-// TODO(Christoffer): More tag types
-//                    - [ ] multi-selections
-//                    - [ ] on/off
-//                    - [ ] levels
-//                    - [x] free-text fields
-//                    - [_] strike-through (remove)
 
 class JournalScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -104,7 +98,7 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
-    title: const Text('Add Tag'),
+    title: const Text('Clear tags'),
     content: const Text('Are you sure you want to clear data?'),
     actions: <Widget>[
       TextButton(
@@ -214,10 +208,12 @@ class _JournalPageState extends State<JournalPage> {
         builder: (BuildContext context) => const AddTagForm(),
       ),
     ).then((bool? result) {
-      if (result != null && result) {
-        _showSnackBar(context, 'tag added');
-        _saveTags();
-      }
+      setState(() {
+        if (result != null && result) {
+          _showSnackBar(context, 'tag added');
+          _saveTags();
+        }
+      });
     });
   }
 
@@ -336,23 +332,60 @@ class _JournalPageState extends State<JournalPage> {
     int index,
   ) {
     final DateTime weekStartDate = _pageIndexToDate(index);
+    double cellHeight = (constraints.maxHeight - 2 * calendarGridEdgeInset) / tagNames.length;
 
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        mainAxisExtent: constraints.maxHeight - 2 * calendarGridEdgeInset,
-        crossAxisSpacing: 10.0,
-      ),
-      itemCount: DateTime.daysPerWeek,
-      itemBuilder: (BuildContext context, int dayIndex) {
-        final DateTime curDay = weekStartDate.add(Duration(days: dayIndex));
-        return TextButton(
-          onPressed: () => _showTagDayOverview(context, curDay),
-          style: _buttonStyle(context),
-          child: _buttonContent(context, curDay)
-        );
-      },
+    // TODO(Christoffer): Should be in a Row where the leftmost item is
+    //                    the legend for the tags (its tag.{icon/emoji})
+    return Row(
+      children: <Widget>[
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            for (int i = 0; i < tagNames.length; i++) 
+              Container(
+                width: 64.0,
+                height: cellHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4.0),
+                  color: Colors.grey[200],
+                ),
+                child: Center(
+                  // child: Icon(
+                  //   tagNames[i].icon,
+                  //   size: 16.0,
+                  //   color: Colors.black,
+                  // ),
+                  child: Text(
+                    i == 0 ? "1️⃣ " : "2️⃣"
+                  ),
+                ),
+              ),
+          ],
+        ),
+        Expanded(
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: DateTime.daysPerWeek,
+              mainAxisExtent: (constraints.maxHeight - 2 * calendarGridEdgeInset) / tagNames.length,
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
+            itemCount: tagNames.length * DateTime.daysPerWeek,
+            itemBuilder: (BuildContext context, int index) {
+              final int dayIndex = index % DateTime.daysPerWeek;
+              final int tagIndex = index ~/ DateTime.daysPerWeek;
+              final DateTime curDay = weekStartDate.add(Duration(days: dayIndex));
+              return TextButton(
+                onPressed: () => _showTagDayOverview(context, curDay),
+                style: _buttonStyle(context),
+                child: _buttonContent(context, curDay, tagIndex)
+              );
+            },
+          ),
+        ),
+      ]
     );
   }
 
@@ -365,49 +398,39 @@ class _JournalPageState extends State<JournalPage> {
   Widget _buttonContent(
     BuildContext context,
     DateTime curDay,
-  ) => Column(
-    children: <Widget>[
-      const SizedBox(height: 8),
-      Text(
-        _getWeekdayAbbreviation(curDay.weekday),
-        style: TextStyle(
-          fontSize: 12,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-        ),
-      ),
-      Text(
-        '${curDay.day}',
-        style: TextStyle(
-          fontSize: 18,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
-      if (appliedTags.containsKey(curDay))
-        ...appliedTags[curDay]!.map((AppliedTagData tag) {
-          return Text(
-            tag.string,
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.secondary,
-              decoration: tag.tagData.type == TagType.strikethrough
-                ? TextDecoration.lineThrough
-                : null,
-            ),
-          );
-        }),
-    ],
-  );
-}
+    int tagIndex,
+  ) {
+    String targetTagName = tagNames.keys.elementAt(tagIndex);
+    if (appliedTags.containsKey(curDay)) {
+      AppliedTagData? tag = appliedTags[curDay]?.firstWhereOrNull(
+        (t) => t.tagData.name == targetTagName,
+      );
+      if (tag != null) {
+        return Text(
+          tag.string,
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.secondary,
+            decoration: tag.tagData.type == TagType.strikethrough
+              ? TextDecoration.lineThrough
+              : null,
+          ),
+        );
+      }
+    }
+    return SizedBox.shrink();
+  }
 
-String _getWeekdayAbbreviation(int weekday) {
-  switch (weekday) {
-    case DateTime.monday: return 'M';
-    case DateTime.tuesday: return 'T';
-    case DateTime.wednesday: return 'O';
-    case DateTime.thursday: return 'T';
-    case DateTime.friday: return 'F';
-    case DateTime.saturday: return 'L';
-    case DateTime.sunday: return 'S';
-    default: throw AssertionError('invalid day');
+  String _getWeekdayAbbreviation(int weekday) {
+    switch (weekday) {
+      case DateTime.monday: return 'M';
+      case DateTime.tuesday: return 'T';
+      case DateTime.wednesday: return 'O';
+      case DateTime.thursday: return 'T';
+      case DateTime.friday: return 'F';
+      case DateTime.saturday: return 'L';
+      case DateTime.sunday: return 'S';
+      default: throw AssertionError('invalid day');
+    }
   }
 }

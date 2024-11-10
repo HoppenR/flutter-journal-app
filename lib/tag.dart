@@ -1,3 +1,13 @@
+// Vim: set shiftwidth=2 :
+// TODO(Christoffer): Require an emoji/icon to a tag
+//                    Add the period icons if possible?
+// TODO(Christoffer): More tag types
+//                    - [ ] multi-selections
+//                    - [ ] on/off
+//                    - [ ] levels
+//                    - [x] free-text fields
+//                    - [_] strike-through (remove)
+
 Map<String, TagData> tagNames = <String, TagData>{};
 Map<DateTime, List<AppliedTagData>>
   appliedTags = <DateTime, List<AppliedTagData>>{};
@@ -6,6 +16,8 @@ enum TagType {
   list,
   strikethrough,
 }
+
+// TODO(Christoffer): Needs to be tied to an icon/emoji
 
 class TagData {
   TagData.list(this.name, this.listData) : type = TagType.list;

@@ -95,6 +95,8 @@ class AddTagFormState extends State<AddTagForm> {
               ),
               if (selectedType == TagType.list)
                 ..._buildOptionFields(),
+              // TODO(Christoffer): Add a form for picking an icon/emoji
+              //                    <++>
             ],
           ),
         ),
