@@ -1,4 +1,5 @@
 // Vim: set shiftwidth=2 :
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -144,7 +145,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('Tag Overview (${DateFormat('yyyy-MM-dd').format(widget._date)})'),
+        title: Text(
+          'Tag Overview (${DateFormat('yyyy-MM-dd').format(widget._date)})',
+        ),
         actions: const <Widget>[
         ],
       ),
@@ -160,20 +163,22 @@ class TagDayOverviewState extends State<TagDayOverview> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              if (appliedTags.containsKey(widget._date))
-                ...appliedTags[widget._date]!.map((AppliedTagData tagData) {
-                  return Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          // TODO(Christoffer): Different content depending on
-                          //                    different tag types
-                          tagData.name + ": " + tagData.string,
-                          style: TextStyle(
-                            fontSize: 18,
-                          ),
-                        ),
+              ...tagNames.entries.map((MapEntry<String, TagData> entry) {
+                final String tagName = entry.key;
+                final TagData tagData = entry.value;
+                final List<AppliedTagData>? tagList = appliedTags[widget._date];
+                final AppliedTagData? appliedTagData = tagList?.firstWhereOrNull(
+                  (AppliedTagData tag) => tag.name == tagName,
+                );
+                return Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        '$tagName : ${appliedTagData?.string ?? 'No data'}',
+                        style: const TextStyle(fontSize: 18),
                       ),
+                    ),
+                    if (appliedTagData != null) ...<Widget>[
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
@@ -184,20 +189,24 @@ class TagDayOverviewState extends State<TagDayOverview> {
                         icon: const Icon(Icons.delete),
                         onPressed: () {
                           setState(() {
-                            appliedTags[widget._date]!.remove(tagData);
+                            appliedTags[widget._date]!.remove(appliedTagData);
                             if (appliedTags[widget._date]!.isEmpty) {
                               appliedTags.remove(widget._date);
                             }
                           });
                         },
                       ),
-                    ],
-                  );
-                }),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => _showApplyTagWindow(context),
-              ),
+                    ] else
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          // TODO(Christoffer): Implement adding a new tag
+                          _showApplyTagWindow(context);
+                        },
+                      ),
+                  ],
+                );
+              }),
             ],
           ),
         ),
