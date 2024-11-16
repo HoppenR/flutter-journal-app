@@ -1,10 +1,11 @@
 // Vim: set shiftwidth=2 :
-// TODO(Christoffer): Require an emoji/icon to a tag
-//                    Add the period icons if possible?
+import 'package:flutter/material.dart';
+// TODO(Christoffer): Add the period icons if possible?
 // TODO(Christoffer): More tag types
 //                    - [ ] multi-selections
 //                    - [ ] on/off
 //                    - [ ] levels
+//                    - [ ] Blood-levels
 //                    - [x] free-text fields
 //                    - [_] strike-through (remove)
 
@@ -17,11 +18,9 @@ enum TagType {
   strikethrough,
 }
 
-// TODO(Christoffer): Needs to be tied to an icon/emoji
-
 class TagData {
-  TagData.list(this.name, this.listData) : type = TagType.list;
-  TagData.strikethrough(this.name) : type = TagType.strikethrough;
+  TagData.list(this.name, this.listData, this.icon) : type = TagType.list;
+  TagData.strikethrough(this.name, this.icon) : type = TagType.strikethrough;
 
   List<String> get list {
     return listData ?? (throw ArgumentError('called list on non-list type'));
@@ -29,17 +28,26 @@ class TagData {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
+      'icon': icon.codePoint,
+      'listData': listData,
       'name': name,
       'type': type.toString().split('.').last,
-      'listData': listData,
     };
   }
 
   static TagData fromJson(Map<String, dynamic> json) {
+    final IconData icon = IconData(json['icon'], fontFamily: 'MaterialIcons');
     if (json['type'] == 'list') {
-      return TagData.list(json['name'], List<String>.from(json['listData']));
+      return TagData.list(
+        json['name'],
+        List<String>.from(json['listData']),
+        icon,
+      );
     } else if (json['type'] == 'strikethrough') {
-      return TagData.strikethrough(json['name']);
+      return TagData.strikethrough(
+        json['name'],
+        icon,
+      );
     } else {
       throw AssertionError('invalid type in json');
     }
@@ -47,6 +55,7 @@ class TagData {
 
   final String name;
   final TagType type;
+  final IconData icon;
 
   List<String>? listData;
 }
