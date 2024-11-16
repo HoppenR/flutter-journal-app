@@ -40,7 +40,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     Object? selectedTagOption,
   ) => StatefulBuilder(
     builder: (BuildContext context, StateSetter setDialogState) {
-    final appliedTagNames = appliedTags[date]?.map((tag) => tag.name).toSet() ?? <String>{};
+    final Set<String> appliedTagNames = appliedTags[date]?.map((AppliedTagData tag) => tag.name).toSet() ?? <String>{};
 
       return AlertDialog(
         title: Text('Add Tag for ${DateFormat('yyyy-MM-dd').format(date)}'),
@@ -50,7 +50,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
             DropdownButton<String>(
               value: selectedTagName,
               hint: const Text('Select Tag'),
-              // TODO(Christoffer): Filter out already applied tags
               items: tagNames.keys
                 .where((String key) => !appliedTagNames.contains(key))
                 .map((String key) => DropdownMenuItem<String>(
@@ -182,7 +181,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
                       IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
-                          // TODO(Christoffer): Implement an edit tag form
+                          // TODO(Christoffer): Not needed? Tags should be
+                          //                    interactively editable directly
                         },
                       ),
                       IconButton(
@@ -201,6 +201,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
                         icon: const Icon(Icons.add),
                         onPressed: () {
                           // TODO(Christoffer): Implement adding a new tag
+                          //                    more interactively
+                          //                    with content depending on
+                          //                    the type.
+                          //                    <++>
                           _showApplyTagWindow(context);
                         },
                       ),

@@ -16,8 +16,49 @@ class AddTagFormState extends State<AddTagForm> {
   ];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TagType? selectedType;
+  IconData? selectedIcon = Icons.favorite;
 
-  @override void dispose() {
+  // TODO(Christoffer): Add menstruation related icons
+  final List<IconData> availableIcons = <IconData>[
+    Icons.favorite,
+    Icons.home,
+    Icons.star,
+    Icons.work,
+    Icons.fitness_center,
+    Icons.coffee,
+    Icons.shopping_cart,
+    Icons.school,
+    Icons.pets,
+    Icons.sports_soccer,
+    Icons.water_drop,
+    Icons.brightness_5,
+    Icons.nightlight,
+    Icons.calendar_today,
+    Icons.av_timer,
+    Icons.warning,
+    Icons.thermostat,
+    Icons.sick,
+    Icons.cloud,
+    Icons.opacity,
+    Icons.sentiment_satisfied_alt,
+    Icons.sentiment_very_satisfied,
+    Icons.sentiment_dissatisfied,
+    Icons.energy_savings_leaf,
+    Icons.fastfood,
+    Icons.local_cafe,
+    Icons.icecream,
+    Icons.local_pizza,
+    Icons.self_improvement,
+    Icons.nature_people,
+    Icons.local_hospital,
+    Icons.notes,
+    Icons.star_border,
+    Icons.check,
+    Icons.bubble_chart,
+  ];
+
+  @override
+  void dispose() {
     tagController.dispose();
     for (final TextEditingController controller in optionControllers) {
       controller.dispose();
@@ -42,12 +83,15 @@ class AddTagFormState extends State<AddTagForm> {
                       tagController.text,
                       optionControllers
                         .map(
-                          (TextEditingController controller) => controller.text,
+                          (TextEditingController controller) =>
+                              controller.text,
                         ).toList(),
+                      selectedIcon!,
                     );
                   case TagType.strikethrough:
                     tagNames[tagController.text] = TagData.strikethrough(
                       tagController.text,
+                      selectedIcon!,
                     );
                 }
                 Navigator.of(context).pop(true);
@@ -68,9 +112,8 @@ class AddTagFormState extends State<AddTagForm> {
               TextFormField(
                 controller: tagController,
                 decoration: const InputDecoration(hintText: 'Enter a tag'),
-                validator: (String? value) => value == null || value.isEmpty
-                  ? 'Tag is required'
-                  : null,
+                validator: (String? value) =>
+                    value == null || value.isEmpty ? 'Tag is required' : null,
                 autofocus: true,
               ),
               DropdownButtonFormField<TagType>(
@@ -89,14 +132,12 @@ class AddTagFormState extends State<AddTagForm> {
                 onChanged: (TagType? value) => setState(() {
                   selectedType = value;
                 }),
-                validator: (TagType? value) => value == null
-                  ? 'Tag type is required'
-                  : null,
+                validator: (TagType? value) =>
+                    value == null ? 'Tag type is required' : null,
               ),
-              if (selectedType == TagType.list)
-                ..._buildOptionFields(),
-              // TODO(Christoffer): Add a form for picking an icon/emoji
-              //                    <++>
+              if (selectedType == TagType.list) ..._buildOptionFields(),
+              const Text('Select an Icon'),
+              _buildIconSelection(),
             ],
           ),
         ),
@@ -109,29 +150,31 @@ class AddTagFormState extends State<AddTagForm> {
       const SizedBox(height: 16),
       const Text('Options', style: TextStyle(fontWeight: FontWeight.bold)),
       ...optionControllers.asMap().entries.map(
-        (MapEntry<int, TextEditingController> entry) => Row(
-          children: <Widget>[
-            Expanded(
-              child: TextFormField(
-                controller: entry.value,
-                decoration: const InputDecoration(
-                  hintText: 'Enter an option',
+            (MapEntry<int, TextEditingController> entry) => Row(
+              children: <Widget>[
+                Expanded(
+                  child: TextFormField(
+                    controller: entry.value,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter an option',
+                    ),
+                    validator: (String? value) =>
+                        value == null || value.isEmpty
+                            ? 'Option is required'
+                            : null,
+                    onChanged: (String? value) => setState(() {}),
+                  ),
                 ),
-                validator: (String? value) => value == null || value.isEmpty ?
-                  'Option is required'
-                  : null,
-                onChanged: (String? value) => setState(() {}),
-              ),
+                if (entry.key > 0)
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle),
+                    onPressed: () => setState(() {
+                      optionControllers.removeAt(entry.key);
+                    }),
+                  ),
+              ],
             ),
-            if (entry.key > 0) IconButton(
-              icon: const Icon(Icons.remove_circle),
-              onPressed: () => setState(() {
-                optionControllers.removeAt(entry.key);
-              }),
-            ),
-          ],
-        ),
-      ),
+          ),
       IconButton(
         icon: const Icon(Icons.add),
         onPressed: () => setState(() {
@@ -139,5 +182,50 @@ class AddTagFormState extends State<AddTagForm> {
         }),
       ),
     ];
+  }
+
+  Widget _buildIconSelection() {
+    const double iconSize = 40;
+    return Expanded(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double availableWidth = constraints.maxWidth;
+          final int maxIconsInRow = (availableWidth / (iconSize + 16)).floor();
+
+          return GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: maxIconsInRow,
+              childAspectRatio: 1,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: availableIcons.length,
+            itemBuilder: (BuildContext context, int index) {
+              final IconData icon = availableIcons[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedIcon = icon;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: selectedIcon == icon
+                          ? Colors.blue
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: iconSize),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

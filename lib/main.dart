@@ -1,4 +1,6 @@
 // Vim: set shiftwidth=2 :
+// TODO(Christoffer): Week-wise date picker that highlights a full week
+//                    (see twitch date picker for past broadcasts)
 import 'dart:convert';
 import 'dart:ui';
 
@@ -128,7 +130,7 @@ class _JournalPageState extends State<JournalPage> {
   void _jumpToPage(int page) {
     _pageController.animateToPage(
       page,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
     );
   }
@@ -332,43 +334,46 @@ class _JournalPageState extends State<JournalPage> {
     int index,
   ) {
     final DateTime weekStartDate = _pageIndexToDate(index);
-    double cellHeight = (constraints.maxHeight - 2 * calendarGridEdgeInset) / tagNames.length;
+    final double totalSpacing = (tagNames.length - 1) * 4.0;
+    final double cellHeight = (constraints.maxHeight - 2 * calendarGridEdgeInset - totalSpacing) / tagNames.length;
 
     // TODO(Christoffer): Should be in a Row where the leftmost item is
     //                    the legend for the tags (its tag.{icon/emoji})
     return Row(
       children: <Widget>[
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            for (int i = 0; i < tagNames.length; i++) 
-              Container(
-                width: 64.0,
+        SizedBox(
+          width: 64.0,
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 1,
+              mainAxisExtent: cellHeight,
+              crossAxisSpacing: 4.0,
+              mainAxisSpacing: 4.0,
+            ),
+            itemCount: tagNames.length,
+            itemBuilder: (BuildContext context, int index) {
+              return Container(
                 height: cellHeight,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4.0),
-                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8.0),
+                  color: Theme.of(context).colorScheme.inversePrimary,
                 ),
-                child: Center(
-                  // child: Icon(
-                  //   tagNames[i].icon,
-                  //   size: 16.0,
-                  //   color: Colors.black,
-                  // ),
-                  child: Text(
-                    i == 0 ? "1️⃣ " : "2️⃣"
-                  ),
+                child: Icon(
+                  tagNames.values.elementAt(index).icon,
+                  size: 40.0, // Adjust icon size
                 ),
-              ),
-          ],
+              );
+            },
+          ),
         ),
+        const SizedBox(width: 4.0),
         Expanded(
           child: GridView.builder(
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: DateTime.daysPerWeek,
-              mainAxisExtent: (constraints.maxHeight - 2 * calendarGridEdgeInset) / tagNames.length,
+              mainAxisExtent: cellHeight,
               crossAxisSpacing: 4.0,
               mainAxisSpacing: 4.0,
             ),
@@ -380,12 +385,12 @@ class _JournalPageState extends State<JournalPage> {
               return TextButton(
                 onPressed: () => _showTagDayOverview(context, curDay),
                 style: _buttonStyle(context),
-                child: _buttonContent(context, curDay, tagIndex)
+                child: _buttonContent(context, curDay, tagIndex),
               );
             },
           ),
         ),
-      ]
+      ],
     );
   }
 
@@ -400,10 +405,12 @@ class _JournalPageState extends State<JournalPage> {
     DateTime curDay,
     int tagIndex,
   ) {
-    String targetTagName = tagNames.keys.elementAt(tagIndex);
+    // TODO(Christoffer): Should the calendar be a child of the left hand side?
+    //                    perhaps as a dismissible?
+    final String targetTagName = tagNames.keys.elementAt(tagIndex);
     if (appliedTags.containsKey(curDay)) {
-      AppliedTagData? tag = appliedTags[curDay]?.firstWhereOrNull(
-        (t) => t.tagData.name == targetTagName,
+      final AppliedTagData? tag = appliedTags[curDay]?.firstWhereOrNull(
+        (AppliedTagData t) => t.tagData.name == targetTagName,
       );
       if (tag != null) {
         return Text(
@@ -418,7 +425,7 @@ class _JournalPageState extends State<JournalPage> {
         );
       }
     }
-    return SizedBox.shrink();
+    return const SizedBox.shrink();
   }
 
   String _getWeekdayAbbreviation(int weekday) {
