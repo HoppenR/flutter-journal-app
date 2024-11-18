@@ -1,4 +1,6 @@
 // Vim: set shiftwidth=2 :
+import 'dart:ui' as ui;
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +30,7 @@ class CalendarWeekState extends State<CalendarWeek> {
         ),
         style: const TextStyle(fontSize: 16.0),
       ),
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     )..layout();
     return textPainter.size.width;
   }
@@ -155,37 +157,44 @@ class CalendarWeekState extends State<CalendarWeek> {
     int tagIndex,
   ) {
     final String targetTagName = tagNames.keys.elementAt(tagIndex);
+    AppliedTagData? tag;
     if (appliedTags.containsKey(curDay)) {
-      final AppliedTagData? tag = appliedTags[curDay]?.firstWhereOrNull(
+      tag = appliedTags[curDay]?.firstWhereOrNull(
         (AppliedTagData t) => t.tagData.name == targetTagName,
       );
-      if (tag != null) {
-        return Text(
-          tag.string,
-          style: TextStyle(
-            fontSize: 18,
-            color: Theme.of(context).colorScheme.secondary,
-            decoration: tag.tagData.type == TagType.strikethrough
-              ? TextDecoration.lineThrough
-              : null,
-          ),
-        );
-      }
     }
-    return const SizedBox.shrink();
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        if (tagIndex == 0)
+          Text(_getWeekdayAbbreviation(curDay.weekday)),
+        const Spacer(),
+        if (tag != null)
+          Text(
+            tag.string,
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(context).colorScheme.secondary,
+              decoration: tag.tagData.type == TagType.strikethrough
+                ? TextDecoration.lineThrough
+                : null,
+            ),
+          ),
+        const Spacer(),
+      ]
+    );
   }
 
-  // TODO(Christoffer): Include this in the day header / first day
-  // String _getWeekdayAbbreviation(int weekday) {
-  //   switch (weekday) {
-  //     case DateTime.monday: return 'M';
-  //     case DateTime.tuesday: return 'T';
-  //     case DateTime.wednesday: return 'O';
-  //     case DateTime.thursday: return 'T';
-  //     case DateTime.friday: return 'F';
-  //     case DateTime.saturday: return 'L';
-  //     case DateTime.sunday: return 'S';
-  //     default: throw AssertionError('invalid day');
-  //   }
-  // }
+  String _getWeekdayAbbreviation(int weekday) {
+    switch (weekday) {
+      case DateTime.monday: return 'M';
+      case DateTime.tuesday: return 'Ti';
+      case DateTime.wednesday: return 'O';
+      case DateTime.thursday: return 'To';
+      case DateTime.friday: return 'F';
+      case DateTime.saturday: return 'L';
+      case DateTime.sunday: return 'S';
+      default: throw AssertionError('invalid day');
+    }
+  }
 }

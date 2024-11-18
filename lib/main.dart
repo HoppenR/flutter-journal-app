@@ -25,11 +25,11 @@ class JournalScrollBehavior extends MaterialScrollBehavior {
 
 void main() {
   initializeDateFormatting('sv_SE');
-  runApp(const MyApp());
+  runApp(const JournalApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class JournalApp extends StatelessWidget {
+  const JournalApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +89,7 @@ class _JournalPageState extends State<JournalPage> {
     super.dispose();
   }
 
+  // TODO(Christoffer): Should be in a utility.dart file?
   void _showClearPreferencesWindow(BuildContext context) {
     showDialog(
       context: context,
@@ -96,6 +97,7 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
+  // TODO(Christoffer): Should be in a utility.dart file?
   Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
     title: const Text('Clear tags'),
     content: const Text('Are you sure you want to clear data?'),
@@ -118,7 +120,6 @@ class _JournalPageState extends State<JournalPage> {
       ),
     ],
   );
-
 
   void _jumpToPage(int page) {
     _pageController.animateToPage(
