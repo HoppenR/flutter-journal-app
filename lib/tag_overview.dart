@@ -35,12 +35,14 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildApplyTagDialog(
     DateTime date,
-    String? selectedTagName,
-    TagData? selectedTagData,
-    Object? selectedTagOption,
+    String? tagName,
+    TagData? tagData,
+    Object? tagOption,
   ) => StatefulBuilder(
     builder: (BuildContext context, StateSetter setDialogState) {
-    final Set<String> appliedTagNames = appliedTags[date]?.map((AppliedTagData tag) => tag.name).toSet() ?? <String>{};
+    final Set<String> appliedTagNames = appliedTags[date]?.map(
+      (AppliedTagData tag) => tag.name,
+    ).toSet() ?? <String>{};
 
       return AlertDialog(
         title: Text('Add Tag for ${DateFormat('yyyy-MM-dd').format(date)}'),
@@ -48,7 +50,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             DropdownButton<String>(
-              value: selectedTagName,
+              value: tagName,
               hint: const Text('Select Tag'),
               items: tagNames.keys
                 .where((String key) => !appliedTagNames.contains(key))
@@ -59,23 +61,23 @@ class TagDayOverviewState extends State<TagDayOverview> {
               ).toList(),
               onChanged: (String? value) {
                 setDialogState(() {
-                  selectedTagName = value;
+                  tagName = value;
                   if (value != null && tagNames.containsKey(value)) {
-                    selectedTagData = tagNames[value];
+                    tagData = tagNames[value];
                   }
-                  selectedTagOption = null;
+                  tagOption = null;
                 });
               },
             ),
-            if (selectedTagData != null && selectedTagData!.type == TagType.list)
+            if (tagData != null && tagData!.type == TagType.list)
               ...<Widget>[
                 const Text('Select an option:'),
                 DropdownButton<String>(
-                  value: selectedTagOption != null
-                    ? selectedTagData!.list[selectedTagOption! as int]
+                  value: tagOption != null
+                    ? tagData!.list[tagOption! as int]
                     : null,
                   hint: const Text('Options'),
-                  items: selectedTagData!.list.map(
+                  items: tagData!.list.map(
                     (String opt) => DropdownMenuItem<String>(
                       value: opt,
                       child: Text(opt),
@@ -83,7 +85,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
                   ).toList(),
                   onChanged: (String? value) {
                     setDialogState(() {
-                      selectedTagOption = selectedTagData!.list.indexOf(value!);
+                      tagOption = tagData!.list.indexOf(value!);
                     });
                   },
                 ),
@@ -97,31 +99,29 @@ class TagDayOverviewState extends State<TagDayOverview> {
           ),
           TextButton(
             onPressed: (
-              selectedTagData?.type == TagType.strikethrough ||
+              tagData?.type == TagType.strikethrough ||
               (
-                selectedTagData?.type == TagType.list &&
-                selectedTagOption != null
+                tagData?.type == TagType.list &&
+                tagOption != null
               )
             ) ? () {
                   setState(() {
                     AppliedTagData? td;
-                    switch (selectedTagData!.type) {
+                    switch (tagData!.type) {
                       case TagType.list:
                         td = AppliedTagData.list(
-                          selectedTagData!,
-                          selectedTagOption! as int,
+                          tagData!,
+                          tagOption! as int,
                         );
                       case TagType.strikethrough:
                         td = AppliedTagData.strikethrough(
-                          selectedTagData!,
+                          tagData!,
                         );
                     }
-                    final List<AppliedTagData> tagList = appliedTags.putIfAbsent(
-                      date,
-                      () => <AppliedTagData>[],
-                    );
+                    final List<AppliedTagData> tagList = appliedTags
+                      .putIfAbsent(date, () => <AppliedTagData>[]);
                     final int existingTagIndex = tagList.indexWhere(
-                      (AppliedTagData tag) => tag.name == selectedTagName,
+                      (AppliedTagData tag) => tag.name == tagName,
                     );
                     if (existingTagIndex != -1) {
                       tagList[existingTagIndex] = td;
@@ -164,11 +164,13 @@ class TagDayOverviewState extends State<TagDayOverview> {
             children: <Widget>[
               ...tagNames.entries.map((MapEntry<String, TagData> entry) {
                 final String tagName = entry.key;
-                final TagData tagData = entry.value;
+                // TODO(Christoffer): Use this to display options
+                // final TagData tagData = entry.value;
                 final List<AppliedTagData>? tagList = appliedTags[widget._date];
-                final AppliedTagData? appliedTagData = tagList?.firstWhereOrNull(
-                  (AppliedTagData tag) => tag.name == tagName,
-                );
+                final AppliedTagData? appliedTagData = tagList
+                  ?.firstWhereOrNull(
+                    (AppliedTagData tag) => tag.name == tagName,
+                  );
                 return Row(
                   children: <Widget>[
                     Expanded(
@@ -204,7 +206,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
                           //                    more interactively
                           //                    with content depending on
                           //                    the type.
-                          //                    <++>
                           _showApplyTagWindow(context);
                         },
                       ),

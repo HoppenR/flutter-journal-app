@@ -196,7 +196,6 @@ class AddTagFormState extends State<AddTagForm> {
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: maxIconsInRow,
-              childAspectRatio: 1,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
             ),

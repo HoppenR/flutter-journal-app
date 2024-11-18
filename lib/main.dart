@@ -1,18 +1,16 @@
 // Vim: set shiftwidth=2 :
 // TODO(Christoffer): Week-wise date picker that highlights a full week
 //                    (see twitch date picker for past broadcasts)
-import 'dart:convert';
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'add_tag_form.dart';
+import 'calendar_week.dart';
 import 'tag.dart';
-import 'tag_overview.dart';
+import 'utility.dart';
 
 class JournalScrollBehavior extends MaterialScrollBehavior {
   @override
@@ -68,7 +66,6 @@ class JournalPage extends StatefulWidget {
 
 class _JournalPageState extends State<JournalPage> {
   static const int _initialPage = 1000;
-  static const double calendarGridEdgeInset = 8.0;
 
   late DateTime _startDate;
   late ValueNotifier<int> _focusedPageNotifier;
@@ -82,7 +79,7 @@ class _JournalPageState extends State<JournalPage> {
       .subtract(Duration(days: now.weekday - 1));
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
-    _loadTags();
+    loadTags();
   }
 
   @override
@@ -109,7 +106,11 @@ class _JournalPageState extends State<JournalPage> {
       ),
       TextButton(
         onPressed: () {
-          _clearPreferences(context);
+          clearPreferences(context);
+          setState(() {
+            tagNames.clear();
+            appliedTags.clear();
+          });
           _showSnackBar(context, 'Preferences cleared');
           Navigator.of(context).pop();
         },
@@ -118,14 +119,6 @@ class _JournalPageState extends State<JournalPage> {
     ],
   );
 
-  Future<void> _clearPreferences(BuildContext context) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    setState(() {
-      tagNames.clear();
-      appliedTags.clear();
-    });
-  }
 
   void _jumpToPage(int page) {
     _pageController.animateToPage(
@@ -135,68 +128,7 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  Future<void> _loadTags() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? savedData = prefs.getString('tags');
-
-    if (savedData == null) {
-      return;
-    }
-
-    final Map<String, dynamic> decodedData = json.decode(savedData);
-
-    tagNames = (decodedData['tagNames'] as Map<String, dynamic>).map(
-      (String key, dynamic value) {
-        return MapEntry<String, TagData>(
-          key,
-          TagData.fromJson(value),
-        );
-      },
-    );
-
-    appliedTags = (decodedData['appliedTags'] as Map<String, dynamic>).map(
-      (String key, dynamic value) {
-        return MapEntry<DateTime, List<AppliedTagData>>(
-          DateTime.parse(key),
-          (value as List<dynamic>).map((dynamic item) {
-            return AppliedTagData.fromJson(item as Map<String, dynamic>);
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  Future<void> _saveTags() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    final Map<String, Map<String, dynamic>> tagNamesJson = tagNames.map(
-      (String key, TagData value) {
-        return MapEntry<String, Map<String, dynamic>>(
-          key,
-          value.toJson(),
-        );
-      },
-    );
-
-    final Map<String, List<Map<String, dynamic>>>
-      appliedTagsJson = appliedTags.map(
-        (DateTime key, List<AppliedTagData> value) {
-          return MapEntry<String, List<Map<String, dynamic>>>(
-            key.toIso8601String(),
-            value.map((AppliedTagData tag) => tag.toJson()).toList(),
-          );
-        },
-    );
-
-    final String dataToSave = json.encode(<String, dynamic>{
-      'tagNames': tagNamesJson,
-      'appliedTags': appliedTagsJson,
-    });
-
-    await prefs.setString('tags', dataToSave);
-  }
-
-  // TODO(Christoffer): Should be in a utility.dart file or something?
+  // TODO(Christoffer): Should be in a utility.dart file?
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -210,24 +142,13 @@ class _JournalPageState extends State<JournalPage> {
         builder: (BuildContext context) => const AddTagForm(),
       ),
     ).then((bool? result) {
+      // TODO(Christoffer): If snackbar is moved to utility this can be moved
+      //                    into AddTagForm
       setState(() {
         if (result != null && result) {
           _showSnackBar(context, 'tag added');
-          _saveTags();
+          saveTags();
         }
-      });
-    });
-  }
-
-  void _showTagDayOverview(BuildContext context, DateTime day) {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => TagDayOverview(day),
-      ),
-    ).then((void value) {
-      setState(() {
-        _saveTags();
       });
     });
   }
@@ -320,124 +241,9 @@ class _JournalPageState extends State<JournalPage> {
       onPageChanged: (int index) {
         _focusedPageNotifier.value = index;
       },
-      itemBuilder: (BuildContext context, int index) => LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) => Padding(
-          padding: const EdgeInsets.all(calendarGridEdgeInset),
-          child: _buildCalendarWeek(constraints, index),
-        ),
+      itemBuilder: (BuildContext context, int index) => CalendarWeek(
+        _pageIndexToDate(index),
       ),
     ),
   );
-
-  Widget _buildCalendarWeek(
-    BoxConstraints constraints,
-    int index,
-  ) {
-    final DateTime weekStartDate = _pageIndexToDate(index);
-    final double totalSpacing = (tagNames.length - 1) * 4.0;
-    final double cellHeight = (constraints.maxHeight - 2 * calendarGridEdgeInset - totalSpacing) / tagNames.length;
-
-    // TODO(Christoffer): Should be in a Row where the leftmost item is
-    //                    the legend for the tags (its tag.{icon/emoji})
-    return Row(
-      children: <Widget>[
-        SizedBox(
-          width: 64.0,
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 1,
-              mainAxisExtent: cellHeight,
-              crossAxisSpacing: 4.0,
-              mainAxisSpacing: 4.0,
-            ),
-            itemCount: tagNames.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Container(
-                height: cellHeight,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.0),
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
-                child: Icon(
-                  tagNames.values.elementAt(index).icon,
-                  size: 40.0, // Adjust icon size
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 4.0),
-        Expanded(
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: DateTime.daysPerWeek,
-              mainAxisExtent: cellHeight,
-              crossAxisSpacing: 4.0,
-              mainAxisSpacing: 4.0,
-            ),
-            itemCount: tagNames.length * DateTime.daysPerWeek,
-            itemBuilder: (BuildContext context, int index) {
-              final int dayIndex = index % DateTime.daysPerWeek;
-              final int tagIndex = index ~/ DateTime.daysPerWeek;
-              final DateTime curDay = weekStartDate.add(Duration(days: dayIndex));
-              return TextButton(
-                onPressed: () => _showTagDayOverview(context, curDay),
-                style: _buttonStyle(context),
-                child: _buttonContent(context, curDay, tagIndex),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  ButtonStyle _buttonStyle(BuildContext context) => TextButton.styleFrom(
-    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-    padding: EdgeInsets.zero,
-  );
-
-  Widget _buttonContent(
-    BuildContext context,
-    DateTime curDay,
-    int tagIndex,
-  ) {
-    // TODO(Christoffer): Should the calendar be a child of the left hand side?
-    //                    perhaps as a dismissible?
-    final String targetTagName = tagNames.keys.elementAt(tagIndex);
-    if (appliedTags.containsKey(curDay)) {
-      final AppliedTagData? tag = appliedTags[curDay]?.firstWhereOrNull(
-        (AppliedTagData t) => t.tagData.name == targetTagName,
-      );
-      if (tag != null) {
-        return Text(
-          tag.string,
-          style: TextStyle(
-            fontSize: 18,
-            color: Theme.of(context).colorScheme.secondary,
-            decoration: tag.tagData.type == TagType.strikethrough
-              ? TextDecoration.lineThrough
-              : null,
-          ),
-        );
-      }
-    }
-    return const SizedBox.shrink();
-  }
-
-  String _getWeekdayAbbreviation(int weekday) {
-    switch (weekday) {
-      case DateTime.monday: return 'M';
-      case DateTime.tuesday: return 'T';
-      case DateTime.wednesday: return 'O';
-      case DateTime.thursday: return 'T';
-      case DateTime.friday: return 'F';
-      case DateTime.saturday: return 'L';
-      case DateTime.sunday: return 'S';
-      default: throw AssertionError('invalid day');
-    }
-  }
 }
