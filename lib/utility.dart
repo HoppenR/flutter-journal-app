@@ -71,3 +71,9 @@ Future<void> clearPreferences(BuildContext context) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.clear();
 }
+
+void showSnackBar(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message)),
+  );
+}

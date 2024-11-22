@@ -89,7 +89,6 @@ class _JournalPageState extends State<JournalPage> {
     super.dispose();
   }
 
-  // TODO(Christoffer): Should be in a utility.dart file?
   void _showClearPreferencesWindow(BuildContext context) {
     showDialog(
       context: context,
@@ -97,7 +96,6 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  // TODO(Christoffer): Should be in a utility.dart file?
   Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
     title: const Text('Clear tags'),
     content: const Text('Are you sure you want to clear data?'),
@@ -113,7 +111,7 @@ class _JournalPageState extends State<JournalPage> {
             tagNames.clear();
             appliedTags.clear();
           });
-          _showSnackBar(context, 'Preferences cleared');
+          showSnackBar(context, 'Preferences cleared');
           Navigator.of(context).pop();
         },
         child: const Text('Yes'),
@@ -129,13 +127,6 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  // TODO(Christoffer): Should be in a utility.dart file?
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
   void _showAddTagWindow(BuildContext context) {
     Navigator.push(
       context,
@@ -147,7 +138,7 @@ class _JournalPageState extends State<JournalPage> {
       //                    into AddTagForm
       setState(() {
         if (result != null && result) {
-          _showSnackBar(context, 'tag added');
+          showSnackBar(context, 'tag added');
           saveTags();
         }
       });

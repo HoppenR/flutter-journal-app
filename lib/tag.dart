@@ -1,6 +1,5 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
-// TODO(Christoffer): Add the period icons if possible?
 // TODO(Christoffer): More tag types
 //                    - [ ] multi-selections
 //                    - [ ] on/off
