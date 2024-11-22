@@ -1,12 +1,11 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 // TODO(Christoffer): More tag types
-//                    - [ ] multi-selections
-//                    - [ ] on/off
+//                    - [ ] multi-selections (emoji)
+//                    - […] on/off
 //                    - [ ] levels
 //                    - [ ] Blood-levels
 //                    - [x] free-text fields
-//                    - [_] strike-through (remove)
 
 Map<String, TagData> tagNames = <String, TagData>{};
 Map<DateTime, List<AppliedTagData>>
@@ -14,12 +13,12 @@ Map<DateTime, List<AppliedTagData>>
 
 enum TagType {
   list,
-  strikethrough,
+  toggle,
 }
 
 class TagData {
   TagData.list(this.name, this.listData, this.icon) : type = TagType.list;
-  TagData.strikethrough(this.name, this.icon) : type = TagType.strikethrough;
+  TagData.toggle(this.name, this.icon) : type = TagType.toggle;
 
   List<String> get list {
     return listData ?? (throw ArgumentError('called list on non-list type'));
@@ -42,8 +41,8 @@ class TagData {
         List<String>.from(json['listData']),
         icon,
       );
-    } else if (json['type'] == 'strikethrough') {
-      return TagData.strikethrough(
+    } else if (json['type'] == 'toggle') {
+      return TagData.toggle(
         json['name'],
         icon,
       );
@@ -61,13 +60,13 @@ class TagData {
 
 class AppliedTagData {
   AppliedTagData.list(this.tagData, this.listOption);
-  AppliedTagData.strikethrough(this.tagData);
+  AppliedTagData.toggle(this.tagData);
 
   String get string {
     switch (tagData.type) {
       case TagType.list:
         return tagData.list[listOption!];
-      case TagType.strikethrough:
+      case TagType.toggle:
         return tagData.name;
     }
   }
@@ -84,7 +83,7 @@ class AppliedTagData {
     if (tagData.type == TagType.list) {
       return AppliedTagData.list(tagData, json['listOption']);
     } else {
-      return AppliedTagData.strikethrough(tagData);
+      return AppliedTagData.toggle(tagData);
     }
   }
 
@@ -94,4 +93,5 @@ class AppliedTagData {
   final TagData tagData;
 
   int? listOption;
+  bool? toggleOption;
 }
