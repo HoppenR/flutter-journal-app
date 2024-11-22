@@ -170,16 +170,20 @@ class CalendarWeekState extends State<CalendarWeek> {
           Text(_getWeekdayAbbreviation(curDay.weekday)),
         const Spacer(),
         if (tag != null)
-          Text(
-            tag.string,
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.secondary,
-              decoration: tag.tagData.type == TagType.strikethrough
-                ? TextDecoration.lineThrough
-                : null,
+          if (tag.tagData.type == TagType.list)
+            Text(
+              tag.string,
+              style: TextStyle(
+                fontSize: 18,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
             ),
-          ),
+        if (tag != null)
+          if (tag.tagData.type == TagType.toggle && (tag.toggleOption ?? false))
+            Icon(
+              tag.tagData.icon,
+              size: 40.0,
+            ),
         const Spacer(),
       ]
     );

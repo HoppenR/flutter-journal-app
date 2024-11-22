@@ -65,6 +65,16 @@ class TagDayOverviewState extends State<TagDayOverview> {
               ),
               if (tagData.type == TagType.list)
                 _buildTagOptions(context, tagData),
+              if (tagData.type == TagType.toggle)
+                TextButton(
+                  onPressed: () { },
+                  child: Switch(
+                    value: appliedTagData?.toggleOption ?? false,
+                    onChanged: (bool value) {
+                      _handleToggleChange(tagData, value);
+                    },
+                  ),
+                ),
             ],
           ),
         ),
@@ -128,6 +138,24 @@ class TagDayOverviewState extends State<TagDayOverview> {
       appliedTags[widget._date]!.add(
         AppliedTagData.list(tagData, index),
       );
+    }
+    setState(() {});
+  }
+
+  void _handleToggleChange(TagData tagData, bool value) {
+    if (!appliedTags.containsKey(widget._date)) {
+      appliedTags[widget._date] = <AppliedTagData>[];
+    }
+
+    final int tagIndex = appliedTags[widget._date]!
+      .indexWhere((AppliedTagData tag) => tag.name == tagData.name);
+
+    if (tagIndex != -1) {
+      appliedTags[widget._date]![tagIndex].toggleOption = value;
+    } else {
+      final AppliedTagData newTag = AppliedTagData.toggle(tagData);
+      newTag.toggleOption = value;
+      appliedTags[widget._date]!.add(newTag);
     }
     setState(() {});
   }

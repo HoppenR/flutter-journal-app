@@ -88,8 +88,8 @@ class AddTagFormState extends State<AddTagForm> {
                         ).toList(),
                       selectedIcon!,
                     );
-                  case TagType.strikethrough:
-                    tagNames[tagController.text] = TagData.strikethrough(
+                  case TagType.toggle:
+                    tagNames[tagController.text] = TagData.toggle(
                       tagController.text,
                       selectedIcon!,
                     );
@@ -125,8 +125,8 @@ class AddTagFormState extends State<AddTagForm> {
                     child: Text('List'),
                   ),
                   DropdownMenuItem<TagType>(
-                    value: TagType.strikethrough,
-                    child: Text('Strikethrough'),
+                    value: TagType.toggle,
+                    child: Text('Toggle'),
                   ),
                 ],
                 onChanged: (TagType? value) => setState(() {
