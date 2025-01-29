@@ -66,6 +66,7 @@ class JournalPage extends StatefulWidget {
 
 class _JournalPageState extends State<JournalPage> {
   static const int _initialPage = 1000;
+  int _selectedViewIndex = 0;
 
   late DateTime _startDate;
   late ValueNotifier<int> _focusedPageNotifier;
@@ -175,9 +176,36 @@ class _JournalPageState extends State<JournalPage> {
     ),
     resizeToAvoidBottomInset: false,
     body: Column(
-      children: <Widget>[
-        _calendarNavigation(),
-        _calendarBody(),
+        children: <Widget>[
+          if (_selectedViewIndex == 0) ...<Widget>[
+            // Calendar View
+            _calendarNavigation(),
+            _calendarBody(),
+          ]
+          else if (_selectedViewIndex == 1) ...<Widget>[
+            // Graph view
+
+          ],
+        ]
+    ),
+    // TODO(Hop): Will need some sort of index to keep track of which page to
+    // show
+    bottomNavigationBar: BottomNavigationBar(
+      onTap: (int index) {
+        setState(() {
+          _selectedViewIndex = index;
+        });
+      },
+      currentIndex: _selectedViewIndex,
+      items: const <BottomNavigationBarItem>[
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_today, size: 36),
+          label: 'Calendar',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.bar_chart, size: 36),
+          label: 'Graphs',
+        ),
       ],
     ),
   );

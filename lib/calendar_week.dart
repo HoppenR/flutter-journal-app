@@ -96,6 +96,7 @@ class CalendarWeekState extends State<CalendarWeek> {
                                 tagNames.values.elementAt(index).icon,
                                 // TODO(Christoffer): Use a global constant
                                 size: 40.0,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               AnimatedOpacity(
                                 duration: const Duration(milliseconds: 300),
