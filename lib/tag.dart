@@ -1,11 +1,13 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 // TODO(Christoffer): More tag types
-//                    - [ ] multi-selections (emoji)
-//                    - […] on/off
-//                    - [ ] levels
-//                    - [ ] Blood-levels
 //                    - [x] free-text fields
+//                    - [x] on/off
+//                    - [ ] multi-selections (emoji+)
+//                    - [ ] levels
+//                    - [ ] color picker
+//                    - [ ] Blood-levels
+//                    - [ ] Tag colors
 
 Map<String, TagData> tagNames = <String, TagData>{};
 Map<DateTime, List<AppliedTagData>>
