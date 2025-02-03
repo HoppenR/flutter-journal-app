@@ -35,8 +35,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   shared_preferences: ^2.3.2
-  flutter_date_pickers: ^0.4.3
   collection: ^1.18.0
+  fl_chart: ^0.70.2
 
 dev_dependencies:
   flutter_test:
