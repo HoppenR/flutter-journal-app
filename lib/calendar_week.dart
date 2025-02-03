@@ -147,7 +147,9 @@ class CalendarWeekState extends State<CalendarWeek> {
   }
 
   ButtonStyle _buttonStyle(BuildContext context) => TextButton.styleFrom(
-    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+    backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+      alpha: 0.1,
+    ),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
     padding: EdgeInsets.zero,
   );

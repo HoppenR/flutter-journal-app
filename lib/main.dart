@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'add_tag_form.dart';
 import 'calendar_week.dart';
+import 'graph.dart';
 import 'tag.dart';
 import 'utility.dart';
 
@@ -184,7 +185,7 @@ class _JournalPageState extends State<JournalPage> {
           ]
           else if (_selectedViewIndex == 1) ...<Widget>[
             // Graph view
-
+            const Expanded(child: GraphPage()),
           ],
         ]
     ),
