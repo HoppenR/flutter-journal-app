@@ -1,7 +1,6 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 import 'tag.dart';
-import 'utility.dart';
 
 class AddTagForm extends StatefulWidget {
   const AddTagForm({super.key});
@@ -71,8 +70,6 @@ class AddTagFormState extends State<AddTagForm> {
                       selectedIcon!,
                     );
                 }
-                showSnackBar(context, 'tag added');
-                saveTags();
                 Navigator.of(context).pop(true);
               }
             },

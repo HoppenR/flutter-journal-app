@@ -2,6 +2,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+// TODO(Christoffer): Display overviews of weeks/months
+
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
 

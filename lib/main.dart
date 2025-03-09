@@ -1,6 +1,7 @@
 // Vim: set shiftwidth=2 :
 // TODO(Christoffer): Week-wise date picker that highlights a full week
 //                    (see twitch date picker for past broadcasts)
+// TODO(Christoffer): Add multilanguage support with intl/flutter_localizations
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -238,22 +239,21 @@ class _JournalPageState extends State<JournalPage> {
     return _startDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
   }
 
-  void _showAddTagWindow(BuildContext context) {
-    Navigator.push(
+  Future<void> _showAddTagWindow(BuildContext context) async {
+    final bool? result = await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
         builder: (BuildContext context) => const AddTagForm(),
       ),
-    ).then((bool? result) {
-      // TODO(Christoffer): If snackbar is moved to utility this can be moved
-      //                    into AddTagForm
+    );
+    if (result ?? false) {
       setState(() {
         if (result != null && result) {
           showSnackBar(context, 'tag added');
           saveTags();
         }
       });
-    });
+    }
   }
 
   void _showClearPreferencesWindow(BuildContext context) {
