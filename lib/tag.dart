@@ -102,7 +102,7 @@ class AppliedTagData {
     } else if (tagData.type == TagType.toggle) {
       return AppliedTagData.toggle(tagData, json['toggleOption']);
     } else if (tagData.type == TagType.multi) {
-      return AppliedTagData.multi(tagData, json['listOption']);
+      return AppliedTagData.multi(tagData, json['multiOptions']);
     } else {
       throw UnimplementedError();
     }
