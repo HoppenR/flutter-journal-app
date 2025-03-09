@@ -82,15 +82,27 @@ class AddTagFormState extends State<AddTagForm> {
                     tagNames[tagController.text] = TagData.list(
                       tagController.text,
                       optionControllers
-                        .map(
-                          (TextEditingController controller) =>
-                              controller.text,
-                        ).toList(),
+                          .map(
+                            (TextEditingController controller) =>
+                                controller.text,
+                          )
+                          .toList(),
                       selectedIcon!,
                     );
                   case TagType.toggle:
                     tagNames[tagController.text] = TagData.toggle(
                       tagController.text,
+                      selectedIcon!,
+                    );
+                  case TagType.multi:
+                    tagNames[tagController.text] = TagData.multi(
+                      tagController.text,
+                      optionControllers
+                          .map(
+                            (TextEditingController controller) =>
+                                controller.text,
+                          )
+                          .toList(),
                       selectedIcon!,
                     );
                 }
@@ -128,6 +140,10 @@ class AddTagFormState extends State<AddTagForm> {
                     value: TagType.toggle,
                     child: Text('Toggle'),
                   ),
+                  DropdownMenuItem<TagType>(
+                    value: TagType.multi,
+                    child: Text('Multi'),
+                  ),
                 ],
                 onChanged: (TagType? value) => setState(() {
                   selectedType = value;
@@ -135,7 +151,8 @@ class AddTagFormState extends State<AddTagForm> {
                 validator: (TagType? value) =>
                     value == null ? 'Tag type is required' : null,
               ),
-              if (selectedType == TagType.list) ..._buildOptionFields(),
+              if (selectedType == TagType.list || selectedType == TagType.multi)
+                ..._buildOptionFields(),
               const Text('Select an Icon'),
               _buildIconSelection(),
             ],
@@ -158,10 +175,9 @@ class AddTagFormState extends State<AddTagForm> {
                     decoration: const InputDecoration(
                       hintText: 'Enter an option',
                     ),
-                    validator: (String? value) =>
-                        value == null || value.isEmpty
-                            ? 'Option is required'
-                            : null,
+                    validator: (String? value) => value == null || value.isEmpty
+                        ? 'Option is required'
+                        : null,
                     onChanged: (String? value) => setState(() {}),
                   ),
                 ),
