@@ -11,21 +11,18 @@ Future<void> saveTags() async {
 
   final Map<String, Map<String, dynamic>> tagNamesJson = tagNames.map(
     (String key, TagData value) {
-      return MapEntry<String, Map<String, dynamic>>(
-        key,
-        value.toJson(),
-      );
+      return MapEntry<String, Map<String, dynamic>>(key, value.toJson());
     },
   );
 
-  final Map<String, List<Map<String, dynamic>>>
-    appliedTagsJson = appliedTags.map(
-      (DateTime key, List<AppliedTagData> value) {
-        return MapEntry<String, List<Map<String, dynamic>>>(
-          key.toIso8601String(),
-          value.map((AppliedTagData tag) => tag.toJson()).toList(),
-        );
-      },
+  final Map<String, List<Map<String, dynamic>>> appliedTagsJson =
+      appliedTags.map(
+    (DateTime key, List<AppliedTagData> value) {
+      return MapEntry<String, List<Map<String, dynamic>>>(
+        key.toIso8601String(),
+        value.map((AppliedTagData tag) => tag.toJson()).toList(),
+      );
+    },
   );
 
   final String dataToSave = json.encode(<String, dynamic>{

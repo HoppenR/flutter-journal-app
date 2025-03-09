@@ -69,7 +69,6 @@ class CalendarWeekState extends State<CalendarWeek> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                // TODO(Christoffer): Use a global constant
                 width: _isExpanded ? _getMaxTagColumnWidth() : 40.0,
                 child: GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
@@ -94,7 +93,6 @@ class CalendarWeekState extends State<CalendarWeek> {
                           children: <Widget>[
                             Icon(
                               tagNames.values.elementAt(index).icon,
-                              // TODO(Christoffer): Use a global constant
                               size: 40.0,
                               color: Theme.of(context).colorScheme.primary,
                             ),
