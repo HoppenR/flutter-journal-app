@@ -13,17 +13,6 @@ import 'graph.dart';
 import 'tag.dart';
 import 'utility.dart';
 
-class JournalScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.stylus,
-    PointerDeviceKind.invertedStylus,
-    PointerDeviceKind.trackpad,
-  };
-}
-
 void main() {
   initializeDateFormatting('sv_SE');
   runApp(const JournalApp());
@@ -63,6 +52,17 @@ class JournalPage extends StatefulWidget {
   State<JournalPage> createState() => _JournalPageState();
 }
 
+class JournalScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+    PointerDeviceKind.trackpad,
+  };
+}
+
 // --- _JournalPageState ---
 
 class _JournalPageState extends State<JournalPage> {
@@ -72,92 +72,6 @@ class _JournalPageState extends State<JournalPage> {
   late DateTime _startDate;
   late ValueNotifier<int> _focusedPageNotifier;
   late PageController _pageController;
-
-  @override
-  void initState() {
-    super.initState();
-    final DateTime now = DateTime.now();
-    _startDate = DateTime(now.year, now.month, now.day)
-      .subtract(Duration(days: now.weekday - 1));
-    _focusedPageNotifier = ValueNotifier<int>(_initialPage);
-    _pageController = PageController(initialPage: _initialPage);
-    loadTags();
-  }
-
-  @override
-  void dispose() {
-    _focusedPageNotifier.dispose();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _showClearPreferencesWindow(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: _buildClearPreferencesDialog,
-    );
-  }
-
-  Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
-    title: const Text('Clear tags'),
-    content: const Text('Are you sure you want to clear data?'),
-    actions: <Widget>[
-      TextButton(
-        onPressed: Navigator.of(context).pop,
-        child: const Text('Cancel'),
-      ),
-      TextButton(
-        onPressed: () {
-          clearPreferences(context);
-          setState(() {
-            tagNames.clear();
-            appliedTags.clear();
-          });
-          showSnackBar(context, 'Preferences cleared');
-          Navigator.of(context).pop();
-        },
-        child: const Text('Yes'),
-      ),
-    ],
-  );
-
-  void _jumpToPage(int page) {
-    _pageController.animateToPage(
-      page,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _showAddTagWindow(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute<bool?>(
-        builder: (BuildContext context) => const AddTagForm(),
-      ),
-    ).then((bool? result) {
-      // TODO(Christoffer): If snackbar is moved to utility this can be moved
-      //                    into AddTagForm
-      setState(() {
-        if (result != null && result) {
-          showSnackBar(context, 'tag added');
-          saveTags();
-        }
-      });
-    });
-  }
-
-  DateTime _pageIndexToDate(int pageIndex) {
-    return _startDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
-  }
-
-  int _dateToPageIndex(DateTime date) {
-    return (date.difference(_startDate).inDays / 7).floor() + _initialPage;
-  }
-
-  int _dateToWeekNumber(DateTime date) {
-    return (date.difference(DateTime(date.year)).inDays / 7).ceil() + 1;
-  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -189,8 +103,6 @@ class _JournalPageState extends State<JournalPage> {
           ],
         ]
     ),
-    // TODO(Hop): Will need some sort of index to keep track of which page to
-    // show
     bottomNavigationBar: BottomNavigationBar(
       onTap: (int index) {
         setState(() {
@@ -208,6 +120,60 @@ class _JournalPageState extends State<JournalPage> {
           label: 'Graphs',
         ),
       ],
+    ),
+  );
+
+  @override
+  void dispose() {
+    _focusedPageNotifier.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final DateTime now = DateTime.now();
+    _startDate = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
+    _focusedPageNotifier = ValueNotifier<int>(_initialPage);
+    _pageController = PageController(initialPage: _initialPage);
+    loadTags();
+  }
+
+  Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
+    title: const Text('Clear tags'),
+    content: const Text('Are you sure you want to clear data?'),
+    actions: <Widget>[
+      TextButton(
+        onPressed: Navigator.of(context).pop,
+        child: const Text('Cancel'),
+      ),
+      TextButton(
+        onPressed: () {
+          clearPreferences(context);
+          setState(() {
+            tagNames.clear();
+            appliedTags.clear();
+          });
+          showSnackBar(context, 'Preferences cleared');
+          Navigator.of(context).pop();
+        },
+        child: const Text('Yes'),
+      ),
+    ],
+  );
+
+  Widget _calendarBody() => Expanded(
+    child: PageView.builder(
+      controller: _pageController,
+      // scrollDirection: Axis.horizontal,
+      onPageChanged: (int index) {
+        _focusedPageNotifier.value = index;
+      },
+      itemBuilder: (BuildContext context, int index) => CalendarWeek(
+        _pageIndexToDate(index),
+      ),
     ),
   );
 
@@ -255,16 +221,48 @@ class _JournalPageState extends State<JournalPage> {
     ],
   );
 
-  Widget _calendarBody() => Expanded(
-    child: PageView.builder(
-      controller: _pageController,
-      // scrollDirection: Axis.horizontal,
-      onPageChanged: (int index) {
-        _focusedPageNotifier.value = index;
-      },
-      itemBuilder: (BuildContext context, int index) => CalendarWeek(
-        _pageIndexToDate(index),
+  int _dateToPageIndex(DateTime date) {
+    return (date.difference(_startDate).inDays / 7).floor() + _initialPage;
+  }
+
+  int _dateToWeekNumber(DateTime date) {
+    return (date.difference(DateTime(date.year)).inDays / 7).ceil() + 1;
+  }
+
+  void _jumpToPage(int page) {
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  DateTime _pageIndexToDate(int pageIndex) {
+    return _startDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
+  }
+
+  void _showAddTagWindow(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<bool?>(
+        builder: (BuildContext context) => const AddTagForm(),
       ),
-    ),
-  );
+    ).then((bool? result) {
+      // TODO(Christoffer): If snackbar is moved to utility this can be moved
+      //                    into AddTagForm
+      setState(() {
+        if (result != null && result) {
+          showSnackBar(context, 'tag added');
+          saveTags();
+        }
+      });
+    });
+  }
+
+  void _showClearPreferencesWindow(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: _buildClearPreferencesDialog,
+    );
+  }
 }
