@@ -1,17 +1,19 @@
 {{flutter_js}}
 {{flutter_build_config}}
 
-const loading = document.createElement('div');
-document.body.appendChild(loading);
-loading.textContent = "Loading Entrypoint...";
+const throbberDiv = document.createElement('div');
+throbberDiv.className = "throbber";
+document.body.appendChild(throbberDiv);
+
 _flutter.loader.load({
   onEntrypointLoaded: async function(engineInitializer) {
-    loading.textContent = "Initializing engine...";
     const appRunner = await engineInitializer.initializeEngine({
-      useColorEmoji: true
+       entryPointBaseUrl: "/journal/"
     });
 
-    loading.textContent = "Running app...";
+    if (document.body.contains(throbberDiv)) {
+      document.body.removeChild(throbberDiv);
+    }
     await appRunner.runApp();
   },
   config: {
