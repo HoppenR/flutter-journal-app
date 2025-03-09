@@ -1,6 +1,8 @@
 // Vim: set shiftwidth=2 :
 // TODO(Christoffer): Week-wise date picker that highlights a full week
 //                    (see twitch date picker for past broadcasts)
+// TODO(Christoffer): Store all possible icons in an array and only load from
+//                    that array, so as to allow tree-shaking non-used icons.
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
