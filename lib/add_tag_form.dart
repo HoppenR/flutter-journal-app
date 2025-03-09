@@ -1,6 +1,7 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 import 'tag.dart';
+import 'utility.dart';
 
 class AddTagForm extends StatefulWidget {
   const AddTagForm({super.key});
@@ -19,43 +20,7 @@ class AddTagFormState extends State<AddTagForm> {
   IconData? selectedIcon = Icons.favorite;
 
   // TODO(Christoffer): Add menstruation related icons
-  final List<IconData> availableIcons = <IconData>[
-    Icons.favorite,
-    Icons.home,
-    Icons.star,
-    Icons.work,
-    Icons.fitness_center,
-    Icons.coffee,
-    Icons.shopping_cart,
-    Icons.school,
-    Icons.pets,
-    Icons.sports_soccer,
-    Icons.water_drop,
-    Icons.brightness_5,
-    Icons.nightlight,
-    Icons.calendar_today,
-    Icons.av_timer,
-    Icons.warning,
-    Icons.thermostat,
-    Icons.sick,
-    Icons.cloud,
-    Icons.opacity,
-    Icons.sentiment_satisfied_alt,
-    Icons.sentiment_very_satisfied,
-    Icons.sentiment_dissatisfied,
-    Icons.energy_savings_leaf,
-    Icons.fastfood,
-    Icons.local_cafe,
-    Icons.icecream,
-    Icons.local_pizza,
-    Icons.self_improvement,
-    Icons.nature_people,
-    Icons.local_hospital,
-    Icons.notes,
-    Icons.star_border,
-    Icons.check,
-    Icons.bubble_chart,
-  ];
+  // TODO(Christoffer): Add ImageIcons for emojis?
 
   @override
   void dispose() {
@@ -106,6 +71,8 @@ class AddTagFormState extends State<AddTagForm> {
                       selectedIcon!,
                     );
                 }
+                showSnackBar(context, 'tag added');
+                saveTags();
                 Navigator.of(context).pop(true);
               }
             },
@@ -217,7 +184,8 @@ class AddTagFormState extends State<AddTagForm> {
             ),
             itemCount: availableIcons.length,
             itemBuilder: (BuildContext context, int index) {
-              final IconData icon = availableIcons[index];
+              final int codePoint = availableIcons.keys.elementAt(index);
+              final IconData icon = availableIcons[codePoint]!;
               return GestureDetector(
                 onTap: () {
                   setState(() {
