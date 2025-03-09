@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 // TODO(Christoffer): More tag types
 //                    - [x] free-text fields
 //                    - [x] on/off
-//                    - [ ] multi-selections (emoji+)
-//                    - [ ] levels
-//                    - [ ] color picker
-//                    - [ ] Blood-levels
-//                    - [ ] Tag colors
+//                    - [x] multi-selections
+//                    - [ ] levels (emojis?)
+//                    - [ ] Tag colors (emoji allows for red/white/brown)
 
 Map<String, TagData> tagNames = <String, TagData>{};
 Map<DateTime, List<AppliedTagData>> appliedTags =
@@ -18,6 +16,44 @@ enum TagType {
   toggle,
   multi,
 }
+
+final Map<int, IconData> availableIcons = <int, IconData>{
+  Icons.favorite.codePoint: Icons.favorite,
+  Icons.home.codePoint: Icons.home,
+  Icons.star.codePoint: Icons.star,
+  Icons.work.codePoint: Icons.work,
+  Icons.fitness_center.codePoint: Icons.fitness_center,
+  Icons.coffee.codePoint: Icons.coffee,
+  Icons.shopping_cart.codePoint: Icons.shopping_cart,
+  Icons.school.codePoint: Icons.school,
+  Icons.pets.codePoint: Icons.pets,
+  Icons.sports_soccer.codePoint: Icons.sports_soccer,
+  Icons.water_drop.codePoint: Icons.water_drop,
+  Icons.brightness_5.codePoint: Icons.brightness_5,
+  Icons.nightlight.codePoint: Icons.nightlight,
+  Icons.calendar_today.codePoint: Icons.calendar_today,
+  Icons.av_timer.codePoint: Icons.av_timer,
+  Icons.warning.codePoint: Icons.warning,
+  Icons.thermostat.codePoint: Icons.thermostat,
+  Icons.sick.codePoint: Icons.sick,
+  Icons.cloud.codePoint: Icons.cloud,
+  Icons.opacity.codePoint: Icons.opacity,
+  Icons.sentiment_satisfied_alt.codePoint: Icons.sentiment_satisfied_alt,
+  Icons.sentiment_very_satisfied.codePoint: Icons.sentiment_very_satisfied,
+  Icons.sentiment_dissatisfied.codePoint: Icons.sentiment_dissatisfied,
+  Icons.energy_savings_leaf.codePoint: Icons.energy_savings_leaf,
+  Icons.fastfood.codePoint: Icons.fastfood,
+  Icons.local_cafe.codePoint: Icons.local_cafe,
+  Icons.icecream.codePoint: Icons.icecream,
+  Icons.local_pizza.codePoint: Icons.local_pizza,
+  Icons.self_improvement.codePoint: Icons.self_improvement,
+  Icons.nature_people.codePoint: Icons.nature_people,
+  Icons.local_hospital.codePoint: Icons.local_hospital,
+  Icons.notes.codePoint: Icons.notes,
+  Icons.star_border.codePoint: Icons.star_border,
+  Icons.check.codePoint: Icons.check,
+  Icons.bubble_chart.codePoint: Icons.bubble_chart,
+};
 
 class TagData {
   TagData.list(this.name, this.listData, this.icon) : type = TagType.list;
@@ -38,7 +74,8 @@ class TagData {
   }
 
   static TagData fromJson(Map<String, dynamic> json) {
-    final IconData icon = IconData(json['icon'], fontFamily: 'MaterialIcons');
+    final int codePoint = json['icon'];
+    final IconData icon = availableIcons[codePoint]!;
     if (json['type'] == 'list') {
       return TagData.list(
         json['name'],
@@ -102,7 +139,10 @@ class AppliedTagData {
     } else if (tagData.type == TagType.toggle) {
       return AppliedTagData.toggle(tagData, json['toggleOption']);
     } else if (tagData.type == TagType.multi) {
-      return AppliedTagData.multi(tagData, json['multiOptions']);
+      return AppliedTagData.multi(
+        tagData,
+        List<int>.from(json['multiOptions']),
+      );
     } else {
       throw UnimplementedError();
     }
