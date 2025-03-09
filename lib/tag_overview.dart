@@ -114,7 +114,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
                     if (tag.type == TagType.list) {
                       return tag.listOption == index;
                     } else if (tag.type == TagType.multi) {
-                      // TODO(Hop): Implement
                       return tag.multiOptions?.contains(index) ?? false;
                     }
                     return false;

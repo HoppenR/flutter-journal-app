@@ -5,23 +5,24 @@ import 'package:flutter/material.dart';
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
 
-  @override State<GraphPage> createState() => _GraphPageState();
+  @override
+  State<GraphPage> createState() => _GraphPageState();
 }
 
 class _GraphPageState extends State<GraphPage> {
   @override
   Widget build(BuildContext context) => PieChart(
-    PieChartData(
-      sectionsSpace: 5,
-      centerSpaceRadius: 40,
-      sections: _generateSections(),
-      // pieTouchData: PieTouchData(enabled: true),
-      borderData: FlBorderData(show: false),
-    ),
-  );
+        PieChartData(
+          sectionsSpace: 5,
+          centerSpaceRadius: 40,
+          sections: _generateSections(),
+          // pieTouchData: PieTouchData(enabled: true),
+          borderData: FlBorderData(show: false),
+        ),
+      );
 
   List<PieChartSectionData> _generateSections() {
-   return <PieChartSectionData>[
+    return <PieChartSectionData>[
       PieChartSectionData(
         color: Colors.blue,
         value: 40,
