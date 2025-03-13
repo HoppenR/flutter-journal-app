@@ -13,6 +13,17 @@
 // TODO(Christoffer): Look at this:
 // https://discord.com/channels/@me/1260545436259717154/1348701290548695202
 
+// TODO(Christoffer): Implement back-button popping state:
+//  html.window.onPopState.listen((event) {
+//    debugPrint("Back button pressed");
+//    // Handle navigation manually
+//    // Example: Navigate to a specific route or update state
+//    navigatorKey.currentState?.maybePop();
+//  });
+//
+// OR when navigating forward, add a new history entry:
+// pushState(null, '', '#second');
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';

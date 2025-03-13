@@ -42,6 +42,7 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.local_hospital.codePoint: Icons.local_hospital,
   Icons.local_pizza.codePoint: Icons.local_pizza,
   Icons.medical_services.codePoint: Icons.medical_services,
+  Icons.medication_rounded.codePoint: Icons.medication_rounded,
   Icons.mood.codePoint: Icons.mood,
   Icons.nature_people.codePoint: Icons.nature_people,
   Icons.nightlight.codePoint: Icons.nightlight,
