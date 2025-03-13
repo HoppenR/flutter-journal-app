@@ -173,7 +173,6 @@ class AddTagFormState extends State<AddTagForm> {
           final int maxIconsInRow = (availableWidth / (iconSize + 16)).floor();
 
           return GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: maxIconsInRow,
               crossAxisSpacing: 8,
