@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 //                    - [ ] levels (emojis?)
 //                    - [ ] Tag colors (emoji allows for red/white/brown)
 
-Map<String, TagData> tagNames = <String, TagData>{};
+Map<String, TagData> tagData = <String, TagData>{};
 Map<DateTime, List<AppliedTagData>> appliedTags =
     <DateTime, List<AppliedTagData>>{};
 

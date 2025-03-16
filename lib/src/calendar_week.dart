@@ -26,7 +26,7 @@ class CalendarWeekState extends State<CalendarWeek> {
   double _getMaxTagColumnWidth() {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
-        text: tagNames.keys.reduce(
+        text: tagData.keys.reduce(
           (String a, String b) => a.length > b.length ? a : b,
         ),
         style: const TextStyle(fontSize: 16.0),
@@ -44,7 +44,7 @@ class CalendarWeekState extends State<CalendarWeek> {
       ),
     ).then((_) {
       setState(() {
-        saveTags();
+        saveAppliedTags();
       });
     });
   }
@@ -53,10 +53,10 @@ class CalendarWeekState extends State<CalendarWeek> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
-      final double totalSpacing = (tagNames.length - 1) * 4.0;
+      final double totalSpacing = (tagData.length - 1) * 4.0;
       final double cellHeight =
           (constraints.maxHeight - 2 * calendarGridEdgeInset - totalSpacing) /
-              tagNames.length;
+              tagData.length;
 
       return Padding(
         padding: const EdgeInsets.all(calendarGridEdgeInset),
@@ -79,7 +79,7 @@ class CalendarWeekState extends State<CalendarWeek> {
                     crossAxisSpacing: 4.0,
                     mainAxisSpacing: 4.0,
                   ),
-                  itemCount: tagNames.length,
+                  itemCount: tagData.length,
                   itemBuilder: (BuildContext context, int index) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
@@ -93,7 +93,7 @@ class CalendarWeekState extends State<CalendarWeek> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Icon(
-                              tagNames.values.elementAt(index).icon,
+                              tagData.values.elementAt(index).icon,
                               size: 40.0,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -101,7 +101,7 @@ class CalendarWeekState extends State<CalendarWeek> {
                               duration: const Duration(milliseconds: 300),
                               opacity: _isExpanded ? 1.0 : 0.0,
                               child: Text(
-                                tagNames.keys.elementAt(index),
+                                tagData.keys.elementAt(index),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -123,7 +123,7 @@ class CalendarWeekState extends State<CalendarWeek> {
                   crossAxisSpacing: 4.0,
                   mainAxisSpacing: 4.0,
                 ),
-                itemCount: tagNames.length * DateTime.daysPerWeek,
+                itemCount: tagData.length * DateTime.daysPerWeek,
                 itemBuilder: (BuildContext context, int index) {
                   final int dayIndex = index % DateTime.daysPerWeek;
                   final int tagIndex = index ~/ DateTime.daysPerWeek;
@@ -159,7 +159,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     DateTime curDay,
     int tagIndex,
   ) {
-    final String targetTagName = tagNames.keys.elementAt(tagIndex);
+    final String targetTagName = tagData.keys.elementAt(tagIndex);
     AppliedTagData? tag;
     if (appliedTags.containsKey(curDay)) {
       tag = appliedTags[curDay]?.firstWhereOrNull(

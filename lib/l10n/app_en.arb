@@ -1,97 +1,99 @@
 {
     "appTitle": "Luunie's Journal",
+    "addTag": "Add tag",
+    "clearDataTitle": "Clear data",
+    "clearDataPrompt": "Do you really wish to clear all data?",
+    "clearDataDone": "Cleared all data",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "promptAffirmative": "Yes",
+    "promptNegative": "Cancel",
+    "saveTag": "Save",
+    "tagNameHint": "Enter a tag name",
+    "tagNameMissing": "Name is required",
+    "tagSelectType": "Select tag type",
+    "tagTypeMissing": "Tag type is required",
+    "tagAddOption": "Enter an option",
+    "tagOptionMissing": "Tag option is required",
+    "tagSelectIcon": "Select an icon",
+    "tagOptions": "Options",
+    "tagTypeList": "List",
+    "tagTypeToggle": "Toggle",
+    "tagTypeMulti": "Multi",
+    "navigationCalendar": "Calendar",
+    "navigationGraphs": "Graphs",
+    "yearAndWeek": "{year} w{week}",
+
     "@appTitle": {
         "description": "Title of app, also shown on scaffold bar top-left"
     },
-    "addTag": "Add tag",
     "@addTag": {
         "description": "Plus button hover tooltip in calendar overview"
     },
-    "clearDataTitle": "Clear data",
     "@clearDataTitle": {
         "description": "Trash can hover tooltip in calendar overview"
     },
-    "clearDataPrompt": "Do you really wish to clear all data?",
     "@clearDataPrompt": {
         "description": "Content on clear data prompt"
     },
-    "clearDataDone": "Cleared all data",
     "@clearDataDone": {
         "description": "Popup text after clearing data"
     },
-    "prevWeek": "Previous week",
     "@prevWeek": {
         "description": "Left arrow hover tooltip in calendar overview"
     },
-    "nextWeek": "Next week",
     "@nextWeek": {
         "description": "Right arrow hover tooltip in calendar overview"
     },
-    "promptAffirmative": "Yes",
     "@promptAffirmative": {
         "description": "Affirmative option in prompt"
     },
-    "promptNegative": "Cancel",
     "@promptNegative": {
         "description": "Negative option in prompt"
     },
-    "saveTag": "Save",
     "@saveTag": {
         "description": "Save tag in form to add tag"
     },
-    "tagNameHint": "Enter a tag name",
     "@tagNameHint": {
         "description": "Hint text for entering a tag in form for adding tag"
     },
-    "tagNameMissing": "Name is required",
     "@tagNameMissing": {
         "description": "Text displayed when tag name value is empty while validating in form for adding tag"
     },
-    "tagSelectType": "Select tag type",
     "@tagSelectType": {
         "description": "Content shown in add tag form above tag type drop down menu"
     },
-    "tagTypeMissing": "Tag type is required",
     "@tagTypeMissing": {
         "description": "Text displayed when tag type value is empty while validating in form for adding tag"
     },
-    "tagAddOption": "Enter an option",
     "@tagAddOption": {
         "description": "Hint text for entering an option in form for adding tag"
     },
-    "tagOptionMissing": "Tag option is required",
     "@tagOptionMissing": {
         "description": "Text displayed when tag type value is empty while validating in form for adding tag"
     },
-    "tagSelectIcon": "Select an icon",
     "@tagSelectIcon": {
         "description": "Content shown in add tag form above icon list"
     },
-    "tagOptions": "Options",
     "@tagOptions": {
         "description": "Content shown in add tag form above user specified tag options"
     },
-    "tagTypeList": "List",
     "@tagTypeList": {
         "description": "Name of list tag type"
     },
-    "tagTypeToggle": "Toggle",
     "@tagTypeToggle": {
         "description": "Name of toggle tag type"
     },
-    "tagTypeMulti": "Multi",
     "@tagTypeMulti": {
         "description": "Name of multi tag type"
     },
-    "navigationCalendar": "Calendar",
     "@navigationCalendar": {
         "description": "Content below navigation icon of a calendar"
     },
-    "navigationGraphs": "Graphs",
     "@navigationGraphs": {
         "description": "Content below navigation icon of a graph"
     },
-    "yearAndWeek": "{year} w{week}",
+
     "@yearAndWeek": {
         "description": "Content shown above calendar in calendar overview",
         "placeholders": {
