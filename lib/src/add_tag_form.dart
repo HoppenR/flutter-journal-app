@@ -1,5 +1,6 @@
 // Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
+import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
 
 class AddTagForm extends StatefulWidget {
@@ -35,7 +36,7 @@ class AddTagFormState extends State<AddTagForm> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Add Tag'),
+        title: Text(AppLocalizations.of(context).addTag),
         actions: <Widget>[
           TextButton(
             onPressed: () {
@@ -73,7 +74,7 @@ class AddTagFormState extends State<AddTagForm> {
                 Navigator.of(context).pop(true);
               }
             },
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context).saveTag),
           ),
         ],
       ),
@@ -87,37 +88,41 @@ class AddTagFormState extends State<AddTagForm> {
             children: <Widget>[
               TextFormField(
                 controller: tagController,
-                decoration: const InputDecoration(hintText: 'Enter a tag'),
-                validator: (String? value) =>
-                    value == null || value.isEmpty ? 'Tag is required' : null,
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context).tagNameHint,
+                ),
+                validator: (String? value) => value == null || value.isEmpty
+                    ? AppLocalizations.of(context).tagNameMissing
+                    : null,
                 autofocus: true,
               ),
               DropdownButtonFormField<TagType>(
                 value: selectedType,
-                hint: const Text('Select tag type'),
-                items: const <DropdownMenuItem<TagType>>[
+                hint: Text(AppLocalizations.of(context).tagSelectType),
+                items: <DropdownMenuItem<TagType>>[
                   DropdownMenuItem<TagType>(
                     value: TagType.list,
-                    child: Text('List'),
+                    child: Text(AppLocalizations.of(context).tagTypeList),
                   ),
                   DropdownMenuItem<TagType>(
                     value: TagType.toggle,
-                    child: Text('Toggle'),
+                    child: Text(AppLocalizations.of(context).tagTypeToggle),
                   ),
                   DropdownMenuItem<TagType>(
                     value: TagType.multi,
-                    child: Text('Multi'),
+                    child: Text(AppLocalizations.of(context).tagTypeMulti),
                   ),
                 ],
                 onChanged: (TagType? value) => setState(() {
                   selectedType = value;
                 }),
-                validator: (TagType? value) =>
-                    value == null ? 'Tag type is required' : null,
+                validator: (TagType? value) => value == null
+                    ? AppLocalizations.of(context).tagTypeMissing
+                    : null,
               ),
               if (selectedType == TagType.list || selectedType == TagType.multi)
                 ..._buildOptionFields(),
-              const Text('Select an Icon'),
+              Text(AppLocalizations.of(context).tagSelectIcon),
               _buildIconSelection(),
             ],
           ),
@@ -129,32 +134,37 @@ class AddTagFormState extends State<AddTagForm> {
   List<Widget> _buildOptionFields() {
     return <Widget>[
       const SizedBox(height: 16),
-      const Text('Options', style: TextStyle(fontWeight: FontWeight.bold)),
+      Text(
+        AppLocalizations.of(context).tagOptions,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       ...optionControllers.asMap().entries.map(
-            (MapEntry<int, TextEditingController> entry) => Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextFormField(
-                    controller: entry.value,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter an option',
-                    ),
-                    validator: (String? value) => value == null || value.isEmpty
-                        ? 'Option is required'
-                        : null,
-                    onChanged: (String? value) => setState(() {}),
+        (MapEntry<int, TextEditingController> entry) {
+          return Row(
+            children: <Widget>[
+              Expanded(
+                child: TextFormField(
+                  controller: entry.value,
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).tagAddOption,
                   ),
+                  validator: (String? value) => value == null || value.isEmpty
+                      ? AppLocalizations.of(context).tagOptionMissing
+                      : null,
+                  onChanged: (String? value) => setState(() {}),
                 ),
-                if (entry.key > 0)
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle),
-                    onPressed: () => setState(() {
-                      optionControllers.removeAt(entry.key);
-                    }),
-                  ),
-              ],
-            ),
-          ),
+              ),
+              if (entry.key > 0)
+                IconButton(
+                  icon: const Icon(Icons.remove_circle),
+                  onPressed: () => setState(() {
+                    optionControllers.removeAt(entry.key);
+                  }),
+                ),
+            ],
+          );
+        },
+      ),
       IconButton(
         icon: const Icon(Icons.add),
         onPressed: () => setState(() {
