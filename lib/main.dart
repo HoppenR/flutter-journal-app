@@ -2,8 +2,6 @@
 // TODO(Christoffer): Week-wise date picker that highlights a full week
 //                    (see twitch date picker for past broadcasts)
 
-// TODO(Christoffer): Add multilanguage support with intl/flutter_localizations
-
 // TODO(Christoffer): Display overflow tags as "multiple tags here"
 // https://media.discordapp.net/attachments/1260545436259717154/1348700838905909268/IMG_1473.png?ex=67d06b09&is=67cf1989&hm=ccff07c32299f9765e07d4bf4421af597c5b98ab47a82423b645c4e729ae3e70&=&format=webp&quality=lossless&width=496&height=1074
 
@@ -27,42 +25,80 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'add_tag_form.dart';
-import 'calendar_week.dart';
-import 'graph.dart';
-import 'tag.dart';
-import 'utility.dart';
+import 'src/add_tag_form.dart';
+import 'src/calendar_week.dart';
+import 'src/generated/l10n/app_localizations.dart';
+import 'src/graph.dart';
+import 'src/tag.dart';
+import 'src/utility.dart';
 
-void main() {
-  initializeDateFormatting('sv_SE');
-  runApp(const JournalApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  final String? localeCode = prefs.getString('locale');
+  final Locale? locale = localeCode != null ? Locale(localeCode) : null;
+  runApp(JournalApp(initialLocale: locale));
 }
 
-class JournalApp extends StatelessWidget {
-  const JournalApp({super.key});
+class JournalApp extends StatefulWidget {
+  const JournalApp({super.key, required this.initialLocale});
+
+  final Locale? initialLocale;
+
+  @override
+  State<JournalApp> createState() => JournalAppState();
+
+  static void setLocale(BuildContext context, Locale newLocale) {
+    final JournalAppState? state =
+        context.findAncestorStateOfType<JournalAppState>();
+    state?.changeLanguage(newLocale);
+  }
+}
+
+class JournalAppState extends State<JournalApp> {
+  late Locale? _locale;
+
+  void changeLanguage(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+    _saveLanguage(locale);
+  }
+
+  Future<void> _saveLanguage(Locale locale) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('locale', locale.languageCode);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _locale = widget.initialLocale;
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       scrollBehavior: JournalScrollBehavior(),
-      locale: const Locale('sv', 'SE'),
-      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const <Locale>[
-        Locale('sv', 'SE'),
-      ],
-      title: "Luunie's Journal",
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: _locale,
+      onGenerateTitle: (BuildContext context) {
+        return AppLocalizations.of(context).appTitle;
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const JournalPage(title: 'Journal'),
+      initialRoute: '/',
+      routes: <String, WidgetBuilder>{
+        '/': (BuildContext context) {
+          return JournalPage(title: AppLocalizations.of(context).appTitle);
+        },
+      },
     );
   }
 }
@@ -89,62 +125,85 @@ class JournalScrollBehavior extends MaterialScrollBehavior {
 // --- _JournalPageState ---
 
 class _JournalPageState extends State<JournalPage> {
-  static const int _initialPage = 1000;
   int _selectedViewIndex = 0;
+  final FocusNode _focusNode = FocusNode();
 
+  late int _initialPage;
   late DateTime _startDate;
   late ValueNotifier<int> _focusedPageNotifier;
   late PageController _pageController;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.title),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showAddTagWindow(context),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => _showClearPreferencesWindow(context),
-            ),
-          ],
-        ),
-        resizeToAvoidBottomInset: false,
-        body: Column(children: <Widget>[
-          if (_selectedViewIndex == 0) ...<Widget>[
-            // Calendar View
-            _calendarNavigation(),
-            _calendarBody(),
-          ] else if (_selectedViewIndex == 1) ...<Widget>[
-            // Graph view
-            const Expanded(child: GraphPage()),
-          ],
-        ]),
-        bottomNavigationBar: BottomNavigationBar(
-          onTap: (int index) {
-            setState(() {
-              _selectedViewIndex = index;
-            });
-          },
-          currentIndex: _selectedViewIndex,
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today, size: 36),
-              label: 'Calendar',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart, size: 36),
-              label: 'Graphs',
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+        actions: <Widget>[
+          DropdownButton<String>(
+            value: Localizations.localeOf(context).languageCode,
+            icon: const Icon(Icons.language),
+            items: AppLocalizations.supportedLocales
+                .map((Locale locale) => DropdownMenuItem<String>(
+                      value: locale.languageCode,
+                      child: Text(locale.languageCode),
+                    ))
+                .toList(),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                JournalApp.setLocale(context, Locale(newValue));
+              }
+              // Remove focus
+              FocusScope.of(context).requestFocus(_focusNode);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showAddTagWindow(context),
+            tooltip: AppLocalizations.of(context).addTag,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () => _showClearPreferencesWindow(context),
+            tooltip: AppLocalizations.of(context).clearDataTitle,
+          ),
+        ],
+      ),
+      resizeToAvoidBottomInset: false,
+      body: Column(children: <Widget>[
+        if (_selectedViewIndex == 0) ...<Widget>[
+          // Calendar View
+          _calendarNavigation(),
+          _calendarBody(),
+        ] else if (_selectedViewIndex == 1) ...<Widget>[
+          // Graph view
+          const Expanded(child: GraphPage()),
+        ],
+      ]),
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (int index) {
+          setState(() {
+            _selectedViewIndex = index;
+          });
+        },
+        currentIndex: _selectedViewIndex,
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.calendar_today, size: 36),
+            label: AppLocalizations.of(context).navigationCalendar,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bar_chart, size: 36),
+            label: AppLocalizations.of(context).navigationGraphs,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _focusedPageNotifier.dispose();
     _pageController.dispose();
     super.dispose();
@@ -156,93 +215,124 @@ class _JournalPageState extends State<JournalPage> {
     final DateTime now = DateTime.now();
     _startDate = DateTime(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1));
+    _initialPage = _dateToAbsoluteWeekNumber(_startDate);
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
     loadTags();
   }
 
-  Widget _buildClearPreferencesDialog(BuildContext context) => AlertDialog(
-        title: const Text('Clear tags'),
-        content: const Text('Are you sure you want to clear data?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: Navigator.of(context).pop,
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              clearPreferences(context);
-              setState(() {
-                tagNames.clear();
-                appliedTags.clear();
-              });
-              showSnackBar(context, 'Preferences cleared');
-              Navigator.of(context).pop();
-            },
-            child: const Text('Yes'),
-          ),
-        ],
-      );
-
-  Widget _calendarBody() => Expanded(
-        child: PageView.builder(
-          controller: _pageController,
-          // scrollDirection: Axis.horizontal,
-          onPageChanged: (int index) {
-            _focusedPageNotifier.value = index;
-          },
-          itemBuilder: (BuildContext context, int index) => CalendarWeek(
-            _pageIndexToDate(index),
-          ),
+  Widget _buildClearPreferencesDialog(BuildContext context) {
+    return AlertDialog(
+      title: Text(AppLocalizations.of(context).clearDataTitle),
+      content: Text(AppLocalizations.of(context).clearDataPrompt),
+      actions: <Widget>[
+        TextButton(
+          onPressed: Navigator.of(context).pop,
+          child: Text(AppLocalizations.of(context).promptNegative),
         ),
-      );
+        TextButton(
+          onPressed: () {
+            clearPreferences(context);
+            setState(() {
+              tagNames.clear();
+              appliedTags.clear();
+            });
+            showSnackBar(context, AppLocalizations.of(context).clearDataDone);
+            Navigator.of(context).pop();
+          },
+          child: Text(AppLocalizations.of(context).promptAffirmative),
+        ),
+      ],
+    );
+  }
 
-  Widget _calendarNavigation() => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => _jumpToPage(_pageController.page!.toInt() - 1),
-            tooltip: 'Föregående månad',
-          ),
-          ValueListenableBuilder<int>(
-              valueListenable: _focusedPageNotifier,
-              builder: (BuildContext context, int pageIndex, _) {
-                final DateTime currentDate = _pageIndexToDate(pageIndex);
-                final int weekNumber = _dateToWeekNumber(currentDate);
+  Widget _calendarBody() {
+    return Expanded(
+      child: PageView.builder(
+        controller: _pageController,
+        // scrollDirection: Axis.horizontal,
+        onPageChanged: (int index) {
+          _focusedPageNotifier.value = index;
+        },
+        itemBuilder: (BuildContext context, int index) => CalendarWeek(
+          _pageIndexToDate(index),
+        ),
+      ),
+    );
+  }
 
-                return InkWell(
-                  onTap: () {
-                    _jumpToPage(_initialPage);
-                  },
-                  onLongPress: () async {
-                    final DateTime? selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: currentDate,
-                      firstDate: _pageIndexToDate(0),
-                      lastDate: _pageIndexToDate(_initialPage * 2),
-                    );
-                    if (selectedDate != null) {
-                      _jumpToPage(_dateToPageIndex(selectedDate));
-                    }
-                  },
-                  child: Text(
-                    '${currentDate.year} v$weekNumber',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+  Widget _calendarNavigation() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            final int page = _pageController.page!.toInt();
+            if (page > 1) {
+              return _jumpToPage(page - 1);
+            }
+          },
+          tooltip: AppLocalizations.of(context).prevWeek,
+        ),
+        ValueListenableBuilder<int>(
+            valueListenable: _focusedPageNotifier,
+            builder: (BuildContext context, int pageIndex, _) {
+              final DateTime currentDate = _pageIndexToDate(pageIndex);
+              final int weekNumber = _dateToWeekNumber(currentDate);
+
+              return InkWell(
+                onTap: () {
+                  _jumpToPage(_initialPage);
+                },
+                onLongPress: () async {
+                  final DateTime? selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: currentDate,
+                    firstDate: DateTime(1),
+                    lastDate: DateTime(2500, 12, 31),
+                  );
+                  if (selectedDate != null) {
+                    _jumpToPage(_dateToPageIndex(selectedDate));
+                  }
+                },
+                child: Text(
+                  AppLocalizations.of(context).yearAndWeek(
+                    currentDate.year,
+                    weekNumber,
                   ),
-                );
-              }),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: () => _jumpToPage(_pageController.page!.toInt() + 1),
-            tooltip: 'Nästa månad',
-          ),
-        ],
-      );
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              );
+            }),
+        IconButton(
+          icon: const Icon(Icons.arrow_forward),
+          onPressed: () {
+            final int page = _pageController.page!.toInt();
+            final int lastPage = _dateToPageIndex(DateTime(2500, 12, 31));
+            if (page < lastPage) {
+              return _jumpToPage(page + 1);
+            }
+          },
+          tooltip: AppLocalizations.of(context).nextWeek,
+        ),
+      ],
+    );
+  }
 
   int _dateToPageIndex(DateTime date) {
-    return (date.difference(_startDate).inDays / 7).floor() + _initialPage;
+    return _dateToAbsoluteWeekNumber(date);
+  }
+
+  int _dateToAbsoluteWeekNumber(DateTime date) {
+    final DateTime jan4 = DateTime(1, 1, 4);
+    final DateTime firstWeekMonday =
+        jan4.subtract(Duration(days: jan4.weekday - 1));
+
+    final int diffDays = date.difference(firstWeekMonday).inDays;
+
+    return diffDays ~/ 7 + 1;
   }
 
   int _dateToWeekNumber(DateTime date) {

@@ -1,8 +1,8 @@
 // Vim: set shiftwidth=2 :
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
 
 class TagDayOverview extends StatefulWidget {
@@ -23,7 +23,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
-          'Tag Overview (${DateFormat('yyyy-MM-dd').format(widget._date)})',
+          AppLocalizations.of(context).tagOverviewTitle(widget._date),
         ),
         actions: const <Widget>[],
       ),
@@ -142,8 +142,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
       appliedTags[widget._date] = <AppliedTagData>[];
     }
 
-    final int tagIndex = appliedTags[widget._date]!
-        .indexWhere((AppliedTagData tag) => tag.name == tagData.name);
+    final int tagIndex = appliedTags[widget._date]!.indexWhere(
+      (AppliedTagData tag) => tag.name == tagData.name,
+    );
 
     if (tagData.type == TagType.list) {
       if (tagIndex != -1) {
@@ -169,8 +170,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
       appliedTags[widget._date] = <AppliedTagData>[];
     }
 
-    final int tagIndex = appliedTags[widget._date]!
-        .indexWhere((AppliedTagData tag) => tag.name == tagData.name);
+    final int tagIndex = appliedTags[widget._date]!.indexWhere(
+      (AppliedTagData tag) => tag.name == tagData.name,
+    );
 
     if (tagIndex != -1) {
       appliedTags[widget._date]![tagIndex].toggleOption = value;

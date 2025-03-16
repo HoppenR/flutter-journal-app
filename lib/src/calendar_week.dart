@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'tag.dart';
 import 'tag_overview.dart';
@@ -143,13 +144,15 @@ class CalendarWeekState extends State<CalendarWeek> {
     });
   }
 
-  ButtonStyle _buttonStyle(BuildContext context) => TextButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-              alpha: 0.1,
-            ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-        padding: EdgeInsets.zero,
-      );
+  ButtonStyle _buttonStyle(BuildContext context) {
+    return TextButton.styleFrom(
+      backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+            alpha: 0.1,
+          ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      padding: EdgeInsets.zero,
+    );
+  }
 
   Widget _buttonContent(
     BuildContext context,
@@ -166,7 +169,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          if (tagIndex == 0) Text(_getWeekdayAbbreviation(curDay.weekday)),
+          if (tagIndex == 0) Text(_getWeekdayAbbreviation(context, curDay)),
           const Spacer(),
           if (tag != null)
             if (tag.tagData.type == TagType.list ||
@@ -189,24 +192,9 @@ class CalendarWeekState extends State<CalendarWeek> {
         ]);
   }
 
-  String _getWeekdayAbbreviation(int weekday) {
-    switch (weekday) {
-      case DateTime.monday:
-        return 'M';
-      case DateTime.tuesday:
-        return 'Ti';
-      case DateTime.wednesday:
-        return 'O';
-      case DateTime.thursday:
-        return 'To';
-      case DateTime.friday:
-        return 'F';
-      case DateTime.saturday:
-        return 'L';
-      case DateTime.sunday:
-        return 'S';
-      default:
-        throw AssertionError('invalid day');
-    }
+  String _getWeekdayAbbreviation(BuildContext context, DateTime date) {
+    return DateFormat.E(
+      Localizations.localeOf(context).languageCode,
+    ).format(date);
   }
 }

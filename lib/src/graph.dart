@@ -13,15 +13,17 @@ class GraphPage extends StatefulWidget {
 
 class _GraphPageState extends State<GraphPage> {
   @override
-  Widget build(BuildContext context) => PieChart(
-        PieChartData(
-          sectionsSpace: 5,
-          centerSpaceRadius: 40,
-          sections: _generateSections(),
-          // pieTouchData: PieTouchData(enabled: true),
-          borderData: FlBorderData(show: false),
-        ),
-      );
+  Widget build(BuildContext context) {
+    return PieChart(
+      PieChartData(
+        sectionsSpace: 5,
+        centerSpaceRadius: 40,
+        sections: _generateSections(),
+        // pieTouchData: PieTouchData(enabled: true),
+        borderData: FlBorderData(show: false),
+      ),
+    );
+  }
 
   List<PieChartSectionData> _generateSections() {
     return <PieChartSectionData>[
