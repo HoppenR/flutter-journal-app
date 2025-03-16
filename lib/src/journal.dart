@@ -316,7 +316,7 @@ class _JournalPageState extends State<JournalPage> {
     if (result ?? false) {
       setState(() {
         if (result != null && result) {
-          showSnackBar(context, 'tag added');
+          showSnackBar(context, AppLocalizations.of(context).saveTagDone);
           saveTagData();
         }
       });
