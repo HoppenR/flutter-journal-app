@@ -1,6 +1,4 @@
 // Vim: set shiftwidth=2 :
-import 'dart:ui' as ui;
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -23,17 +21,21 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   bool _isExpanded = false;
 
-  double _getMaxTagColumnWidth() {
+  double _getMaxTagColumnWidth(BuildContext context) {
+    final String longestTag = tagData.keys.reduce(
+      (String a, String b) => a.length > b.length ? a : b,
+    );
+
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
-        text: tagData.keys.reduce(
-          (String a, String b) => a.length > b.length ? a : b,
-        ),
+        text: longestTag,
         style: const TextStyle(fontSize: 16.0),
       ),
-      textDirection: ui.TextDirection.ltr,
-    )..layout();
-    return textPainter.size.width;
+      textDirection: Directionality.of(context),
+      maxLines: 1,
+    )..layout(minWidth: 40.0, maxWidth: 160.0);
+
+    return textPainter.width;
   }
 
   void _showTagDayOverview(BuildContext context, DateTime day) {
@@ -70,7 +72,7 @@ class CalendarWeekState extends State<CalendarWeek> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                width: _isExpanded ? _getMaxTagColumnWidth() : 40.0,
+                width: _isExpanded ? _getMaxTagColumnWidth(context) : 40.0,
                 child: GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -89,19 +91,24 @@ class CalendarWeekState extends State<CalendarWeek> {
                           borderRadius: BorderRadius.circular(8.0),
                           color: Theme.of(context).colorScheme.inversePrimary,
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: <Widget>[
-                            Icon(
-                              tagData.values.elementAt(index).icon,
-                              size: 40.0,
-                              color: Theme.of(context).colorScheme.primary,
+                            AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity: _isExpanded ? 0.0 : 1.0,
+                              child: Icon(
+                                tagData.values.elementAt(index).icon,
+                                size: 40.0,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                             AnimatedOpacity(
                               duration: const Duration(milliseconds: 300),
                               opacity: _isExpanded ? 1.0 : 0.0,
                               child: Text(
                                 tagData.keys.elementAt(index),
+                                style: const TextStyle(fontSize: 16.0),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
