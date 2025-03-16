@@ -32,15 +32,15 @@ class TagDayOverviewState extends State<TagDayOverview> {
         child: Form(
           key: _formKey,
           // onChanged: () => setState(() {}),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              ...tagData.entries.map((MapEntry<String, TagData> entry) {
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              children: tagData.entries.map((MapEntry<String, TagData> entry) {
                 final String tagName = entry.key;
                 final TagData tagData = entry.value;
                 return _buildTagRow(context, tagName, tagData);
-              }),
-            ],
+              }).toList(),
+            ),
           ),
         ),
       ),
@@ -52,88 +52,94 @@ class TagDayOverviewState extends State<TagDayOverview> {
     final AppliedTagData? appliedTagData = tagList?.firstWhereOrNull(
       (AppliedTagData tag) => tag.name == tagName,
     );
-    return Row(
+    return Column(
       children: <Widget>[
-        Expanded(
-          child: Row(
-            children: <Widget>[
-              Text(
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
                 '$tagName: ',
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18.0),
               ),
-              _buildTagRowContent(tagName, tagData, appliedTagData),
-            ],
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.delete),
-          color: appliedTagData != null ? Colors.black : Colors.grey,
-          onPressed: appliedTagData != null
-              ? () {
-                  setState(() {
-                    appliedTags[widget._date]!.remove(appliedTagData);
-                    if (appliedTags[widget._date]!.isEmpty) {
-                      appliedTags.remove(widget._date);
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              color: appliedTagData != null ? Colors.black : Colors.grey,
+              onPressed: appliedTagData != null
+                  ? () {
+                      setState(() {
+                        appliedTags[widget._date]!.remove(appliedTagData);
+                        if (appliedTags[widget._date]!.isEmpty) {
+                          appliedTags.remove(widget._date);
+                        }
+                      });
                     }
-                  });
-                }
-              : null,
+                  : null,
+            ),
+          ],
+        ),
+        Wrap(
+          children: _buildTagRowContent(
+            tagName,
+            tagData,
+            appliedTagData,
+          ).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildTagRowContent(
+  List<Widget> _buildTagRowContent(
       String tagName, TagData tagData, AppliedTagData? appliedTagData) {
     switch (tagData.type) {
       case TagType.list:
         return _buildTagOptions(context, tagData);
       case TagType.toggle:
-        return Switch(
-          value: appliedTagData?.toggleOption ?? false,
-          onChanged: (bool value) {
-            _handleToggleChange(tagData, value);
-          },
-        );
+        return <Widget>[
+          Switch(
+            value: appliedTagData?.toggleOption ?? false,
+            onChanged: (bool value) {
+              _handleToggleChange(tagData, value);
+            },
+          ),
+        ];
       case TagType.multi:
         return _buildTagOptions(context, tagData);
     }
   }
 
-  Widget _buildTagOptions(BuildContext context, TagData tagData) {
-    return Row(
-      children: tagData.list.asMap().entries.map(
-        (MapEntry<int, String> listEntry) {
-          final int index = listEntry.key;
-          final String option = listEntry.value;
-          final bool isSelected =
-              appliedTags[widget._date]?.any((AppliedTagData tag) {
-                    if (tag.name != tagData.name) {
-                      return false;
-                    }
-                    if (tag.type == TagType.list) {
-                      return tag.listOption == index;
-                    } else if (tag.type == TagType.multi) {
-                      return tag.multiOptions?.contains(index) ?? false;
-                    }
+  List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
+    return tagData.list.asMap().entries.map(
+      (MapEntry<int, String> listEntry) {
+        final int index = listEntry.key;
+        final String option = listEntry.value;
+        final bool isSelected =
+            appliedTags[widget._date]?.any((AppliedTagData tag) {
+                  if (tag.name != tagData.name) {
                     return false;
-                  }) ??
-                  false;
-          return TextButton(
-            onPressed: () {
-              _handleTagSelection(tagData, index);
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: isSelected ? Colors.white : Colors.black,
-              backgroundColor: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.inversePrimary,
-            ),
-            child: Text(option),
-          );
-        },
-      ).toList(),
-    );
+                  }
+                  if (tag.type == TagType.list) {
+                    return tag.listOption == index;
+                  } else if (tag.type == TagType.multi) {
+                    return tag.multiOptions?.contains(index) ?? false;
+                  }
+                  return false;
+                }) ??
+                false;
+        return TextButton(
+          onPressed: () {
+            _handleTagSelection(tagData, index);
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: isSelected ? Colors.white : Colors.black,
+            backgroundColor: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.inversePrimary,
+          ),
+          child: Text(option),
+        );
+      },
+    ).toList();
   }
 
   void _handleTagSelection(TagData tagData, int index) {
