@@ -2,9 +2,6 @@
 
 // --- ETCETERA ---
 
-// TODO(Christoffer): Test on mobile, fix bug where expanding tag collapses it
-//                    and adds unnecessary "…"
-
 // TODO(Christoffer): Display options on different lines in Tag Overview if
 //                    overflow
 
