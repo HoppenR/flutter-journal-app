@@ -19,9 +19,6 @@ class AddTagFormState extends State<AddTagForm> {
   TagType? selectedType;
   IconData? selectedIcon = Icons.favorite;
 
-  // TODO(Christoffer): Add menstruation related icons
-  // TODO(Christoffer): Add ImageIcons for emojis?
-
   @override
   void dispose() {
     tagController.dispose();
