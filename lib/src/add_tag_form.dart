@@ -44,7 +44,7 @@ class AddTagFormState extends State<AddTagForm> {
                 // NOTE: selectedType validator asserts not null before this
                 switch (selectedType!) {
                   case TagType.list:
-                    tagNames[tagController.text] = TagData.list(
+                    tagData[tagController.text] = TagData.list(
                       tagController.text,
                       optionControllers
                           .map(
@@ -55,12 +55,12 @@ class AddTagFormState extends State<AddTagForm> {
                       selectedIcon!,
                     );
                   case TagType.toggle:
-                    tagNames[tagController.text] = TagData.toggle(
+                    tagData[tagController.text] = TagData.toggle(
                       tagController.text,
                       selectedIcon!,
                     );
                   case TagType.multi:
-                    tagNames[tagController.text] = TagData.multi(
+                    tagData[tagController.text] = TagData.multi(
                       tagController.text,
                       optionControllers
                           .map(

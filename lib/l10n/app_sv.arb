@@ -22,6 +22,7 @@
     "tagTypeMulti": "Flerval",
     "navigationCalendar": "Kalender",
     "navigationGraphs": "Grafer",
+
     "yearAndWeek": "{year} v{week}",
     "tagOverviewTitle": "Taggöverblick {date}"
 }

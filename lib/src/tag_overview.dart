@@ -35,7 +35,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              ...tagNames.entries.map((MapEntry<String, TagData> entry) {
+              ...tagData.entries.map((MapEntry<String, TagData> entry) {
                 final String tagName = entry.key;
                 final TagData tagData = entry.value;
                 return _buildTagRow(context, tagName, tagData);

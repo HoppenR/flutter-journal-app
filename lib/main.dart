@@ -25,7 +25,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'src/add_tag_form.dart';
 import 'src/calendar_week.dart';
@@ -35,12 +34,30 @@ import 'src/tag.dart';
 import 'src/utility.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  runApp(const InitializationWidget());
+}
 
-  final String? localeCode = prefs.getString('locale');
-  final Locale? locale = localeCode != null ? Locale(localeCode) : null;
-  runApp(JournalApp(initialLocale: locale));
+class InitializationWidget extends StatelessWidget {
+  const InitializationWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<UserPrefs>(
+      future: loadUserPrefs(),
+      builder: (BuildContext context, AsyncSnapshot<UserPrefs> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        final Locale? initialLocale = snapshot.data!.locale;
+        return JournalApp(initialLocale: initialLocale);
+      },
+    );
+  }
 }
 
 class JournalApp extends StatefulWidget {
@@ -65,12 +82,7 @@ class JournalAppState extends State<JournalApp> {
     setState(() {
       _locale = locale;
     });
-    _saveLanguage(locale);
-  }
-
-  Future<void> _saveLanguage(Locale locale) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('locale', locale.languageCode);
+    saveLocale(locale);
   }
 
   @override
@@ -218,7 +230,6 @@ class _JournalPageState extends State<JournalPage> {
     _initialPage = _dateToAbsoluteWeekNumber(_startDate);
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
-    loadTags();
   }
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
@@ -234,7 +245,7 @@ class _JournalPageState extends State<JournalPage> {
           onPressed: () {
             clearPreferences(context);
             setState(() {
-              tagNames.clear();
+              tagData.clear();
               appliedTags.clear();
             });
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
@@ -362,7 +373,7 @@ class _JournalPageState extends State<JournalPage> {
       setState(() {
         if (result != null && result) {
           showSnackBar(context, 'tag added');
-          saveTags();
+          saveTagData();
         }
       });
     }
