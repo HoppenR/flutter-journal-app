@@ -24,5 +24,8 @@
 	"navigationCalendar": "Kalender",
 	"navigationGraphs": "Grafer",
 	"yearAndWeek": "{year} v{week}",
-	"tagOverviewTitle": "Etikettöverblick {date}"
+	"tagOverviewTitle": "Etikettöverblick {date}",
+	"settingsTitle": "Inställningar",
+	"aboutTitle": "Om projektet",
+	"aboutDescription": "Enkelt dagboksprogram skrivet i Flutter som låter en använda etiketter för att hålla koll på vanor, humör och menscykler genom en tydlig kalenderöverblick."
 }

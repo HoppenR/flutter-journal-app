@@ -112,5 +112,17 @@
 			"year": {},
 			"week": {}
 		}
+	},
+	"settingsTitle": "Settings",
+	"@settingsTitle": {
+		"description": "Title of settings page, also shown on settings icon hover"
+	},
+	"aboutTitle": "About the project",
+	"@aboutTitle": {
+		"description": "Header for content in about-section in settings page"
+	},
+	"aboutDescription": "Simple journal app built in Flutter that allows users to use tags to track habits, mood and period cycles in a clear calendar overview.",
+	"@aboutDescription": {
+		"description": "Body for content in about-section in settings page"
 	}
 }
