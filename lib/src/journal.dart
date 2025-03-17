@@ -70,6 +70,11 @@ class _JournalAppState extends State<JournalApp> {
   }
 }
 
+enum _JournalPages {
+  calendar,
+  graphs,
+}
+
 // --- JournalPage ---
 
 class JournalPage extends StatefulWidget {
@@ -83,7 +88,7 @@ class JournalPage extends StatefulWidget {
 // --- _JournalPageState ---
 
 class _JournalPageState extends State<JournalPage> {
-  int _selectedViewIndex = 0;
+  _JournalPages _selectedViewIndex = _JournalPages.calendar;
 
   late int _initialPage;
   late DateTime _startDate;
@@ -98,11 +103,6 @@ class _JournalPageState extends State<JournalPage> {
         title: Text(widget.title),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddTagWindow(context),
-            tooltip: AppLocalizations.of(context).addTag,
-          ),
-          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => _showSettingsPage(context),
             tooltip: AppLocalizations.of(context).settingsTitle,
@@ -111,32 +111,71 @@ class _JournalPageState extends State<JournalPage> {
       ),
       resizeToAvoidBottomInset: false,
       body: Column(children: <Widget>[
-        if (_selectedViewIndex == 0) ...<Widget>[
+        if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
           // Calendar View
           _calendarNavigation(),
           _calendarBody(),
-        ] else if (_selectedViewIndex == 1) ...<Widget>[
+        ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
           // Graph view
           const Expanded(child: GraphPage()),
         ],
       ]),
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (int index) {
-          setState(() {
-            _selectedViewIndex = index;
-          });
-        },
-        currentIndex: _selectedViewIndex,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today, size: 36),
-            label: AppLocalizations.of(context).navigationCalendar,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart, size: 36),
-            label: AppLocalizations.of(context).navigationGraphs,
-          ),
-        ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _selectedViewIndex == _JournalPages.calendar
+          ? FloatingActionButton(
+              elevation: 8.0,
+              shape: const CircleBorder(),
+              onPressed: () => _showAddTagWindow(context),
+              tooltip: AppLocalizations.of(context).addTag,
+              child: const Icon(Icons.add),
+            )
+          : null,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Row(
+          children: <Widget>[
+            const Spacer(),
+            InkWell(
+              customBorder: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                side: const BorderSide(width: 8.0),
+              ),
+              onTap: () {
+                setState(() {
+                  _selectedViewIndex = _JournalPages.calendar;
+                });
+              },
+              child: Column(
+                children: <Widget>[
+                  const Icon(Icons.calendar_today, size: 36),
+                  Text(AppLocalizations.of(context).navigationCalendar),
+                ],
+              ),
+            ),
+            const Spacer(
+              flex: 2,
+            ),
+            InkWell(
+              customBorder: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                side: const BorderSide(width: 8.0),
+              ),
+              onTap: () {
+                setState(() {
+                  _selectedViewIndex = _JournalPages.graphs;
+                });
+              },
+              child: Column(
+                children: <Widget>[
+                  const Icon(Icons.bar_chart, size: 36),
+                  Text(AppLocalizations.of(context).navigationGraphs),
+                ],
+              ),
+            ),
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
@@ -195,6 +234,10 @@ class _JournalPageState extends State<JournalPage> {
               final int weekNumber = _dateToWeekNumber(currentDate);
 
               return InkWell(
+                customBorder: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: const BorderSide(width: 8.0),
+                ),
                 onTap: () {
                   _jumpToPage(_initialPage);
                 },
@@ -215,7 +258,9 @@ class _JournalPageState extends State<JournalPage> {
                     weekNumber,
                   ),
                   style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               );
             }),

@@ -1,10 +1,6 @@
-// TODO(Christoffer): [calendar-week] Display overflow tags as "multiple tags here"
-
 // TODO(Christoffer): [etc.] Implement routes for back-button popping states
 // TODO(Christoffer): [tag] Use tagDataID in AppliedTagData instead of storing
 //                    the entire tagData each time (see local storage / userprefs)
-
-// TODO(Christoffer): https://docs.flutter.dev/cookbook/animation/page-route-animation
 
 // TODO(Christoffer): [graph] Display overviews of weeks/months
 
