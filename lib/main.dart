@@ -1,14 +1,10 @@
-// TODO(Christoffer): [settings] Push settings context page
-//                    Rounded settings icon will function nicer than
-//                    DropDownMenu
+// TODO(Christoffer): [calendar-week] Display overflow tags as "multiple tags here"
 
+// TODO(Christoffer): [etc.] Implement routes for back-button popping states
 // TODO(Christoffer): [tag] Use tagDataID in AppliedTagData instead of storing
 //                    the entire tagData each time (see local storage / userprefs)
 
-// TODO(Christoffer): [DatePicker] Week-wise date picker that highlights a full
-//                    week (see twitch date picker for past broadcasts)
-
-// TODO(Christoffer): [calendar-week] Display overflow tags as "multiple tags here"
+// TODO(Christoffer): https://docs.flutter.dev/cookbook/animation/page-route-animation
 
 // TODO(Christoffer): [graph] Display overviews of weeks/months
 
@@ -19,16 +15,9 @@
 // TODO(Christoffer): [add-tag-form] Add menstruation related icons
 // TODO(Christoffer): [add-tag-form] Add ImageIcons for emojis?
 
-// TODO(Christoffer): [etc.] Implement back-button popping state:
-//  html.window.onPopState.listen((event) {
-//    debugPrint("Back button pressed");
-//    // Handle navigation manually
-//    // Example: Navigate to a specific route or update state
-//    navigatorKey.currentState?.maybePop();
-//  });
-//
-// OR when navigating forward, add a new history entry:
-// pushState(null, '', '#second');
+// TODO(Christoffer): [DatePicker] Week-wise date picker that highlights a full
+//                    week (see twitch date picker for past broadcasts)
+
 
 import 'package:flutter/material.dart';
 

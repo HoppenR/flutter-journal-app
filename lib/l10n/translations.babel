@@ -20,6 +20,36 @@
 				<name>main</name>
 				<children>
 					<concept_node>
+						<name>aboutDescription</name>
+						<description/>
+						<comment>Body for content in about-section in settings page</comment>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>true</approved>
+							</translation>
+							<translation>
+								<language>sv-SE</language>
+								<approved>true</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>aboutTitle</name>
+						<description/>
+						<comment>Header for content in about-section in settings page</comment>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>sv-SE</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>addTag</name>
 						<description/>
 						<comment>Plus button hover tooltip in calendar overview, also shown as title of Add Tag Form</comment>
@@ -203,6 +233,21 @@
 						<name>saveTagDone</name>
 						<description/>
 						<comment>Text displayed when saving tag data</comment>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>true</approved>
+							</translation>
+							<translation>
+								<language>sv-SE</language>
+								<approved>true</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>settingsTitle</name>
+						<description/>
+						<comment>Title of settings page, also shown on settings icon hover</comment>
 						<translations>
 							<translation>
 								<language>en-US</language>

@@ -6,7 +6,7 @@ import 'add_tag_form.dart';
 import 'calendar_week.dart';
 import 'generated/l10n/app_localizations.dart';
 import 'graph.dart';
-import 'tag.dart';
+import 'settings.dart';
 import 'utility.dart';
 
 // --- JournalApp ---
@@ -82,7 +82,6 @@ class JournalPage extends StatefulWidget {
 
 class _JournalPageState extends State<JournalPage> {
   int _selectedViewIndex = 0;
-  final FocusNode _focusNode = FocusNode();
 
   late int _initialPage;
   late DateTime _startDate;
@@ -96,40 +95,15 @@ class _JournalPageState extends State<JournalPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: <Widget>[
-          Theme(
-            data: Theme.of(context).copyWith(
-              hoverColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-            ),
-            child: DropdownButton<String>(
-              focusNode: _focusNode,
-              value: Localizations.localeOf(context).languageCode,
-              icon: const Icon(Icons.language),
-              items: AppLocalizations.supportedLocales.map((Locale locale) {
-                return DropdownMenuItem<String>(
-                  value: locale.languageCode,
-                  child: Text(locale.languageCode),
-                );
-              }).toList(growable: false),
-              //onTap: () => _focusNode.unfocus(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  JournalApp.setLocale(context, Locale(newValue));
-                }
-              },
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAddTagWindow(context),
             tooltip: AppLocalizations.of(context).addTag,
           ),
           IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () => _showClearPreferencesWindow(context),
-            tooltip: AppLocalizations.of(context).clearDataTitle,
+            icon: const Icon(Icons.settings),
+            onPressed: () => _showSettingsPage(context),
+            tooltip: AppLocalizations.of(context).settingsTitle,
           ),
         ],
       ),
@@ -167,7 +141,6 @@ class _JournalPageState extends State<JournalPage> {
 
   @override
   void dispose() {
-    _focusNode.dispose();
     _focusedPageNotifier.dispose();
     _pageController.dispose();
     super.dispose();
@@ -182,31 +155,6 @@ class _JournalPageState extends State<JournalPage> {
     _initialPage = _dateToAbsoluteWeekNumber(_startDate);
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
-  }
-
-  Widget _buildClearPreferencesDialog(BuildContext context) {
-    return AlertDialog(
-      title: Text(AppLocalizations.of(context).clearDataTitle),
-      content: Text(AppLocalizations.of(context).clearDataPrompt),
-      actions: <Widget>[
-        TextButton(
-          onPressed: Navigator.of(context).pop,
-          child: Text(AppLocalizations.of(context).promptNegative),
-        ),
-        TextButton(
-          onPressed: () {
-            clearPreferences(context);
-            setState(() {
-              tagData.clear();
-              appliedTags.clear();
-            });
-            showSnackBar(context, AppLocalizations.of(context).clearDataDone);
-            Navigator.of(context).pop();
-          },
-          child: Text(AppLocalizations.of(context).promptAffirmative),
-        ),
-      ],
-    );
   }
 
   Widget _calendarBody() {
@@ -331,10 +279,12 @@ class _JournalPageState extends State<JournalPage> {
     }
   }
 
-  void _showClearPreferencesWindow(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: _buildClearPreferencesDialog,
+  Future<void> _showSettingsPage(BuildContext context) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute<bool?>(
+        builder: (BuildContext context) => const SettingsPage(),
+      ),
     );
   }
 }
