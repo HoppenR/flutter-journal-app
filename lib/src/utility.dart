@@ -1,4 +1,3 @@
-// Vim: set shiftwidth=2 :
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -47,7 +46,7 @@ Future<void> saveAppliedTags() async {
     (DateTime key, List<AppliedTagData> value) {
       return MapEntry<String, List<Map<String, dynamic>>>(
         key.toIso8601String(),
-        value.map((AppliedTagData tag) => tag.toJson()).toList(),
+        value.map((AppliedTagData tag) => tag.toJson()).toList(growable: false),
       );
     },
   );
@@ -94,7 +93,7 @@ Future<Map<DateTime, dynamic>> loadAppliedTags() async {
         DateTime.parse(key),
         (value as List<dynamic>).map((dynamic item) {
           return AppliedTagData.fromJson(item as Map<String, dynamic>);
-        }).toList(),
+        }).toList(growable: true),
       );
     },
   );

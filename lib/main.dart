@@ -1,4 +1,6 @@
-// Vim: set shiftwidth=2 :
+// TODO(Christoffer): [settings] Push settings context page
+//                    Rounded settings icon will function nicer than
+//                    DropDownMenu
 
 // TODO(Christoffer): [tag] Use tagDataID in AppliedTagData instead of storing
 //                    the entire tagData each time (see local storage / userprefs)

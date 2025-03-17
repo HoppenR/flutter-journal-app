@@ -1,4 +1,3 @@
-// Vim: set shiftwidth=2 :
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

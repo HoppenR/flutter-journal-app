@@ -96,22 +96,30 @@ class _JournalPageState extends State<JournalPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: <Widget>[
-          DropdownButton<String>(
-            value: Localizations.localeOf(context).languageCode,
-            icon: const Icon(Icons.language),
-            items: AppLocalizations.supportedLocales
-                .map((Locale locale) => DropdownMenuItem<String>(
-                      value: locale.languageCode,
-                      child: Text(locale.languageCode),
-                    ))
-                .toList(),
-            onChanged: (String? newValue) {
-              if (newValue != null) {
-                JournalApp.setLocale(context, Locale(newValue));
-              }
-              // Remove focus
-              FocusScope.of(context).requestFocus(_focusNode);
-            },
+          Theme(
+            data: Theme.of(context).copyWith(
+              hoverColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+            ),
+            child: DropdownButton<String>(
+              focusNode: _focusNode,
+              value: Localizations.localeOf(context).languageCode,
+              icon: const Icon(Icons.language),
+              items: AppLocalizations.supportedLocales.map((Locale locale) {
+                return DropdownMenuItem<String>(
+                  value: locale.languageCode,
+                  child: Text(locale.languageCode),
+                );
+              }).toList(growable: false),
+              //onTap: () => _focusNode.unfocus(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  JournalApp.setLocale(context, Locale(newValue));
+                }
+              },
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.add),
