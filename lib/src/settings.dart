@@ -9,17 +9,16 @@ class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  TagDayOverviewState createState() => TagDayOverviewState();
+  SettingsPageState createState() => SettingsPageState();
 }
 
-class TagDayOverviewState extends State<SettingsPage> {
+class SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(AppLocalizations.of(context).settingsTitle),
-        actions: const <Widget>[],
       ),
       body: SizedBox.expand(
         child: Column(
@@ -32,7 +31,7 @@ class TagDayOverviewState extends State<SettingsPage> {
             Stack(
               children: <Widget>[
                 Text(
-                  // ,📕
+                  // Book
                   String.fromCharCode(0x1F4D6),
                   style: TextStyle(
                     fontSize: 126.0,
@@ -42,7 +41,7 @@ class TagDayOverviewState extends State<SettingsPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Text(
-                    // 🌖 🌕
+                    // Moon
                     String.fromCharCode(0x1F319),
                     style: TextStyle(
                       fontSize: 126.0,
@@ -104,11 +103,17 @@ class TagDayOverviewState extends State<SettingsPage> {
     );
   }
 
-  void _showClearPreferencesWindow(BuildContext context) {
-    showDialog(
+  Future<void> _showClearPreferencesWindow(BuildContext context) async {
+    final bool? result = await showDialog(
       context: context,
       builder: _buildClearPreferencesDialog,
     );
+
+    if (result ?? false) {
+      setState(() {
+        Navigator.of(context).pop(true);
+      });
+    }
   }
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
@@ -128,7 +133,7 @@ class TagDayOverviewState extends State<SettingsPage> {
               appliedTags.clear();
             });
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(true);
           },
           child: Text(AppLocalizations.of(context).promptAffirmative),
         ),

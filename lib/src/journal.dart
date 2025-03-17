@@ -19,7 +19,7 @@ class JournalApp extends StatefulWidget {
   @override
   State<JournalApp> createState() => _JournalAppState();
 
-  static void setLocale(BuildContext context, Locale newLocale) {
+  static void setLocale(BuildContext context, Locale? newLocale) {
     final _JournalAppState? state =
         context.findAncestorStateOfType<_JournalAppState>();
     state?.changeLanguage(newLocale);
@@ -37,11 +37,13 @@ class _JournalAppState extends State<JournalApp> {
     _locale = widget.initialLocale;
   }
 
-  void changeLanguage(Locale locale) {
+  void changeLanguage(Locale? locale) {
     setState(() {
       _locale = locale;
     });
-    saveLocale(locale);
+    if (locale != null) {
+      saveLocale(locale);
+    }
   }
 
   @override
@@ -280,12 +282,18 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   Future<void> _showSettingsPage(BuildContext context) async {
-    await Navigator.push(
+    final bool? result = await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
         builder: (BuildContext context) => const SettingsPage(),
       ),
     );
+
+    if (result ?? false) {
+      setState(() {
+        JournalApp.setLocale(context, null);
+      });
+    }
   }
 }
 

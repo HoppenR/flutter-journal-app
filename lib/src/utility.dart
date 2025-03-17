@@ -118,7 +118,7 @@ Future<void> clearPreferences(BuildContext context) async {
   await prefs.clear();
 }
 
-void showSnackBar(BuildContext context, String message) {
+Future<void> showSnackBar(BuildContext context, String message) async {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(message)),
   );
