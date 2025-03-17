@@ -5,14 +5,9 @@ import 'journal.dart';
 import 'tag.dart';
 import 'utility.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
-  @override
-  SettingsPageState createState() => SettingsPageState();
-}
-
-class SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,9 +105,9 @@ class SettingsPageState extends State<SettingsPage> {
     );
 
     if (result ?? false) {
-      setState(() {
+      if (context.mounted) {
         Navigator.of(context).pop(true);
-      });
+      }
     }
   }
 
@@ -128,10 +123,8 @@ class SettingsPageState extends State<SettingsPage> {
         TextButton(
           onPressed: () {
             clearPreferences(context);
-            setState(() {
-              tagData.clear();
-              appliedTags.clear();
-            });
+            tagData.clear();
+            appliedTags.clear();
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
             Navigator.of(context).pop(true);
           },

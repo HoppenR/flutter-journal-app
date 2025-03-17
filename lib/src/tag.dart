@@ -133,9 +133,8 @@ class AppliedTagData {
       case TagType.toggle:
         return tagData.name;
       case TagType.multi:
-        return multiOptions!
-            .map((int index) => tagData.listData![index])
-            .join();
+        // OK checkmark
+        return '${multiOptions!.length}\u{2713}';
     }
   }
 
