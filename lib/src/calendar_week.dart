@@ -37,16 +37,16 @@ class CalendarWeekState extends State<CalendarWeek> {
     return textPainter.width;
   }
 
-  void _showTagDayOverview(BuildContext context, DateTime day) {
-    Navigator.push(
+  Future<void> _showTagDayOverview(BuildContext context, DateTime day) async {
+    await Navigator.push<bool?>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<bool?>(
         builder: (BuildContext context) => TagDayOverview(day),
       ),
-    ).then((_) {
-      setState(() {
-        saveAppliedTags();
-      });
+    );
+
+    setState(() {
+      saveAppliedTags();
     });
   }
 

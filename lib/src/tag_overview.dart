@@ -24,7 +24,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
         title: Text(
           AppLocalizations.of(context).tagOverviewTitle(widget._date),
         ),
-        actions: const <Widget>[],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
