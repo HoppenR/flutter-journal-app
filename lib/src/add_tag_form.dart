@@ -1,4 +1,3 @@
-// Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
@@ -48,7 +47,7 @@ class AddTagFormState extends State<AddTagForm> {
                             (TextEditingController controller) =>
                                 controller.text,
                           )
-                          .toList(),
+                          .toList(growable: false),
                       selectedIcon!,
                     );
                   case TagType.toggle:
@@ -64,7 +63,7 @@ class AddTagFormState extends State<AddTagForm> {
                             (TextEditingController controller) =>
                                 controller.text,
                           )
-                          .toList(),
+                          .toList(growable: false),
                       selectedIcon!,
                     );
                 }

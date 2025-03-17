@@ -1,4 +1,3 @@
-// Vim: set shiftwidth=2 :
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
@@ -32,15 +31,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
         child: Form(
           key: _formKey,
           // onChanged: () => setState(() {}),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              children: tagData.entries.map((MapEntry<String, TagData> entry) {
-                final String tagName = entry.key;
-                final TagData tagData = entry.value;
-                return _buildTagRow(context, tagName, tagData);
-              }).toList(),
-            ),
+          child: Column(
+            children: tagData.entries.map((MapEntry<String, TagData> entry) {
+              final String tagName = entry.key;
+              final TagData tagData = entry.value;
+              return _buildTagRow(context, tagName, tagData);
+            }).toList(growable: false),
           ),
         ),
       ),
@@ -53,6 +49,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       (AppliedTagData tag) => tag.name == tagName,
     );
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Row(
           children: <Widget>[
@@ -79,11 +76,13 @@ class TagDayOverviewState extends State<TagDayOverview> {
           ],
         ),
         Wrap(
+          runSpacing: 4.0,
+          spacing: 8.0,
           children: _buildTagRowContent(
             tagName,
             tagData,
             appliedTagData,
-          ).toList(),
+          ),
         ),
       ],
     );
@@ -139,7 +138,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           child: Text(option),
         );
       },
-    ).toList();
+    ).toList(growable: false);
   }
 
   void _handleTagSelection(TagData tagData, int index) {

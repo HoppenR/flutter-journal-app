@@ -1,4 +1,3 @@
-// Vim: set shiftwidth=2 :
 import 'package:flutter/material.dart';
 // TODO(Christoffer): More tag types
 //                    - [x] free-text fields
