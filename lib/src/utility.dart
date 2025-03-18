@@ -120,6 +120,9 @@ Future<void> clearPreferences(BuildContext context) async {
 
 Future<void> showSnackBar(BuildContext context, String message) async {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
+    SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+    ),
   );
 }

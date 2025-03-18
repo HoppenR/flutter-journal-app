@@ -33,8 +33,8 @@ class SettingsPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
+                Positioned(
+                  left: 20.0,
                   child: Text(
                     // Moon
                     String.fromCharCode(0x1F319),
@@ -51,13 +51,14 @@ class SettingsPage extends StatelessWidget {
               requestFocusOnTap: false,
               initialSelection: Localizations.localeOf(context).languageCode,
               leadingIcon: const Icon(Icons.language),
-              dropdownMenuEntries:
-                  AppLocalizations.supportedLocales.map((Locale locale) {
-                return DropdownMenuEntry<String>(
-                  value: locale.languageCode,
-                  label: locale.languageCode,
-                );
-              }).toList(growable: false),
+              dropdownMenuEntries: AppLocalizations.supportedLocales.map(
+                (Locale locale) {
+                  return DropdownMenuEntry<String>(
+                    value: locale.languageCode,
+                    label: locale.languageCode,
+                  );
+                },
+              ).toList(growable: false),
               onSelected: (String? newValue) {
                 if (newValue != null) {
                   JournalApp.setLocale(context, Locale(newValue));
