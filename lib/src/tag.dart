@@ -133,8 +133,9 @@ class AppliedTagData {
       case TagType.toggle:
         return tagData.name;
       case TagType.multi:
-        // OK checkmark
-        return '${multiOptions!.length}\u{2713}';
+        return multiOptions!
+            .map((int index) => tagData.listData![index])
+            .join();
     }
   }
 
@@ -149,17 +150,16 @@ class AppliedTagData {
 
   static AppliedTagData fromJson(Map<String, dynamic> json) {
     final TagData tagData = TagData.fromJson(json['tagData']);
-    if (tagData.type == TagType.list) {
-      return AppliedTagData.list(tagData, json['listOption']);
-    } else if (tagData.type == TagType.toggle) {
-      return AppliedTagData.toggle(tagData, json['toggleOption']);
-    } else if (tagData.type == TagType.multi) {
-      return AppliedTagData.multi(
-        tagData,
-        List<int>.from(json['multiOptions']),
-      );
-    } else {
-      throw UnimplementedError();
+    switch (tagData.type) {
+      case TagType.list:
+        return AppliedTagData.list(tagData, json['listOption']);
+      case TagType.toggle:
+        return AppliedTagData.toggle(tagData, json['toggleOption']);
+      case TagType.multi:
+        return AppliedTagData.multi(
+          tagData,
+          List<int>.from(json['multiOptions']),
+        );
     }
   }
 

@@ -70,12 +70,12 @@ class _JournalAppState extends State<JournalApp> {
   }
 }
 
+// --- JournalPage ---
+
 enum _JournalPages {
   calendar,
   graphs,
 }
-
-// --- JournalPage ---
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key, required this.title});
@@ -135,45 +135,45 @@ class _JournalPageState extends State<JournalPage> {
         notchMargin: 8.0,
         child: Row(
           children: <Widget>[
-            const Spacer(),
-            InkWell(
-              customBorder: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                side: const BorderSide(width: 8.0),
-              ),
-              onTap: () {
-                setState(() {
-                  _selectedViewIndex = _JournalPages.calendar;
-                });
-              },
-              child: Column(
-                children: <Widget>[
-                  const Icon(Icons.calendar_today, size: 36),
-                  Text(AppLocalizations.of(context).navigationCalendar),
-                ],
-              ),
-            ),
-            const Spacer(
-              flex: 2,
-            ),
-            InkWell(
-              customBorder: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                side: const BorderSide(width: 8.0),
-              ),
-              onTap: () {
-                setState(() {
-                  _selectedViewIndex = _JournalPages.graphs;
-                });
-              },
-              child: Column(
-                children: <Widget>[
-                  const Icon(Icons.bar_chart, size: 36),
-                  Text(AppLocalizations.of(context).navigationGraphs),
-                ],
+            Expanded(
+              child: InkWell(
+                customBorder: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: const BorderSide(width: 8.0),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedViewIndex = _JournalPages.calendar;
+                  });
+                },
+                child: Column(
+                  children: <Widget>[
+                    const Icon(Icons.calendar_today, size: 36),
+                    Text(AppLocalizations.of(context).navigationCalendar),
+                  ],
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(width: 80.0),
+            Expanded(
+              child: InkWell(
+                customBorder: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  side: const BorderSide(width: 8.0),
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedViewIndex = _JournalPages.graphs;
+                  });
+                },
+                child: Column(
+                  children: <Widget>[
+                    const Icon(Icons.bar_chart, size: 36),
+                    Text(AppLocalizations.of(context).navigationGraphs),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -318,10 +318,8 @@ class _JournalPageState extends State<JournalPage> {
     );
     if (result ?? false) {
       setState(() {
-        if (result != null && result) {
-          showSnackBar(context, AppLocalizations.of(context).saveTagDone);
-          saveTagData();
-        }
+        showSnackBar(context, AppLocalizations.of(context).saveTagDone);
+        saveTagData();
       });
     }
   }

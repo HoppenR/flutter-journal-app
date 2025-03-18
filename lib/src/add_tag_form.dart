@@ -117,8 +117,7 @@ class AddTagFormState extends State<AddTagForm> {
                     ? AppLocalizations.of(context).tagTypeMissing
                     : null,
               ),
-              if (selectedType == TagType.list || selectedType == TagType.multi)
-                ..._buildOptionFields(),
+              ...?_buildOptionFields(),
               Text(AppLocalizations.of(context).tagSelectIcon),
               _buildIconSelection(),
             ],
@@ -128,47 +127,53 @@ class AddTagFormState extends State<AddTagForm> {
     );
   }
 
-  List<Widget> _buildOptionFields() {
-    return <Widget>[
-      const SizedBox(height: 16),
-      Text(
-        AppLocalizations.of(context).tagOptions,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      ...optionControllers.asMap().entries.map(
-        (MapEntry<int, TextEditingController> entry) {
-          return Row(
-            children: <Widget>[
-              Expanded(
-                child: TextFormField(
-                  controller: entry.value,
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context).tagAddOption,
+  List<Widget>? _buildOptionFields() {
+    switch (selectedType) {
+      case null || TagType.toggle:
+        return null;
+      case TagType.list || TagType.multi:
+        return <Widget>[
+          const SizedBox(height: 16.0),
+          Text(
+            AppLocalizations.of(context).tagOptions,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          ...optionControllers.asMap().entries.map(
+            (MapEntry<int, TextEditingController> entry) {
+              return Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextFormField(
+                      controller: entry.value,
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).tagAddOption,
+                      ),
+                      validator: (String? value) =>
+                          value == null || value.isEmpty
+                              ? AppLocalizations.of(context).tagOptionMissing
+                              : null,
+                      onChanged: (String? value) => setState(() {}),
+                    ),
                   ),
-                  validator: (String? value) => value == null || value.isEmpty
-                      ? AppLocalizations.of(context).tagOptionMissing
-                      : null,
-                  onChanged: (String? value) => setState(() {}),
-                ),
-              ),
-              if (entry.key > 0)
-                IconButton(
-                  icon: const Icon(Icons.remove_circle),
-                  onPressed: () => setState(() {
-                    optionControllers.removeAt(entry.key);
-                  }),
-                ),
-            ],
-          );
-        },
-      ),
-      IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: () => setState(() {
-          optionControllers.add(TextEditingController());
-        }),
-      ),
-    ];
+                  if (entry.key > 0)
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle),
+                      onPressed: () => setState(() {
+                        optionControllers.removeAt(entry.key);
+                      }),
+                    ),
+                ],
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => setState(() {
+              optionControllers.add(TextEditingController());
+            }),
+          ),
+        ];
+    }
   }
 
   Widget _buildIconSelection() {
@@ -177,13 +182,13 @@ class AddTagFormState extends State<AddTagForm> {
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double availableWidth = constraints.maxWidth;
-          final int maxIconsInRow = (availableWidth / (iconSize + 16)).floor();
+          final int maxIconsInRow = availableWidth ~/ (iconSize + 16.0);
 
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: maxIconsInRow,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
             ),
             itemCount: availableIcons.length,
             itemBuilder: (BuildContext context, int index) {

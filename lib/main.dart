@@ -1,6 +1,25 @@
+import 'package:flutter/material.dart';
+
+import 'src/journal.dart';
+import 'src/utility.dart';
+
+// TODO(Christoffer): [etc.] Make all these TODOs into github issues
+//                           learn workflow of making/fixing github issues/PRs
+//                           Also add README.md/images?
+
+// TODO(Christoffer): [calendar-week] Fix the content of days being off-center
+//                                    compared to the tag icon (first one only)
+
+// TODO(Christoffer): [settings] Use monocolor emojis for "stack-icon" of book
+//                               and crescent moon. NotoEmoji maybe?
+//                               alternatively the delete button should be made
+//                               into purple/magenta.
+
 // TODO(Christoffer): [etc.] Implement routes for back-button popping states
 // TODO(Christoffer): [tag] Use tagDataID in AppliedTagData instead of storing
 //                    the entire tagData each time (see local storage / userprefs)
+
+// TODO(Christoffer): [tag] Use Set<int> for multiselection?
 
 // TODO(Christoffer): [graph] Display overviews of weeks/months
 
@@ -14,11 +33,14 @@
 // TODO(Christoffer): [DatePicker] Week-wise date picker that highlights a full
 //                    week (see twitch date picker for past broadcasts)
 
+// TODO(Christoffer): [tag-overview] use ChoiceChip over TextButton with colored
+//                                   styles
 
-import 'package:flutter/material.dart';
+// ----- Check With Luunie First -----
 
-import 'src/journal.dart';
-import 'src/utility.dart';
+// TODO(Christoffer): [tag-overview] Highlight the relevant tag when opening the
+//                                   tag-overview, based on what square the user
+//                                   pressed
 
 void main() async {
   runApp(const InitializationWidget());
@@ -32,6 +54,7 @@ class InitializationWidget extends StatelessWidget {
     return FutureBuilder<UserPrefs>(
       future: loadUserPrefs(),
       builder: (BuildContext context, AsyncSnapshot<UserPrefs> snapshot) {
+        // Show a loading icon until UserPrefs finishes loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const MaterialApp(
             home: Scaffold(

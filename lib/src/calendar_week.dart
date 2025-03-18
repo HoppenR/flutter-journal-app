@@ -169,30 +169,89 @@ class CalendarWeekState extends State<CalendarWeek> {
         (AppliedTagData t) => t.tagData.name == targetTagName,
       );
     }
+    final Widget? tagShorthand = _buildTagShorthand(tag);
     return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          if (tagIndex == 0) Text(_getWeekdayAbbreviation(context, curDay)),
-          const Spacer(),
-          if (tag != null)
-            if (tag.tagData.type == TagType.list ||
-                tag.tagData.type == TagType.multi)
-              Text(
-                tag.string,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.secondary,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        if (tagIndex == 0) Text(_getWeekdayAbbreviation(context, curDay)),
+        const Spacer(),
+        if (tagShorthand != null) tagShorthand,
+        const Spacer(),
+      ],
+    );
+  }
+
+  Widget? _buildTagShorthand(AppliedTagData? tag) {
+    if (tag == null) {
+      return null;
+    }
+    switch (tag.type) {
+      case TagType.list:
+        return Text(
+          tag.string,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 18,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        );
+      case TagType.toggle:
+        return Icon(
+          tag.tagData.icon,
+          color: (tag.toggleOption ?? false)
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.secondary,
+          size: 40.0,
+        );
+      case TagType.multi:
+        if (tag.multiOptions!.isEmpty) {
+          return null;
+        } else if (tag.multiOptions!.length == 1) {
+          return Text(
+            tag.string,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          );
+        } else {
+          return Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              const Icon(
+                Icons.edit_note_rounded,
+                size: 32.0,
+              ),
+              Positioned(
+                right: -1.0,
+                top: -8.0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    shape: BoxShape.circle,
+                    border: Border.all(),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    tag.multiOptions!.length.toString(),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-          if (tag != null)
-            if (tag.tagData.type == TagType.toggle &&
-                (tag.toggleOption ?? false))
-              Icon(
-                tag.tagData.icon,
-                size: 40.0,
-              ),
-          const Spacer(),
-        ]);
+            ],
+          );
+        }
+    }
   }
 
   String _getWeekdayAbbreviation(BuildContext context, DateTime date) {

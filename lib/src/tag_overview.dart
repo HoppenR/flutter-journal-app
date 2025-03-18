@@ -111,19 +111,22 @@ class TagDayOverviewState extends State<TagDayOverview> {
       (MapEntry<int, String> listEntry) {
         final int index = listEntry.key;
         final String option = listEntry.value;
-        final bool isSelected =
-            appliedTags[widget._date]?.any((AppliedTagData tag) {
-                  if (tag.name != tagData.name) {
-                    return false;
-                  }
-                  if (tag.type == TagType.list) {
-                    return tag.listOption == index;
-                  } else if (tag.type == TagType.multi) {
-                    return tag.multiOptions?.contains(index) ?? false;
-                  }
+        final bool isSelected = appliedTags[widget._date]?.any(
+              (AppliedTagData tag) {
+                if (tag.name != tagData.name) {
                   return false;
-                }) ??
-                false;
+                }
+                switch (tag.type) {
+                  case TagType.list:
+                    return tag.listOption == index;
+                  case TagType.multi:
+                    return tag.multiOptions?.contains(index) ?? false;
+                  case TagType.toggle:
+                    throw ArgumentError('argument does not have tag options');
+                }
+              },
+            ) ??
+            false;
         return TextButton(
           onPressed: () {
             _handleTagSelection(tagData, index);
@@ -141,8 +144,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   void _handleTagSelection(TagData tagData, int index) {
-    final bool dateExists = appliedTags.containsKey(widget._date);
-    if (!dateExists) {
+    if (!appliedTags.containsKey(widget._date)) {
       appliedTags[widget._date] = <AppliedTagData>[];
     }
 
@@ -150,21 +152,28 @@ class TagDayOverviewState extends State<TagDayOverview> {
       (AppliedTagData tag) => tag.name == tagData.name,
     );
 
-    if (tagData.type == TagType.list) {
-      if (tagIndex != -1) {
-        appliedTags[widget._date]![tagIndex].listOption = index;
-      } else {
-        appliedTags[widget._date]!.add(AppliedTagData.list(tagData, index));
-      }
-    } else if (tagData.type == TagType.multi) {
-      if (tagIndex != -1) {
-        appliedTags[widget._date]![tagIndex].multiOptions!.contains(index)
-            ? appliedTags[widget._date]![tagIndex].multiOptions!.remove(index)
-            : appliedTags[widget._date]![tagIndex].multiOptions!.add(index);
-      } else {
-        appliedTags[widget._date]!
-            .add(AppliedTagData.multi(tagData, <int>[index]));
-      }
+    switch (tagData.type) {
+      case TagType.list:
+        if (tagIndex != -1) {
+          appliedTags[widget._date]![tagIndex].listOption = index;
+        } else {
+          appliedTags[widget._date]!.add(AppliedTagData.list(tagData, index));
+        }
+      case TagType.toggle:
+        throw ArgumentError('argument does not have tag options');
+      case TagType.multi:
+        if (tagIndex != -1) {
+          appliedTags[widget._date]![tagIndex].multiOptions!.contains(index)
+              ? appliedTags[widget._date]![tagIndex].multiOptions!.remove(index)
+              : appliedTags[widget._date]![tagIndex].multiOptions!.add(index);
+        } else {
+          appliedTags[widget._date]!.add(
+            AppliedTagData.multi(
+              tagData,
+              <int>[index],
+            ),
+          );
+        }
     }
     setState(() {});
   }
