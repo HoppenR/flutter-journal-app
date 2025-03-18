@@ -13,8 +13,8 @@ class _GraphPageState extends State<GraphPage> {
   Widget build(BuildContext context) {
     return PieChart(
       PieChartData(
-        sectionsSpace: 5,
-        centerSpaceRadius: 40,
+        sectionsSpace: 5.0,
+        centerSpaceRadius: 40.0,
         sections: _generateSections(),
         // pieTouchData: PieTouchData(enabled: true),
         borderData: FlBorderData(show: false),
@@ -26,11 +26,11 @@ class _GraphPageState extends State<GraphPage> {
     return <PieChartSectionData>[
       PieChartSectionData(
         color: Colors.blue,
-        value: 40,
+        value: 40.0,
         title: '40%',
-        radius: 50,
+        radius: 50.0,
         titleStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 16.0,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -39,33 +39,33 @@ class _GraphPageState extends State<GraphPage> {
       ),
       PieChartSectionData(
         color: Colors.red,
-        value: 30,
+        value: 30.0,
         title: '30%',
-        radius: 50,
+        radius: 50.0,
         titleStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 16.0,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
       ),
       PieChartSectionData(
         color: Colors.green,
-        value: 20,
+        value: 20.0,
         title: '20%',
-        radius: 50,
+        radius: 50.0,
         titleStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 16.0,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
       ),
       PieChartSectionData(
         color: Colors.yellow,
-        value: 10,
+        value: 10.0,
         title: '10%',
-        radius: 50,
+        radius: 50.0,
         titleStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 16.0,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
