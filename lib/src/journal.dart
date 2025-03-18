@@ -90,10 +90,34 @@ class JournalPage extends StatefulWidget {
 class _JournalPageState extends State<JournalPage> {
   _JournalPages _selectedViewIndex = _JournalPages.calendar;
 
-  late int _initialPage;
-  late DateTime _startDate;
-  late ValueNotifier<int> _focusedPageNotifier;
-  late PageController _pageController;
+  static final DateTime _firstDate = DateTime(1);
+  static final DateTime _lastDate = DateTime(2100, 12, 31);
+  static const int _firstPage = 0;
+
+  late final int _initialPage;
+  late final int _lastPage;
+  late final DateTime _initialDate;
+  late final ValueNotifier<int> _focusedPageNotifier;
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    final DateTime now = DateTime.now();
+    _initialDate = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1));
+    _initialPage = _dateToPageIndex(_initialDate);
+    _lastPage = _dateToPageIndex(DateTime(2100, 12, 31));
+    _focusedPageNotifier = ValueNotifier<int>(_initialPage);
+    _pageController = PageController(initialPage: _initialPage);
+  }
+
+  @override
+  void dispose() {
+    _focusedPageNotifier.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,24 +204,6 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  @override
-  void dispose() {
-    _focusedPageNotifier.dispose();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    final DateTime now = DateTime.now();
-    _startDate = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
-    _initialPage = _dateToAbsoluteWeekNumber(_startDate);
-    _focusedPageNotifier = ValueNotifier<int>(_initialPage);
-    _pageController = PageController(initialPage: _initialPage);
-  }
-
   Widget _calendarBody() {
     return Expanded(
       child: PageView.builder(
@@ -221,7 +227,7 @@ class _JournalPageState extends State<JournalPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             final int page = _pageController.page!.toInt();
-            if (page > 1) {
+            if (page > _firstPage) {
               return _jumpToPage(page - 1);
             }
           },
@@ -245,8 +251,8 @@ class _JournalPageState extends State<JournalPage> {
                   final DateTime? selectedDate = await showDatePicker(
                     context: context,
                     initialDate: currentDate,
-                    firstDate: DateTime(1),
-                    lastDate: DateTime(2500, 12, 31),
+                    firstDate: _firstDate,
+                    lastDate: _lastDate,
                   );
                   if (selectedDate != null) {
                     _jumpToPage(_dateToPageIndex(selectedDate));
@@ -268,8 +274,7 @@ class _JournalPageState extends State<JournalPage> {
           icon: const Icon(Icons.arrow_forward),
           onPressed: () {
             final int page = _pageController.page!.toInt();
-            final int lastPage = _dateToPageIndex(DateTime(2500, 12, 31));
-            if (page < lastPage) {
+            if (page < _lastPage) {
               return _jumpToPage(page + 1);
             }
           },
@@ -280,17 +285,8 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   int _dateToPageIndex(DateTime date) {
-    return _dateToAbsoluteWeekNumber(date);
-  }
-
-  int _dateToAbsoluteWeekNumber(DateTime date) {
-    final DateTime jan4 = DateTime(1, 1, 4);
-    final DateTime firstWeekMonday =
-        jan4.subtract(Duration(days: jan4.weekday - 1));
-
-    final int diffDays = date.difference(firstWeekMonday).inDays;
-
-    return diffDays ~/ 7 + 1;
+    final int diffDays = date.difference(_firstDate).inDays;
+    return diffDays ~/ 7;
   }
 
   int _dateToWeekNumber(DateTime date) {
@@ -306,7 +302,7 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   DateTime _pageIndexToDate(int pageIndex) {
-    return _startDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
+    return _initialDate.add(Duration(days: 7 * (pageIndex - _initialPage)));
   }
 
   Future<void> _showAddTagWindow(BuildContext context) async {
