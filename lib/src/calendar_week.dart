@@ -170,13 +170,15 @@ class CalendarWeekState extends State<CalendarWeek> {
       );
     }
     final Widget? tagShorthand = _buildTagShorthand(tag);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
+      alignment: Alignment.center,
       children: <Widget>[
-        if (tagIndex == 0) Text(_getWeekdayAbbreviation(context, curDay)),
-        const Spacer(),
-        if (tagShorthand != null) tagShorthand,
-        const Spacer(),
+        if (tagIndex == 0)
+          Positioned(
+            top: 0.0,
+            child: Text(_getWeekdayAbbreviation(context, curDay)),
+          ),
+        if (tagShorthand != null) Center(child: tagShorthand),
       ],
     );
   }
