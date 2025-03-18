@@ -7,7 +7,7 @@ import 'tag_overview.dart';
 import 'utility.dart';
 
 class CalendarWeek extends StatefulWidget {
-  const CalendarWeek(this.weekStartDate, {super.key});
+  const CalendarWeek({super.key, required this.weekStartDate});
 
   final DateTime weekStartDate;
 
@@ -41,7 +41,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
-        builder: (BuildContext context) => TagDayOverview(day),
+        builder: (BuildContext context) => TagDayOverview(day: day),
       ),
     );
 
@@ -193,7 +193,7 @@ class CalendarWeekState extends State<CalendarWeek> {
           tag.string,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 18.0,
             color: Theme.of(context).colorScheme.secondary,
           ),
         );
@@ -213,44 +213,31 @@ class CalendarWeekState extends State<CalendarWeek> {
             tag.string,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 18.0,
               color: Theme.of(context).colorScheme.secondary,
             ),
           );
         } else {
-          return Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
-              const Icon(
-                Icons.edit_note_rounded,
-                size: 32.0,
+          return Container(
+            padding: const EdgeInsets.all(4.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              shape: BoxShape.circle,
+              border: Border.all(),
+            ),
+            constraints: const BoxConstraints(
+              minWidth: 32.0,
+              minHeight: 32.0,
+            ),
+            child: Text(
+              tag.multiOptions!.length.toString(),
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
               ),
-              Positioned(
-                right: -1.0,
-                top: -8.0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    shape: BoxShape.circle,
-                    border: Border.all(),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Text(
-                    tag.multiOptions!.length.toString(),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
+              textAlign: TextAlign.center,
+            ),
           );
         }
     }

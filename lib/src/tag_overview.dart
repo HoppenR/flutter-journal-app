@@ -5,7 +5,7 @@ import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
 
 class TagDayOverview extends StatefulWidget {
-  const TagDayOverview(DateTime day, {super.key}) : _date = day;
+  const TagDayOverview({super.key, required DateTime day}) : _date = day;
 
   final DateTime _date;
 

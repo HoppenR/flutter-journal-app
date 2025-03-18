@@ -19,6 +19,8 @@ class AddTagFormState extends State<AddTagForm> {
   TagType? selectedType;
   IconData? selectedIcon = Icons.favorite;
 
+  static const double _iconSize = 40.0;
+
   @override
   void dispose() {
     tagController.dispose();
@@ -177,12 +179,11 @@ class AddTagFormState extends State<AddTagForm> {
   }
 
   Widget _buildIconSelection() {
-    const double iconSize = 40;
     return Expanded(
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final double availableWidth = constraints.maxWidth;
-          final int maxIconsInRow = availableWidth ~/ (iconSize + 16.0);
+          final int maxIconsInRow = availableWidth ~/ (_iconSize + 16.0);
 
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -206,11 +207,11 @@ class AddTagFormState extends State<AddTagForm> {
                       color: selectedIcon == icon
                           ? Colors.blue
                           : Colors.transparent,
-                      width: 2,
+                      width: 2.0,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  child: Icon(icon, size: iconSize),
+                  child: Icon(icon, size: _iconSize),
                 ),
               );
             },

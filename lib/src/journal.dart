@@ -172,7 +172,7 @@ class _JournalPageState extends State<JournalPage> {
                 },
                 child: Column(
                   children: <Widget>[
-                    const Icon(Icons.calendar_today, size: 36),
+                    const Icon(Icons.calendar_today, size: 36.0),
                     Text(AppLocalizations.of(context).navigationCalendar),
                   ],
                 ),
@@ -192,7 +192,7 @@ class _JournalPageState extends State<JournalPage> {
                 },
                 child: Column(
                   children: <Widget>[
-                    const Icon(Icons.bar_chart, size: 36),
+                    const Icon(Icons.bar_chart, size: 36.0),
                     Text(AppLocalizations.of(context).navigationGraphs),
                   ],
                 ),
@@ -208,12 +208,11 @@ class _JournalPageState extends State<JournalPage> {
     return Expanded(
       child: PageView.builder(
         controller: _pageController,
-        // scrollDirection: Axis.horizontal,
         onPageChanged: (int index) {
           _focusedPageNotifier.value = index;
         },
         itemBuilder: (BuildContext context, int index) => CalendarWeek(
-          _pageIndexToDate(index),
+          weekStartDate: _pageIndexToDate(index),
         ),
       ),
     );
@@ -237,7 +236,6 @@ class _JournalPageState extends State<JournalPage> {
             valueListenable: _focusedPageNotifier,
             builder: (BuildContext context, int pageIndex, _) {
               final DateTime currentDate = _pageIndexToDate(pageIndex);
-              final int weekNumber = _dateToWeekNumber(currentDate);
 
               return InkWell(
                 customBorder: RoundedRectangleBorder(
@@ -261,10 +259,10 @@ class _JournalPageState extends State<JournalPage> {
                 child: Text(
                   AppLocalizations.of(context).yearAndWeek(
                     currentDate.year,
-                    weekNumber,
+                    _dateToWeekNumber(currentDate),
                   ),
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -289,6 +287,7 @@ class _JournalPageState extends State<JournalPage> {
     return diffDays ~/ 7;
   }
 
+  // This is a purely cosmetic number displayed on the screen and might be wrong
   int _dateToWeekNumber(DateTime date) {
     return (date.difference(DateTime(date.year)).inDays / 7).ceil() + 1;
   }
