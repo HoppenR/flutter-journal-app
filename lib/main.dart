@@ -7,9 +7,6 @@ import 'src/utility.dart';
 //                           learn workflow of making/fixing github issues/PRs
 //                           Also add README.md/images?
 
-// TODO(Christoffer): [calendar-week] Fix the content of days being off-center
-//                                    compared to the tag icon (first one only)
-
 // TODO(Christoffer): [settings] Use monocolor emojis for "stack-icon" of book
 //                               and crescent moon. NotoEmoji maybe?
 //                               alternatively the delete button should be made
