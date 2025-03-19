@@ -124,8 +124,8 @@ class SettingsPage extends StatelessWidget {
         TextButton(
           onPressed: () {
             clearPreferences(context);
-            tagData.clear();
-            appliedTags.clear();
+            TagManager().tags.clear();
+            TagManager().appliedTags.clear();
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
             Navigator.of(context).pop(true);
           },

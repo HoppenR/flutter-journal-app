@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
+import 'utility.dart';
 
 class TagDayOverview extends StatefulWidget {
   const TagDayOverview({super.key, required DateTime day}) : _date = day;
@@ -15,38 +18,51 @@ class TagDayOverview extends StatefulWidget {
 
 class TagDayOverviewState extends State<TagDayOverview> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  Timer? _debouncedSaveTimer;
+  bool _hasMadeChanges = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(
-          AppLocalizations.of(context).tagOverviewTitle(widget._date),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (didPop) {
+          return;
+        }
+        if (_debouncedSaveTimer?.isActive ?? false) {
+          _debouncedSaveTimer!.cancel();
+          _saveCallback(context);
+        }
+        Navigator.of(context).pop(_hasMadeChanges);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: Text(
+            AppLocalizations.of(context).tagOverviewTitle(widget._date),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          // onChanged: () => setState(() {}),
-          child: Column(
-            children: tagData.entries.map((MapEntry<String, TagData> entry) {
-              final String tagName = entry.key;
-              final TagData tagData = entry.value;
-              return _buildTagRow(context, tagName, tagData);
-            }).toList(growable: false),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: TagManager().tags.values.map(
+                (TagData entry) {
+                  return _buildTagRow(context, entry);
+                },
+              ).toList(growable: false),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTagRow(BuildContext context, String tagName, TagData tagData) {
-    final List<AppliedTagData>? tagList = appliedTags[widget._date];
-    final AppliedTagData? appliedTagData = tagList?.firstWhereOrNull(
-      (AppliedTagData tag) => tag.name == tagName,
-    );
+  Widget _buildTagRow(BuildContext context, TagData tagData) {
+    final AppliedTagData? appliedTagData = TagManager()
+        .appliedTags[widget._date]
+        ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -54,7 +70,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           children: <Widget>[
             Expanded(
               child: Text(
-                '$tagName: ',
+                '${tagData.name}: ',
                 style: const TextStyle(fontSize: 18.0),
               ),
             ),
@@ -63,12 +79,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
               color: appliedTagData != null ? Colors.black : Colors.grey,
               onPressed: appliedTagData != null
                   ? () {
-                      setState(() {
-                        appliedTags[widget._date]!.remove(appliedTagData);
-                        if (appliedTags[widget._date]!.isEmpty) {
-                          appliedTags.remove(widget._date);
-                        }
-                      });
+                      TagManager().unapplyTag(appliedTagData, widget._date);
+                      setState(() {});
+                      _debounceSave(context);
                     }
                   : null,
             ),
@@ -78,7 +91,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
           runSpacing: 4.0,
           spacing: 8.0,
           children: _buildTagRowContent(
-            tagName,
             tagData,
             appliedTagData,
           ),
@@ -88,11 +100,13 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   List<Widget> _buildTagRowContent(
-      String tagName, TagData tagData, AppliedTagData? appliedTagData) {
+    TagData tagData,
+    AppliedTagData? appliedTagData,
+  ) {
     switch (tagData.type) {
-      case TagType.list:
+      case TagTypes.list:
         return _buildTagOptions(context, tagData);
-      case TagType.toggle:
+      case TagTypes.toggle:
         return <Widget>[
           Switch(
             value: appliedTagData?.toggleOption ?? false,
@@ -101,7 +115,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
             },
           ),
         ];
-      case TagType.multi:
+      case TagTypes.multi:
         return _buildTagOptions(context, tagData);
     }
   }
@@ -111,89 +125,94 @@ class TagDayOverviewState extends State<TagDayOverview> {
       (MapEntry<int, String> listEntry) {
         final int index = listEntry.key;
         final String option = listEntry.value;
-        final bool isSelected = appliedTags[widget._date]?.any(
+        final bool isSelected = TagManager().appliedTags[widget._date]?.any(
               (AppliedTagData tag) {
-                if (tag.name != tagData.name) {
+                if (tag.id != tagData.id) {
                   return false;
                 }
                 switch (tag.type) {
-                  case TagType.list:
+                  case TagTypes.list:
                     return tag.listOption == index;
-                  case TagType.multi:
+                  case TagTypes.multi:
                     return tag.multiOptions?.contains(index) ?? false;
-                  case TagType.toggle:
-                    throw ArgumentError('argument does not have tag options');
+                  case TagTypes.toggle:
+                    throw ArgumentError('agument does not have tag options');
                 }
               },
             ) ??
             false;
-        return TextButton(
-          onPressed: () {
-            _handleTagSelection(tagData, index);
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: isSelected ? Colors.white : Colors.black,
-            backgroundColor: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.inversePrimary,
-          ),
-          child: Text(option),
+        return ChoiceChip(
+          label: Text(option),
+          selected: isSelected,
+          onSelected: (bool selected) => _handleTagSelection(tagData, index),
         );
       },
     ).toList(growable: false);
   }
 
   void _handleTagSelection(TagData tagData, int index) {
-    if (!appliedTags.containsKey(widget._date)) {
-      appliedTags[widget._date] = <AppliedTagData>[];
-    }
-
-    final int tagIndex = appliedTags[widget._date]!.indexWhere(
-      (AppliedTagData tag) => tag.name == tagData.name,
-    );
+    final int tagIndex = TagManager()
+            .appliedTags[widget._date]
+            ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
+        -1;
 
     switch (tagData.type) {
-      case TagType.list:
+      case TagTypes.list:
         if (tagIndex != -1) {
-          appliedTags[widget._date]![tagIndex].listOption = index;
+          TagManager().appliedTags[widget._date]![tagIndex].listOption = index;
         } else {
-          appliedTags[widget._date]!.add(AppliedTagData.list(tagData, index));
+          TagManager().applyTag(
+            AppliedTagData.list(tagData.id, index),
+            widget._date,
+          );
         }
-      case TagType.toggle:
+      case TagTypes.toggle:
         throw ArgumentError('argument does not have tag options');
-      case TagType.multi:
+      case TagTypes.multi:
         if (tagIndex != -1) {
-          appliedTags[widget._date]![tagIndex].multiOptions!.contains(index)
-              ? appliedTags[widget._date]![tagIndex].multiOptions!.remove(index)
-              : appliedTags[widget._date]![tagIndex].multiOptions!.add(index);
+          final List<int> multiOptions =
+              TagManager().appliedTags[widget._date]![tagIndex].multiOptions!;
+          multiOptions.contains(index)
+              ? multiOptions.remove(index)
+              : multiOptions.add(index);
         } else {
-          appliedTags[widget._date]!.add(
-            AppliedTagData.multi(
-              tagData,
-              <int>[index],
-            ),
+          TagManager().applyTag(
+            AppliedTagData.multi(tagData.id, <int>[index]),
+            widget._date,
           );
         }
     }
     setState(() {});
+    _debounceSave(context);
   }
 
   void _handleToggleChange(TagData tagData, bool value) {
-    if (!appliedTags.containsKey(widget._date)) {
-      appliedTags[widget._date] = <AppliedTagData>[];
-    }
-
-    final int tagIndex = appliedTags[widget._date]!.indexWhere(
-      (AppliedTagData tag) => tag.name == tagData.name,
-    );
+    final int tagIndex = TagManager()
+            .appliedTags[widget._date]
+            ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
+        -1;
 
     if (tagIndex != -1) {
-      appliedTags[widget._date]![tagIndex].toggleOption = value;
+      TagManager().appliedTags[widget._date]![tagIndex].toggleOption = value;
     } else {
-      final AppliedTagData newTag = AppliedTagData.toggle(tagData, false);
-      newTag.toggleOption = value;
-      appliedTags[widget._date]!.add(newTag);
+      final AppliedTagData newTag = AppliedTagData.toggle(tagData.id, value);
+      TagManager().applyTag(newTag, widget._date);
     }
     setState(() {});
+    _debounceSave(context);
+  }
+
+  void _debounceSave(BuildContext context) {
+    _debouncedSaveTimer?.cancel();
+    _debouncedSaveTimer = Timer(
+      const Duration(seconds: 3),
+      () => _saveCallback(context),
+    );
+    _hasMadeChanges = true;
+  }
+
+  void _saveCallback(BuildContext context) {
+    saveAppliedTags();
+    showSnackBar(context, AppLocalizations.of(context).saveDataDone);
   }
 }

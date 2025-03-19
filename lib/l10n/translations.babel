@@ -215,6 +215,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>saveDataDone</name>
+						<description/>
+						<comment>Text displayed when exiting tag overview after changes made, or after a debounce timer after making said changes</comment>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>true</approved>
+							</translation>
+							<translation>
+								<language>sv-SE</language>
+								<approved>true</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>saveTag</name>
 						<description/>
 						<comment>Content on save button in form to add tag data</comment>
