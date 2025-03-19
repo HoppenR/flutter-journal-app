@@ -64,61 +64,7 @@ class CalendarWeekState extends State<CalendarWeek> {
         padding: const EdgeInsets.all(gridEdgeInset),
         child: Row(
           children: <Widget>[
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: _isExpanded ? _getMaxTagColumnWidth(context) : 40.0,
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    mainAxisExtent: cellHeight,
-                    crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0,
-                  ),
-                  itemCount: tagCount,
-                  itemBuilder: (BuildContext context, int index) {
-                    final TagData curTag =
-                        TagManager().tags.values.elementAt(index);
-                    return Container(
-                      height: cellHeight,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: <Widget>[
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: _isExpanded ? 0.0 : 1.0,
-                            child: Icon(
-                              curTag.icon,
-                              size: 40.0,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: _isExpanded ? 1.0 : 0.0,
-                            child: Text(
-                              curTag.name,
-                              style: const TextStyle(fontSize: 16.0),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
+            _buildTagBannerColumn(context, cellHeight, tagCount),
             const SizedBox(width: 4.0),
             Expanded(
               child: GridView.builder(
@@ -148,6 +94,75 @@ class CalendarWeekState extends State<CalendarWeek> {
         ),
       );
     });
+  }
+
+  Widget _buildTagBannerColumn(
+    BuildContext context,
+    double cellHeight,
+    int tagCount,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: _isExpanded ? _getMaxTagColumnWidth(context) : 40.0,
+        child: GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 1,
+            mainAxisExtent: cellHeight,
+            crossAxisSpacing: 4.0,
+            mainAxisSpacing: 4.0,
+          ),
+          itemCount: tagCount,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildTagBannerCell(context, index, cellHeight);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTagBannerCell(
+    BuildContext context,
+    int index,
+    double cellHeight,
+  ) {
+    final TagData curTag = TagManager().tags.values.elementAt(index);
+    return Container(
+      height: cellHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8.0),
+        color: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: _isExpanded ? 0.0 : 1.0,
+            child: Icon(
+              curTag.icon,
+              size: 40.0,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: _isExpanded ? 1.0 : 0.0,
+            child: Text(
+              curTag.name,
+              style: const TextStyle(fontSize: 16.0),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   ButtonStyle _buttonStyle(BuildContext context) {

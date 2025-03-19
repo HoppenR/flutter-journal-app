@@ -43,6 +43,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
             AppLocalizations.of(context).tagOverviewTitle(widget._date),
           ),
           actions: <Widget>[
+            Text(AppLocalizations.of(context).moveModeToggle),
             Switch(
               value: _editMode,
               onChanged: (bool newValue) {
@@ -91,8 +92,11 @@ class TagDayOverviewState extends State<TagDayOverview> {
         setState(() {});
         _debounceSave(context);
       },
-      children:
-          orderedTags.map(_buildReorderableTagRow).toList(growable: false),
+      children: orderedTags
+          .map(
+            _buildReorderableTagRow,
+          )
+          .toList(growable: false),
     );
   }
 
@@ -122,30 +126,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       key: tagData.key,
       confirmDismiss: (DismissDirection direction) async {
         if (direction == DismissDirection.startToEnd) {
-          final bool? result = await showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text(AppLocalizations.of(context).clearDataTitle),
-                content: Text(AppLocalizations.of(context).clearDataPrompt),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: Navigator.of(context).pop,
-                    child: Text(AppLocalizations.of(context).promptNegative),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                    child: Text(
-                      AppLocalizations.of(context).promptAffirmative,
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-          return result ?? false;
+          return _showDeleteTagWindow(context);
         } else if (direction == DismissDirection.endToStart) {
           if (appliedTagData != null) {
             TagManager().unapplyTag(appliedTagData, widget._date);
@@ -154,11 +135,11 @@ class TagDayOverviewState extends State<TagDayOverview> {
           _debounceSave(context);
           return false;
         }
-
         return true;
       },
       background: Container(
         decoration: const BoxDecoration(
+          // TODO(Christoffer): Look into themed color that luunie likes
           color: Color.fromRGBO(0xA1, 0x7B, 0xB9, 1.0),
         ),
         child: const Row(
@@ -336,5 +317,32 @@ class TagDayOverviewState extends State<TagDayOverview> {
       case TagTypes.multi:
         return _buildTagOptions(context, tagData);
     }
+  }
+
+  Future<bool> _showDeleteTagWindow(BuildContext context) async {
+    final bool? result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context).clearDataTitle),
+          content: Text(AppLocalizations.of(context).clearDataPrompt),
+          actions: <Widget>[
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: Text(AppLocalizations.of(context).promptNegative),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(
+                AppLocalizations.of(context).promptAffirmative,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
   }
 }
