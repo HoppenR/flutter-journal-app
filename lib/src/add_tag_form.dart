@@ -16,7 +16,7 @@ class AddTagFormState extends State<AddTagForm> {
     TextEditingController(),
   ];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TagType? selectedType;
+  TagTypes? selectedType;
   IconData? selectedIcon = Icons.favorite;
 
   static const double _iconSize = 40.0;
@@ -42,8 +42,8 @@ class AddTagFormState extends State<AddTagForm> {
               if (_formKey.currentState?.validate() ?? false) {
                 // NOTE: selectedType validator asserts not null before this
                 switch (selectedType!) {
-                  case TagType.list:
-                    tagData[tagController.text] = TagData.list(
+                  case TagTypes.list:
+                    TagManager().addTagList(
                       tagController.text,
                       optionControllers
                           .map(
@@ -53,13 +53,13 @@ class AddTagFormState extends State<AddTagForm> {
                           .toList(growable: false),
                       selectedIcon!,
                     );
-                  case TagType.toggle:
-                    tagData[tagController.text] = TagData.toggle(
+                  case TagTypes.toggle:
+                    TagManager().addTagToggle(
                       tagController.text,
                       selectedIcon!,
                     );
-                  case TagType.multi:
-                    tagData[tagController.text] = TagData.multi(
+                  case TagTypes.multi:
+                    TagManager().addTagMulti(
                       tagController.text,
                       optionControllers
                           .map(
@@ -95,27 +95,27 @@ class AddTagFormState extends State<AddTagForm> {
                     : null,
                 autofocus: true,
               ),
-              DropdownButtonFormField<TagType>(
+              DropdownButtonFormField<TagTypes>(
                 value: selectedType,
                 hint: Text(AppLocalizations.of(context).tagSelectType),
-                items: <DropdownMenuItem<TagType>>[
-                  DropdownMenuItem<TagType>(
-                    value: TagType.list,
+                items: <DropdownMenuItem<TagTypes>>[
+                  DropdownMenuItem<TagTypes>(
+                    value: TagTypes.list,
                     child: Text(AppLocalizations.of(context).tagTypeList),
                   ),
-                  DropdownMenuItem<TagType>(
-                    value: TagType.toggle,
+                  DropdownMenuItem<TagTypes>(
+                    value: TagTypes.toggle,
                     child: Text(AppLocalizations.of(context).tagTypeToggle),
                   ),
-                  DropdownMenuItem<TagType>(
-                    value: TagType.multi,
+                  DropdownMenuItem<TagTypes>(
+                    value: TagTypes.multi,
                     child: Text(AppLocalizations.of(context).tagTypeMulti),
                   ),
                 ],
-                onChanged: (TagType? value) => setState(() {
+                onChanged: (TagTypes? value) => setState(() {
                   selectedType = value;
                 }),
-                validator: (TagType? value) => value == null
+                validator: (TagTypes? value) => value == null
                     ? AppLocalizations.of(context).tagTypeMissing
                     : null,
               ),
@@ -131,9 +131,9 @@ class AddTagFormState extends State<AddTagForm> {
 
   List<Widget>? _buildOptionFields() {
     switch (selectedType) {
-      case null || TagType.toggle:
+      case null || TagTypes.toggle:
         return null;
-      case TagType.list || TagType.multi:
+      case TagTypes.list || TagTypes.multi:
         return <Widget>[
           const SizedBox(height: 16.0),
           Text(

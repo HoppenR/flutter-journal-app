@@ -1,19 +1,79 @@
 import 'package:flutter/material.dart';
-// TODO(Christoffer): More tag types
-//                    - [x] free-text fields
-//                    - [x] on/off
-//                    - [x] multi-selections
-//                    - [ ] levels (emojis?)
-//                    - [ ] Tag colors (emoji allows for red/white/brown)
 
-Map<String, TagData> tagData = <String, TagData>{};
-Map<DateTime, List<AppliedTagData>> appliedTags =
-    <DateTime, List<AppliedTagData>>{};
+// A TagManager singleton with convenience functions for its public tag data
+class TagManager {
+  factory TagManager() => _instance;
+  TagManager._internal();
 
-enum TagType {
+  void addTagList(String name, List<String> listData, IconData icon) {
+    final int tagId = nextTagId++;
+    final TagData tag = TagData.list(tagId, name, listData, icon);
+    tags[tagId] = tag;
+  }
+
+  void addTagToggle(String name, IconData icon) {
+    final int tagId = nextTagId++;
+    final TagData tag = TagData.toggle(tagId, name, icon);
+    tags[tagId] = tag;
+  }
+
+  void addTagMulti(String name, List<String> listData, IconData icon) {
+    final int tagId = nextTagId++;
+    final TagData tag = TagData.multi(tagId, name, listData, icon);
+    tags[tagId] = tag;
+  }
+
+  /// NOTE: Untested and currently unused
+  void removeTag(int id) {
+    tags.remove(id);
+    appliedTags.forEach((DateTime time, List<AppliedTagData> tagList) {
+      tagList.removeWhere((AppliedTagData tag) {
+        return tag.id == id;
+      });
+    });
+  }
+
+  void applyTag(AppliedTagData appliedTag, DateTime day) {
+    appliedTags.putIfAbsent(day, () => <AppliedTagData>[]).add(appliedTag);
+  }
+
+  void unapplyTag(AppliedTagData appliedTag, DateTime day) {
+    appliedTags[day]!.remove(appliedTag);
+    if (appliedTags[day]!.isEmpty) {
+      appliedTags.remove(day);
+    }
+  }
+
+  static final TagManager _instance = TagManager._internal();
+
+  // NOTE: These are set as side effects in loadUserPrefs upon startup
+  late Map<int, TagData> tags;
+  late Map<DateTime, List<AppliedTagData>> appliedTags;
+  late int nextTagId;
+}
+
+enum TagTypes {
   list,
   toggle,
   multi,
+}
+
+extension TagType on TagTypes {
+  static TagTypes fromJson(Map<String, dynamic> json) {
+    if (json['type'] == 'list') {
+      return TagTypes.list;
+    } else if (json['type'] == 'toggle') {
+      return TagTypes.toggle;
+    } else if (json['type'] == 'multi') {
+      return TagTypes.multi;
+    } else {
+      throw AssertionError('invalid type in json');
+    }
+  }
+
+  String toJson() {
+    return toString().split('.').last;
+  }
 }
 
 final Map<int, IconData> availableIcons = <int, IconData>{
@@ -72,9 +132,23 @@ final Map<int, IconData> availableIcons = <int, IconData>{
 };
 
 class TagData {
-  TagData.list(this.name, this.listData, this.icon) : type = TagType.list;
-  TagData.toggle(this.name, this.icon) : type = TagType.toggle;
-  TagData.multi(this.name, this.listData, this.icon) : type = TagType.multi;
+  TagData.list(
+    this.id,
+    this.name,
+    List<String> this.listData,
+    this.icon,
+  ) : type = TagTypes.list;
+  TagData.toggle(
+    this.id,
+    this.name,
+    this.icon,
+  ) : type = TagTypes.toggle;
+  TagData.multi(
+    this.id,
+    this.name,
+    List<String> this.listData,
+    this.icon,
+  ) : type = TagTypes.multi;
 
   List<String> get list {
     return listData ?? (throw ArgumentError('called list on non-list type'));
@@ -82,93 +156,96 @@ class TagData {
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'icon': icon.codePoint,
-      'listData': listData,
+      'id': id,
       'name': name,
-      'type': type.toString().split('.').last,
+      'type': type.toJson(),
+      'icon': icon.codePoint,
+      if (listData != null) 'listData': listData,
     };
   }
 
   static TagData fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
+    final TagTypes type = TagType.fromJson(json);
     final IconData icon = availableIcons[codePoint]!;
-    if (json['type'] == 'list') {
-      return TagData.list(
-        json['name'],
-        List<String>.from(json['listData']),
-        icon,
-      );
-    } else if (json['type'] == 'toggle') {
-      return TagData.toggle(
-        json['name'],
-        icon,
-      );
-    } else if (json['type'] == 'multi') {
-      return TagData.multi(
-        json['name'],
-        List<String>.from(json['listData']),
-        icon,
-      );
-    } else {
-      throw AssertionError('invalid type in json');
+    switch (type) {
+      case TagTypes.list:
+        return TagData.list(
+          json['id'],
+          json['name'],
+          List<String>.from(json['listData']),
+          icon,
+        );
+      case TagTypes.toggle:
+        return TagData.toggle(json['id'], json['name'], icon);
+      case TagTypes.multi:
+        return TagData.multi(
+          json['id'],
+          json['name'],
+          List<String>.from(json['listData']),
+          icon,
+        );
     }
   }
 
   final String name;
-  final TagType type;
+  final TagTypes type;
   final IconData icon;
+  final int id;
 
   List<String>? listData;
 }
 
 class AppliedTagData {
-  AppliedTagData.list(this.tagData, this.listOption);
-  AppliedTagData.toggle(this.tagData, this.toggleOption);
-  AppliedTagData.multi(this.tagData, this.multiOptions);
+  AppliedTagData.list(this.id, int this.listOption)
+      : tag = TagManager().tags[id]!;
+  AppliedTagData.toggle(this.id, bool this.toggleOption)
+      : tag = TagManager().tags[id]!;
+  AppliedTagData.multi(this.id, List<int> this.multiOptions)
+      : tag = TagManager().tags[id]!;
 
   String get string {
-    switch (tagData.type) {
-      case TagType.list:
-        return tagData.list[listOption!];
-      case TagType.toggle:
-        return tagData.name;
-      case TagType.multi:
-        return multiOptions!
-            .map((int index) => tagData.listData![index])
-            .join();
+    switch (tag.type) {
+      case TagTypes.list:
+        return tag.list[listOption!];
+      case TagTypes.toggle:
+        return tag.name;
+      case TagTypes.multi:
+        return multiOptions!.map((int index) => tag.listData![index]).join();
     }
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'tagData': tagData.toJson(),
-      'listOption': listOption,
-      'multiOptions': multiOptions,
-      'toggleOption': toggleOption,
+      'id': id,
+      if (listOption != null) 'listOption': listOption,
+      if (toggleOption != null) 'toggleOption': toggleOption,
+      if (multiOptions != null) 'multiOptions': multiOptions,
     };
   }
 
   static AppliedTagData fromJson(Map<String, dynamic> json) {
-    final TagData tagData = TagData.fromJson(json['tagData']);
-    switch (tagData.type) {
-      case TagType.list:
-        return AppliedTagData.list(tagData, json['listOption']);
-      case TagType.toggle:
-        return AppliedTagData.toggle(tagData, json['toggleOption']);
-      case TagType.multi:
-        return AppliedTagData.multi(
-          tagData,
-          List<int>.from(json['multiOptions']),
-        );
+    final int id = json['id'];
+    switch (TagManager().tags[id]?.type) {
+      case null:
+        throw ArgumentError('tag not exist while deserializing AppliedTagData');
+      case TagTypes.list:
+        return AppliedTagData.list(id, json['listOption']);
+      case TagTypes.toggle:
+        return AppliedTagData.toggle(id, json['toggleOption']);
+      case TagTypes.multi:
+        return AppliedTagData.multi(id, List<int>.from(json['multiOptions']));
     }
   }
 
-  String get name => tagData.name;
-  TagType get type => tagData.type;
+  String get name => tag.name;
+  TagTypes get type => tag.type;
+  IconData get icon => tag.icon;
 
-  final TagData tagData;
+  final int id;
+  final TagData tag;
 
   int? listOption;
-  List<int>? multiOptions;
   bool? toggleOption;
+  List<int>? multiOptions;
 }

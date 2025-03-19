@@ -315,6 +315,7 @@ class _JournalPageState extends State<JournalPage> {
       setState(() {
         showSnackBar(context, AppLocalizations.of(context).saveTagDone);
         saveTagData();
+        saveNextTagId();
       });
     }
   }
