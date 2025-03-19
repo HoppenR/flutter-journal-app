@@ -29,7 +29,7 @@ Future<void> saveLocale(Locale locale) async {
   await prefs.setString('locale', locale.languageCode);
 }
 
-/// NOTE: You probably want to call saveNextTagId after this
+/// NOTE: If saving new tags probably want to call saveNextTagId after this
 Future<void> saveTagData() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 

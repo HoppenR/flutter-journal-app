@@ -21,11 +21,6 @@ import 'src/utility.dart';
 
 // TODO(Christoffer): [etc.] Implement routes for back-button popping states
 
-// ----- Check With Luunie First -----
-
-// TODO(Christoffer): [tag-overview] Highlight the relevant tag when opening the
-//                    tag-overview, based on what square the user pressed
-
 void main() async {
   runApp(const InitializationWidget());
 }

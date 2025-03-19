@@ -7,23 +7,22 @@ class TagManager {
 
   void addTagList(String name, List<String> listData, IconData icon) {
     final int tagId = nextTagId++;
-    final TagData tag = TagData.list(tagId, name, listData, icon);
+    final TagData tag = TagData.list(tagId, name, listData, icon, tagId);
     tags[tagId] = tag;
   }
 
   void addTagToggle(String name, IconData icon) {
     final int tagId = nextTagId++;
-    final TagData tag = TagData.toggle(tagId, name, icon);
+    final TagData tag = TagData.toggle(tagId, name, icon, tagId);
     tags[tagId] = tag;
   }
 
   void addTagMulti(String name, List<String> listData, IconData icon) {
     final int tagId = nextTagId++;
-    final TagData tag = TagData.multi(tagId, name, listData, icon);
+    final TagData tag = TagData.multi(tagId, name, listData, icon, tagId);
     tags[tagId] = tag;
   }
 
-  /// NOTE: Untested and currently unused
   void removeTag(int id) {
     tags.remove(id);
     appliedTags.forEach((DateTime time, List<AppliedTagData> tagList) {
@@ -137,17 +136,20 @@ class TagData {
     this.name,
     List<String> this.listData,
     this.icon,
+    this.order,
   ) : type = TagTypes.list;
   TagData.toggle(
     this.id,
     this.name,
     this.icon,
+    this.order,
   ) : type = TagTypes.toggle;
   TagData.multi(
     this.id,
     this.name,
     List<String> this.listData,
     this.icon,
+    this.order,
   ) : type = TagTypes.multi;
 
   List<String> get list {
@@ -160,6 +162,7 @@ class TagData {
       'name': name,
       'type': type.toJson(),
       'icon': icon.codePoint,
+      'order': order,
       if (listData != null) 'listData': listData,
     };
   }
@@ -167,23 +170,29 @@ class TagData {
   static TagData fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
     final TagTypes type = TagType.fromJson(json);
-    final IconData icon = availableIcons[codePoint]!;
     switch (type) {
       case TagTypes.list:
         return TagData.list(
           json['id'],
           json['name'],
           List<String>.from(json['listData']),
-          icon,
+          availableIcons[codePoint]!,
+          json['order'],
         );
       case TagTypes.toggle:
-        return TagData.toggle(json['id'], json['name'], icon);
+        return TagData.toggle(
+          json['id'],
+          json['name'],
+          availableIcons[codePoint]!,
+          json['order'],
+        );
       case TagTypes.multi:
         return TagData.multi(
           json['id'],
           json['name'],
           List<String>.from(json['listData']),
-          icon,
+          availableIcons[codePoint]!,
+          json['order'],
         );
     }
   }
@@ -192,8 +201,12 @@ class TagData {
   final TagTypes type;
   final IconData icon;
   final int id;
+  int order;
 
   List<String>? listData;
+
+  // NOTE: Used for dismissible list keys
+  final Key key = UniqueKey();
 }
 
 class AppliedTagData {
