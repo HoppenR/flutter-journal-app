@@ -126,6 +126,7 @@ class SettingsPage extends StatelessWidget {
             clearPreferences(context);
             TagManager().tags.clear();
             TagManager().appliedTags.clear();
+            TagManager().nextTagId = 0;
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
             Navigator.of(context).pop(true);
           },
