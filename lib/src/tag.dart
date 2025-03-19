@@ -79,6 +79,7 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.favorite.codePoint: Icons.favorite,
 
   // ICONS
+  Icons.add_task.codePoint: Icons.add_task,
   Icons.alarm.codePoint: Icons.alarm,
   Icons.bloodtype.codePoint: Icons.bloodtype,
   Icons.bloodtype_outlined.codePoint: Icons.bloodtype_outlined,
@@ -128,6 +129,13 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.water_drop.codePoint: Icons.water_drop,
   Icons.woman.codePoint: Icons.woman,
   Icons.work.codePoint: Icons.work,
+
+  // New
+  Icons.phone.codePoint: Icons.phone,
+  Icons.phone_android.codePoint: Icons.phone_android,
+  Icons.phone_iphone.codePoint: Icons.phone_iphone,
+  Icons.phone_paused.codePoint: Icons.phone_paused,
+  Icons.palette_outlined.codePoint: Icons.palette_outlined,
 };
 
 class TagData {

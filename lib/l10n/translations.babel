@@ -125,6 +125,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>moveModeToggle</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>true</approved>
+							</translation>
+							<translation>
+								<language>sv-SE</language>
+								<approved>true</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>navigationCalendar</name>
 						<description/>
 						<comment>Content below navigation icon of a calendar</comment>

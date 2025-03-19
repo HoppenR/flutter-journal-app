@@ -15,87 +15,113 @@ class SettingsPage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(AppLocalizations.of(context).settingsTitle),
       ),
-      body: SizedBox.expand(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              AppLocalizations.of(context).appTitle,
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            Stack(
-              children: <Widget>[
-                Text(
-                  // Book
-                  String.fromCharCode(0x1F4D6),
-                  style: TextStyle(
-                    fontSize: 126.0,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                Positioned(
-                  left: 20.0,
-                  child: Text(
-                    // Moon
-                    String.fromCharCode(0x1F319),
-                    style: TextStyle(
-                      fontSize: 126.0,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            DropdownMenu<String>(
-              width: 152.0,
-              requestFocusOnTap: false,
-              initialSelection: Localizations.localeOf(context).languageCode,
-              leadingIcon: const Icon(Icons.language),
-              dropdownMenuEntries: AppLocalizations.supportedLocales.map(
-                (Locale locale) {
-                  return DropdownMenuEntry<String>(
-                    value: locale.languageCode,
-                    label: locale.languageCode,
-                  );
-                },
-              ).toList(growable: false),
-              onSelected: (String? newValue) {
-                if (newValue != null) {
-                  JournalApp.setLocale(context, Locale(newValue));
-                }
-              },
-            ),
-            const SizedBox(height: 8.0),
-            TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onError,
-                backgroundColor: Theme.of(context).colorScheme.error,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                fixedSize: const Size(152.0, 48.0),
-              ),
-              icon: const Icon(Icons.delete),
-              onPressed: () => _showClearPreferencesWindow(context),
-              label: Text(AppLocalizations.of(context).clearDataTitle),
-            ),
-            const SizedBox(height: 16.0),
-            Text(
-              AppLocalizations.of(context).aboutTitle,
-              style: Theme.of(context).textTheme.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(
-              width: 256.0,
-              child: Text(
-                AppLocalizations.of(context).aboutDescription,
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
+      body: _buildSettingsContent(context),
+    );
+  }
+
+  Widget _buildSettingsContent(BuildContext context) {
+    return SizedBox.expand(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            AppLocalizations.of(context).appTitle,
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          _buildLogoIcon(context),
+          _buildChangeLocaleDropdown(context),
+          const SizedBox(height: 8.0),
+          _buildClearPreferencesDropdown(context),
+          const SizedBox(height: 16.0),
+          _buildAboutSection(context),
+        ],
       ),
+    );
+  }
+
+  Widget _buildLogoIcon(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        Text(
+          // Book
+          String.fromCharCode(0xF518),
+          style: TextStyle(
+            fontSize: 126.0,
+            color: Theme.of(context).colorScheme.primary,
+            fontFamily: 'JournalApp',
+          ),
+        ),
+        Positioned(
+          left: 20.0,
+          child: Text(
+            // Moon
+            String.fromCharCode(0xF186),
+            style: TextStyle(
+              fontSize: 126.0,
+              color: Theme.of(context).colorScheme.inversePrimary,
+              fontFamily: 'JournalApp',
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChangeLocaleDropdown(BuildContext context) {
+    return DropdownMenu<String>(
+      width: 152.0,
+      requestFocusOnTap: false,
+      initialSelection: Localizations.localeOf(context).languageCode,
+      leadingIcon: const Icon(Icons.language),
+      dropdownMenuEntries: AppLocalizations.supportedLocales.map(
+        (Locale locale) {
+          return DropdownMenuEntry<String>(
+            value: locale.languageCode,
+            label: locale.languageCode,
+          );
+        },
+      ).toList(growable: false),
+      onSelected: (String? newValue) {
+        if (newValue != null) {
+          JournalApp.setLocale(context, Locale(newValue));
+        }
+      },
+    );
+  }
+
+  Widget _buildAboutSection(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Text(
+          AppLocalizations.of(context).aboutTitle,
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
+        SizedBox(
+          width: 256.0,
+          child: Text(
+            AppLocalizations.of(context).aboutDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildClearPreferencesDropdown(BuildContext context) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.onError,
+        backgroundColor: Theme.of(context).colorScheme.error,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        fixedSize: const Size(152.0, 48.0),
+      ),
+      icon: const Icon(Icons.delete),
+      onPressed: () => _showClearPreferencesWindow(context),
+      label: Text(AppLocalizations.of(context).clearDataTitle),
     );
   }
 

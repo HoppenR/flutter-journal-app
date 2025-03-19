@@ -128,5 +128,6 @@
 	"saveDataDone": "Saved data...",
 	"@saveDataDone": {
 		"description": "Text displayed when exiting tag overview after changes made, or after a debounce timer after making said changes"
-	}
+	},
+	"moveModeToggle": "Move"
 }

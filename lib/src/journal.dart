@@ -134,16 +134,6 @@ class _JournalPageState extends State<JournalPage> {
         ],
       ),
       resizeToAvoidBottomInset: false,
-      body: Column(children: <Widget>[
-        if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
-          // Calendar View
-          _calendarNavigation(),
-          _calendarBody(),
-        ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
-          // Graph view
-          const Expanded(child: GraphPage()),
-        ],
-      ]),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _selectedViewIndex == _JournalPages.calendar
           ? FloatingActionButton(
@@ -159,52 +149,66 @@ class _JournalPageState extends State<JournalPage> {
         notchMargin: 8.0,
         child: Row(
           children: <Widget>[
-            Expanded(
-              child: InkWell(
-                customBorder: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  side: const BorderSide(width: 8.0),
-                ),
-                onTap: () {
-                  setState(() {
-                    _selectedViewIndex = _JournalPages.calendar;
-                  });
-                },
-                child: Column(
-                  children: <Widget>[
-                    const Icon(Icons.calendar_today, size: 36.0),
-                    Text(AppLocalizations.of(context).navigationCalendar),
-                  ],
-                ),
-              ),
-            ),
+            Expanded(child: _buildCalendarNavigationButton(context)),
             const SizedBox(width: 80.0),
-            Expanded(
-              child: InkWell(
-                customBorder: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  side: const BorderSide(width: 8.0),
-                ),
-                onTap: () {
-                  setState(() {
-                    _selectedViewIndex = _JournalPages.graphs;
-                  });
-                },
-                child: Column(
-                  children: <Widget>[
-                    const Icon(Icons.bar_chart, size: 36.0),
-                    Text(AppLocalizations.of(context).navigationGraphs),
-                  ],
-                ),
-              ),
-            ),
+            Expanded(child: _buildGraphsNavigationButton(context)),
           ],
         ),
+      ),
+      body: Column(children: <Widget>[
+        if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
+          // Calendar View
+          _buildCalendarNavigationTopBar(context),
+          _buildCalendarBody(context),
+        ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
+          // Graph view
+          const Expanded(child: GraphPage()),
+        ],
+      ]),
+    );
+  }
+
+  Widget _buildCalendarNavigationButton(BuildContext context) {
+    return InkWell(
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(width: 8.0),
+      ),
+      onTap: () {
+        setState(() {
+          _selectedViewIndex = _JournalPages.calendar;
+        });
+      },
+      child: Column(
+        children: <Widget>[
+          const Icon(Icons.calendar_today, size: 36.0),
+          Text(AppLocalizations.of(context).navigationCalendar),
+        ],
       ),
     );
   }
 
-  Widget _calendarBody() {
+  Widget _buildGraphsNavigationButton(BuildContext context) {
+    return InkWell(
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(width: 8.0),
+      ),
+      onTap: () {
+        setState(() {
+          _selectedViewIndex = _JournalPages.graphs;
+        });
+      },
+      child: Column(
+        children: <Widget>[
+          const Icon(Icons.bar_chart, size: 36.0),
+          Text(AppLocalizations.of(context).navigationGraphs),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarBody(BuildContext context) {
     return Expanded(
       child: PageView.builder(
         controller: _pageController,
@@ -218,7 +222,7 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 
-  Widget _calendarNavigation() {
+  Widget _buildCalendarNavigationTopBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
@@ -233,41 +237,11 @@ class _JournalPageState extends State<JournalPage> {
           tooltip: AppLocalizations.of(context).prevWeek,
         ),
         ValueListenableBuilder<int>(
-            valueListenable: _focusedPageNotifier,
-            builder: (BuildContext context, int pageIndex, _) {
-              final DateTime currentDate = _pageIndexToDate(pageIndex);
-
-              return InkWell(
-                customBorder: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  side: const BorderSide(width: 8.0),
-                ),
-                onTap: () {
-                  _jumpToPage(_initialPage);
-                },
-                onLongPress: () async {
-                  final DateTime? selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: currentDate,
-                    firstDate: _firstDate,
-                    lastDate: _lastDate,
-                  );
-                  if (selectedDate != null) {
-                    _jumpToPage(_dateToPageIndex(selectedDate));
-                  }
-                },
-                child: Text(
-                  AppLocalizations.of(context).yearAndWeek(
-                    currentDate.year,
-                    _dateToWeekNumber(currentDate),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
-            }),
+          valueListenable: _focusedPageNotifier,
+          builder: (BuildContext context, int pageIndex, _) {
+            return _buildDateWeekHoldButton(context, pageIndex);
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.arrow_forward),
           onPressed: () {
@@ -279,6 +253,40 @@ class _JournalPageState extends State<JournalPage> {
           tooltip: AppLocalizations.of(context).nextWeek,
         ),
       ],
+    );
+  }
+
+  Widget _buildDateWeekHoldButton(BuildContext context, int pageIndex) {
+    final DateTime currentDate = _pageIndexToDate(pageIndex);
+    return InkWell(
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: const BorderSide(width: 8.0),
+      ),
+      onTap: () {
+        _jumpToPage(_initialPage);
+      },
+      onLongPress: () async {
+        final DateTime? selectedDate = await showDatePicker(
+          context: context,
+          initialDate: currentDate,
+          firstDate: _firstDate,
+          lastDate: _lastDate,
+        );
+        if (selectedDate != null) {
+          _jumpToPage(_dateToPageIndex(selectedDate));
+        }
+      },
+      child: Text(
+        AppLocalizations.of(context).yearAndWeek(
+          currentDate.year,
+          _dateToWeekNumber(currentDate),
+        ),
+        style: const TextStyle(
+          fontSize: 20.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -338,11 +346,13 @@ class _JournalPageState extends State<JournalPage> {
 
 class JournalScrollBehavior extends MaterialScrollBehavior {
   @override
-  Set<PointerDeviceKind> get dragDevices => <PointerDeviceKind>{
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-        PointerDeviceKind.trackpad,
-      };
+  Set<PointerDeviceKind> get dragDevices {
+    return <PointerDeviceKind>{
+      PointerDeviceKind.touch,
+      PointerDeviceKind.mouse,
+      PointerDeviceKind.stylus,
+      PointerDeviceKind.invertedStylus,
+      PointerDeviceKind.trackpad,
+    };
+  }
 }

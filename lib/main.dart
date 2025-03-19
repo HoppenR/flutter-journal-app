@@ -7,9 +7,15 @@ import 'src/utility.dart';
 //                    workflow of making/fixing github issues/PRs
 //                    Also add README.md/images?
 
-// TODO(Christoffer): [settings] Use images/icons for "stack-icon" of book
-//                    and crescent moon. No need to bundle expensive truetype
-//                    fonts for 2 icons.
+// TODO(Christoffer): [add-tag-form] a way to narrow down input type for
+//                    creating tags. This affects what keyboard pops up
+//                    at least:
+//                        - free-text input
+//                        - emoji input
+
+// TODO(Christoffer): [add-tag-form] Add lots more icons
+
+// TODO(Christoffer): [tag-overview] add folder structure system
 
 // TODO(Christoffer): [graph] Display overviews of weeks/months
 
@@ -18,6 +24,8 @@ import 'src/utility.dart';
 
 // TODO(Christoffer): [DatePicker] Week-wise date picker that highlights a full
 //                    week (see twitch date picker for past broadcasts)
+
+// --- CHECK WITH LUUNIE FIRST ---
 
 // TODO(Christoffer): [etc.] Implement routes for back-button popping states
 
