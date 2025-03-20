@@ -139,9 +139,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
         return true;
       },
       background: Container(
-        decoration: const BoxDecoration(
-          // TODO(Christoffer): Look into themed color that luunie likes
-          color: Color.fromRGBO(0xA1, 0x7B, 0xB9, 1.0),
+        decoration: BoxDecoration(
+          //color: Color.fromRGBO(0xA1, 0x7B, 0xB9, 1.0),
+          color: Color.alphaBlend(
+            Theme.of(context).colorScheme.primary.withAlpha(108),
+            Theme.of(context).colorScheme.inversePrimary,
+          ),
         ),
         child: const Row(
           children: <Widget>[
@@ -153,7 +156,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       ),
       secondaryBackground: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.inversePrimary,
+          color: Theme.of(context).colorScheme.primaryFixed,
         ),
         child: const Row(
           children: <Widget>[
