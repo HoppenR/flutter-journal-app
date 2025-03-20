@@ -81,13 +81,13 @@ class TagDayOverviewState extends State<TagDayOverview> {
         final int oldIndexOrder = oldIndexTag.order;
         final int newIndexOrder = orderedTags.elementAt(newIndex).order;
 
-        TagManager().tags.forEach((int id, TagData tag) {
+        for (final TagData tag in TagManager().tags.values) {
           if (tag.order < oldIndexOrder && tag.order >= newIndexOrder) {
             tag.order += 1;
           } else if (tag.order > oldIndexOrder && tag.order <= newIndexOrder) {
             tag.order -= 1;
           }
-        });
+        }
         oldIndexTag.order = newIndexOrder;
         setState(() {});
         _debounceSave(context);
@@ -122,6 +122,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     final AppliedTagData? appliedTagData = TagManager()
         .appliedTags[widget._date]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
+
     return Dismissible(
       key: tagData.key,
       confirmDismiss: (DismissDirection direction) async {
@@ -174,10 +175,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
-    return tagData.list.asMap().entries.map(
-      (MapEntry<int, String> listEntry) {
-        final int index = listEntry.key;
-        final String option = listEntry.value;
+    return List<Widget>.generate(
+      tagData.list.length,
+      (int index) {
         final bool isSelected = TagManager().appliedTags[widget._date]?.any(
               (AppliedTagData tag) {
                 if (tag.id != tagData.id) {
@@ -189,18 +189,23 @@ class TagDayOverviewState extends State<TagDayOverview> {
                   case TagTypes.multi:
                     return tag.multiOptions?.contains(index) ?? false;
                   case TagTypes.toggle:
-                    throw ArgumentError('agument does not have tag options');
+                    throw ArgumentError.value(
+                      tag.type,
+                      'tag.type',
+                      'argument does not have tag options',
+                    );
                 }
               },
             ) ??
             false;
         return ChoiceChip(
-          label: Text(option),
+          label: Text(tagData.list[index]),
           selected: isSelected,
           onSelected: (bool selected) => _handleTagSelection(tagData, index),
         );
       },
-    ).toList(growable: false);
+      growable: false,
+    );
   }
 
   void _handleTagSelection(TagData tagData, int index) {
@@ -220,14 +225,20 @@ class TagDayOverviewState extends State<TagDayOverview> {
           );
         }
       case TagTypes.toggle:
-        throw ArgumentError('argument does not have tag options');
+        throw ArgumentError.value(
+          tagData.type,
+          'tagData.type',
+          'argument does not have tag options',
+        );
       case TagTypes.multi:
         if (tagIndex != -1) {
           final List<int> multiOptions =
               TagManager().appliedTags[widget._date]![tagIndex].multiOptions!;
-          multiOptions.contains(index)
-              ? multiOptions.remove(index)
-              : multiOptions.add(index);
+          if (multiOptions.contains(index)) {
+            multiOptions.remove(index);
+          } else {
+            multiOptions.add(index);
+          }
         } else {
           TagManager().applyTag(
             AppliedTagData.multi(tagData.id, <int>[index]),

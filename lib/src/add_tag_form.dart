@@ -49,7 +49,9 @@ class AddTagFormState extends State<AddTagForm> {
       padding: const EdgeInsets.all(16.0),
       child: Form(
         key: _formKey,
-        onChanged: () => setState(() {}),
+        onChanged: () {
+          setState(() {});
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -70,9 +72,12 @@ class AddTagFormState extends State<AddTagForm> {
       decoration: InputDecoration(
         hintText: AppLocalizations.of(context).tagNameHint,
       ),
-      validator: (String? value) => value == null || value.isEmpty
-          ? AppLocalizations.of(context).tagNameMissing
-          : null,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return AppLocalizations.of(context).tagNameMissing;
+        }
+        return null;
+      },
       autofocus: true,
     );
   }
@@ -95,11 +100,17 @@ class AddTagFormState extends State<AddTagForm> {
           child: Text(AppLocalizations.of(context).tagTypeMulti),
         ),
       ],
-      onChanged: (TagTypes? value) => setState(() {
-        selectedType = value;
-      }),
-      validator: (TagTypes? value) =>
-          value == null ? AppLocalizations.of(context).tagTypeMissing : null,
+      onChanged: (TagTypes? value) {
+        setState(() {
+          selectedType = value;
+        });
+      },
+      validator: (TagTypes? value) {
+        if (value == null) {
+          return AppLocalizations.of(context).tagTypeMissing;
+        }
+        return null;
+      },
     );
   }
 
@@ -113,9 +124,7 @@ class AddTagFormState extends State<AddTagForm> {
               TagManager().addTagList(
                 tagController.text,
                 optionControllers
-                    .map(
-                      (TextEditingController controller) => controller.text,
-                    )
+                    .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
                 selectedIcon!,
               );
@@ -128,9 +137,7 @@ class AddTagFormState extends State<AddTagForm> {
               TagManager().addTagMulti(
                 tagController.text,
                 optionControllers
-                    .map(
-                      (TextEditingController controller) => controller.text,
-                    )
+                    .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
                 selectedIcon!,
               );
@@ -156,41 +163,52 @@ class AddTagFormState extends State<AddTagForm> {
           ..._buildOptionInputs(context),
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => setState(() {
-              optionControllers.add(TextEditingController());
-            }),
+            onPressed: () {
+              setState(() {
+                optionControllers.add(TextEditingController());
+              });
+            },
           ),
         ];
     }
   }
 
-  Iterable<Row> _buildOptionInputs(BuildContext context) {
-    return optionControllers.asMap().entries.map(
-      (MapEntry<int, TextEditingController> entry) {
+  List<Row> _buildOptionInputs(BuildContext context) {
+    return List<Row>.generate(
+      optionControllers.length,
+      (int index) {
         return Row(
           children: <Widget>[
             Expanded(
               child: TextFormField(
-                controller: entry.value,
+                controller: optionControllers[index],
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).tagAddOption,
                 ),
-                validator: (String? value) => value == null || value.isEmpty
-                    ? AppLocalizations.of(context).tagOptionMissing
-                    : null,
-                onChanged: (String? value) => setState(() {}),
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return AppLocalizations.of(context).tagOptionMissing;
+                  }
+                  return null;
+                },
+                onChanged: (String? _) {
+                  setState(() {});
+                },
               ),
             ),
-            if (entry.key > 0)
+            if (index > 0)
               IconButton(
                 icon: const Icon(Icons.remove_circle),
-                onPressed: () => setState(() {
-                  optionControllers.removeAt(entry.key);
-                }),
+                onPressed: () {
+                  setState(() {
+                    optionControllers.removeAt(index);
+                  });
+                },
               ),
           ],
         );
       },
+      growable: false,
     );
   }
 
