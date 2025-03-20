@@ -215,9 +215,9 @@ class _JournalPageState extends State<JournalPage> {
         onPageChanged: (int index) {
           _focusedPageNotifier.value = index;
         },
-        itemBuilder: (BuildContext context, int index) => CalendarWeek(
-          weekStartDate: _pageIndexToDate(index),
-        ),
+        itemBuilder: (BuildContext context, int index) {
+          return CalendarWeek(weekStartDate: _pageIndexToDate(index));
+        },
       ),
     );
   }

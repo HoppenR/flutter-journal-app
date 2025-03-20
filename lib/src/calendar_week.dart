@@ -21,8 +21,11 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   double _getMaxTagColumnWidth(BuildContext context) {
     final TagData longestTag = TagManager().tags.values.reduce(
-      (TagData a, TagData b) {
-        return a.name.length > b.name.length ? a : b;
+      (TagData lhs, TagData rhs) {
+        if (lhs.name.length > rhs.name.length) {
+          return lhs;
+        }
+        return rhs;
       },
     );
 

@@ -25,10 +25,10 @@ class TagManager {
 
   void removeTag(int id) {
     tags.remove(id);
-    appliedTags.forEach((DateTime time, List<AppliedTagData> tagList) {
-      tagList.removeWhere((AppliedTagData tag) {
-        return tag.id == id;
-      });
+
+    appliedTags.removeWhere((_, List<AppliedTagData> tagList) {
+      tagList.removeWhere((AppliedTagData tag) => tag.id == id);
+      return tagList.isEmpty;
     });
   }
 
@@ -161,7 +161,10 @@ class TagData {
   ) : type = TagTypes.multi;
 
   List<String> get list {
-    return listData ?? (throw ArgumentError('called list on non-list type'));
+    if (listData != null) {
+      return listData!;
+    }
+    throw UnsupportedError('called list on non-list type');
   }
 
   Map<String, dynamic> toJson() {
@@ -249,7 +252,9 @@ class AppliedTagData {
     final int id = json['id'];
     switch (TagManager().tags[id]?.type) {
       case null:
-        throw ArgumentError('tag not exist while deserializing AppliedTagData');
+        throw StateError(
+          'tag does not exist while creating its AppliedTagData',
+        );
       case TagTypes.list:
         return AppliedTagData.list(id, json['listOption']);
       case TagTypes.toggle:

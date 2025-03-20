@@ -36,9 +36,7 @@ Future<void> saveTagData() async {
   final List<Map<String, dynamic>> tagDataJson = TagManager()
       .tags
       .values
-      .map(
-        (TagData value) => value.toJson(),
-      )
+      .map((TagData tagData) => tagData.toJson())
       .toList();
 
   await prefs.setString('tagData', json.encode(tagDataJson));
