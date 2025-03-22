@@ -158,8 +158,6 @@ class SettingsPage extends StatelessWidget {
             ),
           );
         }).toList(growable: false),
-        //children: themes.map((Color theme) {
-        //}).toList(growable: false),
       ),
     );
   }

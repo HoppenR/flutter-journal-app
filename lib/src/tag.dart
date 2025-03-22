@@ -107,7 +107,12 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.nightlight.codePoint: Icons.nightlight,
   Icons.notes.codePoint: Icons.notes,
   Icons.opacity.codePoint: Icons.opacity,
+  Icons.palette_outlined.codePoint: Icons.palette_outlined,
   Icons.pets.codePoint: Icons.pets,
+  Icons.phone.codePoint: Icons.phone,
+  Icons.phone_android.codePoint: Icons.phone_android,
+  Icons.phone_iphone.codePoint: Icons.phone_iphone,
+  Icons.phone_paused.codePoint: Icons.phone_paused,
   Icons.school.codePoint: Icons.school,
   Icons.self_improvement.codePoint: Icons.self_improvement,
   Icons.sentiment_dissatisfied.codePoint: Icons.sentiment_dissatisfied,
@@ -129,13 +134,6 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.water_drop.codePoint: Icons.water_drop,
   Icons.woman.codePoint: Icons.woman,
   Icons.work.codePoint: Icons.work,
-
-  // New
-  Icons.phone.codePoint: Icons.phone,
-  Icons.phone_android.codePoint: Icons.phone_android,
-  Icons.phone_iphone.codePoint: Icons.phone_iphone,
-  Icons.phone_paused.codePoint: Icons.phone_paused,
-  Icons.palette_outlined.codePoint: Icons.palette_outlined,
 };
 
 class TagData {
@@ -216,7 +214,6 @@ class TagData {
 
   List<String>? listData;
 
-  // NOTE: Used for dismissible list keys
   final Key key = UniqueKey();
 }
 
