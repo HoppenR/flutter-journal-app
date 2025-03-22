@@ -363,6 +363,7 @@ class _JournalPageState extends State<JournalPage> {
     if (result ?? false) {
       setState(() {
         JournalApp.setLocale(context, null);
+        JournalApp.setTheme(context, null);
       });
     }
   }

@@ -140,7 +140,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
       },
       background: Container(
         decoration: BoxDecoration(
-          //color: Color.fromRGBO(0xA1, 0x7B, 0xB9, 1.0),
           color: Color.alphaBlend(
             Theme.of(context).colorScheme.primary.withAlpha(108),
             Theme.of(context).colorScheme.inversePrimary,
