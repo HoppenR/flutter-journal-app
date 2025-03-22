@@ -344,11 +344,14 @@ class _JournalPageState extends State<JournalPage> {
       ),
     );
     if (result ?? false) {
-      setState(() {
-        showSnackBar(context, AppLocalizations.of(context).saveTagDone);
+      // Force update of calendar since a new tag was added
+      setState(() {});
+
+      if (context.mounted) {
         saveTagData();
         saveNextTagId();
-      });
+        showSnackBar(context, AppLocalizations.of(context).saveTagDone);
+      }
     }
   }
 
@@ -361,10 +364,10 @@ class _JournalPageState extends State<JournalPage> {
     );
 
     if (result ?? false) {
-      setState(() {
+      if (context.mounted) {
         JournalApp.setLocale(context, null);
         JournalApp.setTheme(context, null);
-      });
+      }
     }
   }
 }

@@ -15,8 +15,6 @@ class CalendarWeek extends StatefulWidget {
 }
 
 class CalendarWeekState extends State<CalendarWeek> {
-  static const double gridEdgeInset = 8.0;
-
   bool _isExpanded = false;
 
   double _getMaxTagColumnWidth(BuildContext context) {
@@ -50,12 +48,14 @@ class CalendarWeekState extends State<CalendarWeek> {
     );
 
     if (result ?? false) {
+      // Force update of calendar week since an update was done to an appliedTag
       setState(() {});
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    const double gridEdgeInset = 8.0;
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
       final int tagCount = TagManager().tags.length;
