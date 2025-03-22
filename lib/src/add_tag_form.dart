@@ -11,20 +11,22 @@ class AddTagForm extends StatefulWidget {
 }
 
 class AddTagFormState extends State<AddTagForm> {
-  final TextEditingController tagController = TextEditingController();
-  final List<TextEditingController> optionControllers = <TextEditingController>[
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final List<TextEditingController> _optionControllers =
+      <TextEditingController>[
     TextEditingController(),
   ];
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TagTypes? selectedType;
-  IconData? selectedIcon = Icons.favorite;
+  final TextEditingController _tagController = TextEditingController();
+
+  TagTypes? _selectedType;
+  IconData _selectedIcon = Icons.favorite;
 
   static const double _iconSize = 40.0;
 
   @override
   void dispose() {
-    tagController.dispose();
-    for (final TextEditingController controller in optionControllers) {
+    _tagController.dispose();
+    for (final TextEditingController controller in _optionControllers) {
       controller.dispose();
     }
     super.dispose();
@@ -49,9 +51,6 @@ class AddTagFormState extends State<AddTagForm> {
       padding: const EdgeInsets.all(16.0),
       child: Form(
         key: _formKey,
-        onChanged: () {
-          setState(() {});
-        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -68,7 +67,7 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagFormName(BuildContext context) {
     return TextFormField(
-      controller: tagController,
+      controller: _tagController,
       decoration: InputDecoration(
         hintText: AppLocalizations.of(context).tagNameHint,
       ),
@@ -84,7 +83,7 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagOptionType(BuildContext context) {
     return DropdownButtonFormField<TagTypes>(
-      value: selectedType,
+      value: _selectedType,
       hint: Text(AppLocalizations.of(context).tagSelectType),
       items: <DropdownMenuItem<TagTypes>>[
         DropdownMenuItem<TagTypes>(
@@ -102,7 +101,7 @@ class AddTagFormState extends State<AddTagForm> {
       ],
       onChanged: (TagTypes? value) {
         setState(() {
-          selectedType = value;
+          _selectedType = value;
         });
       },
       validator: (TagTypes? value) {
@@ -119,27 +118,27 @@ class AddTagFormState extends State<AddTagForm> {
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           // NOTE: selectedType validator asserts not null before this
-          switch (selectedType!) {
+          switch (_selectedType!) {
             case TagTypes.list:
               TagManager().addTagList(
-                tagController.text,
-                optionControllers
+                _tagController.text,
+                _optionControllers
                     .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
-                selectedIcon!,
+                _selectedIcon,
               );
             case TagTypes.toggle:
               TagManager().addTagToggle(
-                tagController.text,
-                selectedIcon!,
+                _tagController.text,
+                _selectedIcon,
               );
             case TagTypes.multi:
               TagManager().addTagMulti(
-                tagController.text,
-                optionControllers
+                _tagController.text,
+                _optionControllers
                     .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
-                selectedIcon!,
+                _selectedIcon,
               );
           }
           Navigator.of(context).pop(true);
@@ -150,7 +149,7 @@ class AddTagFormState extends State<AddTagForm> {
   }
 
   List<Widget>? _buildOptionFields(BuildContext context) {
-    switch (selectedType) {
+    switch (_selectedType) {
       case null || TagTypes.toggle:
         return null;
       case TagTypes.list || TagTypes.multi:
@@ -165,7 +164,7 @@ class AddTagFormState extends State<AddTagForm> {
             icon: const Icon(Icons.add),
             onPressed: () {
               setState(() {
-                optionControllers.add(TextEditingController());
+                _optionControllers.add(TextEditingController());
               });
             },
           ),
@@ -175,13 +174,13 @@ class AddTagFormState extends State<AddTagForm> {
 
   List<Row> _buildOptionInputs(BuildContext context) {
     return List<Row>.generate(
-      optionControllers.length,
+      _optionControllers.length,
       (int index) {
         return Row(
           children: <Widget>[
             Expanded(
               child: TextFormField(
-                controller: optionControllers[index],
+                controller: _optionControllers[index],
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).tagAddOption,
                 ),
@@ -191,9 +190,6 @@ class AddTagFormState extends State<AddTagForm> {
                   }
                   return null;
                 },
-                onChanged: (String? _) {
-                  setState(() {});
-                },
               ),
             ),
             if (index > 0)
@@ -201,7 +197,7 @@ class AddTagFormState extends State<AddTagForm> {
                 icon: const Icon(Icons.remove_circle),
                 onPressed: () {
                   setState(() {
-                    optionControllers.removeAt(index);
+                    _optionControllers.removeAt(index);
                   });
                 },
               ),
@@ -238,13 +234,15 @@ class AddTagFormState extends State<AddTagForm> {
         return GestureDetector(
           onTap: () {
             setState(() {
-              selectedIcon = icon;
+              _selectedIcon = icon;
             });
           },
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: selectedIcon == icon ? Colors.blue : Colors.transparent,
+                color: _selectedIcon == icon
+                    ? Theme.of(context).colorScheme.inversePrimary
+                    : Colors.transparent,
                 width: 2.0,
               ),
               borderRadius: BorderRadius.circular(8.0),

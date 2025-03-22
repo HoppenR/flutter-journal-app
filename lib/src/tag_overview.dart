@@ -8,9 +8,9 @@ import 'tag.dart';
 import 'utility.dart';
 
 class TagDayOverview extends StatefulWidget {
-  const TagDayOverview({super.key, required DateTime day}) : _date = day;
+  const TagDayOverview({super.key, required this.day});
 
-  final DateTime _date;
+  final DateTime day;
 
   @override
   TagDayOverviewState createState() => TagDayOverviewState();
@@ -32,7 +32,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         }
         if (_debouncedSaveTimer?.isActive ?? false) {
           _debouncedSaveTimer!.cancel();
-          _saveCallback(context);
+          _saveCallback();
         }
         Navigator.of(context).pop(_hasMadeChanges);
       },
@@ -40,7 +40,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(
-            AppLocalizations.of(context).tagOverviewTitle(widget._date),
+            AppLocalizations.of(context).tagOverviewTitle(widget.day),
           ),
           actions: <Widget>[
             Text(AppLocalizations.of(context).moveModeToggle),
@@ -89,8 +89,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           }
         }
         oldIndexTag.order = newIndexOrder;
-        setState(() {});
-        _debounceSave(context);
+        _debounceSave();
       },
       children: orderedTags
           .map(
@@ -102,7 +101,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildReorderableTagRow(TagData entry) {
     final AppliedTagData? appliedTagData = TagManager()
-        .appliedTags[widget._date]
+        .appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.id);
     return _buildTagRow(entry, appliedTagData);
   }
@@ -120,7 +119,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildDismissibleTagRow(BuildContext context, TagData tagData) {
     final AppliedTagData? appliedTagData = TagManager()
-        .appliedTags[widget._date]
+        .appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
 
     return Dismissible(
@@ -130,10 +129,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
           return _showDeleteTagWindow(context);
         } else if (direction == DismissDirection.endToStart) {
           if (appliedTagData != null) {
-            TagManager().unapplyTag(appliedTagData, widget._date);
+            TagManager().unapplyTag(appliedTagData, widget.day);
           }
-          setState(() {});
-          _debounceSave(context);
+          _debounceSave();
           return false;
         }
         return true;
@@ -168,8 +166,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.startToEnd) {
           TagManager().removeTag(tagData.id);
-          setState(() {});
-          _debounceSave(context);
+          _debounceSave();
         }
       },
       child: _buildTagRow(tagData, appliedTagData),
@@ -180,7 +177,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     return List<Widget>.generate(
       tagData.list.length,
       (int index) {
-        final bool isSelected = TagManager().appliedTags[widget._date]?.any(
+        final bool isSelected = TagManager().appliedTags[widget.day]?.any(
               (AppliedTagData tag) {
                 if (tag.id != tagData.id) {
                   return false;
@@ -212,18 +209,18 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   void _handleTagSelection(TagData tagData, int index) {
     final int tagIndex = TagManager()
-            .appliedTags[widget._date]
+            .appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
 
     switch (tagData.type) {
       case TagTypes.list:
         if (tagIndex != -1) {
-          TagManager().appliedTags[widget._date]![tagIndex].listOption = index;
+          TagManager().appliedTags[widget.day]![tagIndex].listOption = index;
         } else {
           TagManager().applyTag(
             AppliedTagData.list(tagData.id, index),
-            widget._date,
+            widget.day,
           );
         }
       case TagTypes.toggle:
@@ -235,7 +232,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       case TagTypes.multi:
         if (tagIndex != -1) {
           final List<int> multiOptions =
-              TagManager().appliedTags[widget._date]![tagIndex].multiOptions!;
+              TagManager().appliedTags[widget.day]![tagIndex].multiOptions!;
           if (multiOptions.contains(index)) {
             multiOptions.remove(index);
           } else {
@@ -244,43 +241,39 @@ class TagDayOverviewState extends State<TagDayOverview> {
         } else {
           TagManager().applyTag(
             AppliedTagData.multi(tagData.id, <int>[index]),
-            widget._date,
+            widget.day,
           );
         }
     }
-    setState(() {});
-    _debounceSave(context);
+    _debounceSave();
   }
 
   void _handleToggleChange(TagData tagData, bool value) {
     final int tagIndex = TagManager()
-            .appliedTags[widget._date]
+            .appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
 
     if (tagIndex != -1) {
-      TagManager().appliedTags[widget._date]![tagIndex].toggleOption = value;
+      TagManager().appliedTags[widget.day]![tagIndex].toggleOption = value;
     } else {
       final AppliedTagData newTag = AppliedTagData.toggle(tagData.id, value);
-      TagManager().applyTag(newTag, widget._date);
+      TagManager().applyTag(newTag, widget.day);
     }
-    setState(() {});
-    _debounceSave(context);
+    _debounceSave();
   }
 
-  void _debounceSave(BuildContext context) {
-    _debouncedSaveTimer?.cancel();
-    _debouncedSaveTimer = Timer(
-      const Duration(seconds: 3),
-      () => _saveCallback(context),
-    );
-    _hasMadeChanges = true;
+  void _debounceSave() {
+    setState(() {
+      _debouncedSaveTimer?.cancel();
+      _debouncedSaveTimer = Timer(const Duration(seconds: 3), _saveCallback);
+      _hasMadeChanges = true;
+    });
   }
 
-  void _saveCallback(BuildContext context) {
+  void _saveCallback() {
     saveTagData();
     saveAppliedTags();
-    showSnackBar(context, AppLocalizations.of(context).saveDataDone);
   }
 
   Widget _buildTagRow(TagData tagData, AppliedTagData? appliedTagData) {
