@@ -25,7 +25,11 @@ class InitializationWidget extends StatelessWidget {
         }
 
         final Locale? initialLocale = snapshot.data!.locale;
-        return JournalApp(initialLocale: initialLocale);
+        final Color? initialTheme = snapshot.data!.theme;
+        return JournalApp(
+          initialLocale: initialLocale,
+          initialTheme: initialTheme,
+        );
       },
     );
   }

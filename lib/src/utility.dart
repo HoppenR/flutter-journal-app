@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'settings.dart';
 import 'tag.dart';
 
 // Used to return data from loadUserPrefs in a structured way
@@ -12,12 +13,14 @@ import 'tag.dart';
 class UserPrefs {
   const UserPrefs({
     required this.locale,
+    required this.theme,
     required this.tagData,
     required this.appliedTags,
     required this.nextTagId,
   });
 
   final Locale? locale;
+  final Color? theme;
   final Map<int, dynamic> tagData;
   final Map<DateTime, dynamic> appliedTags;
   final int nextTagId;
@@ -27,6 +30,12 @@ Future<void> saveLocale(Locale locale) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   await prefs.setString('locale', locale.languageCode);
+}
+
+Future<void> saveTheme(String theme) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  await prefs.setString('theme', theme);
 }
 
 /// NOTE: If saving new tags probably want to call saveNextTagId after this
@@ -68,6 +77,12 @@ Future<Locale?> loadLocale() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? localeCode = prefs.getString('locale');
   return localeCode != null ? Locale(localeCode) : null;
+}
+
+Future<Color?> loadTheme() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final String? theme = prefs.getString('theme');
+  return theme != null ? SettingsPage.themes[theme] : null;
 }
 
 Future<Map<int, dynamic>> loadTagData() async {
@@ -121,6 +136,7 @@ Future<int> loadNextTagId() async {
 
 Future<UserPrefs> loadUserPrefs() async {
   final Future<Locale?> localeFuture = loadLocale();
+  final Future<Color?> themeFuture = loadTheme();
   final Future<int> nextTagIdFuture = loadNextTagId();
   final Future<Map<int, dynamic>> tagDataFuture = loadTagData();
 
@@ -133,6 +149,7 @@ Future<UserPrefs> loadUserPrefs() async {
 
   return UserPrefs(
     locale: await localeFuture,
+    theme: await themeFuture,
     tagData: tagData,
     appliedTags: await appliedTagsFuture,
     nextTagId: await nextTagIdFuture,
