@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'generated/l10n/app_localizations.dart';
@@ -19,6 +21,23 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  static const Map<String, Color> themes = <String, Color>{
+    'deepPurple': Colors.deepPurple,
+    'deepOrange': Colors.deepOrange,
+    'pink': Colors.pink,
+    'indigoAccent': Colors.indigoAccent,
+    'amber': Colors.amber,
+    'purpleAccent': Colors.purpleAccent,
+    'purple': Colors.purple,
+    'cyanAccent': Colors.cyanAccent,
+    'cyan': Colors.cyan,
+    'green': Colors.green,
+    'lightGreen': Colors.lightGreen,
+    'teal': Colors.teal,
+    'blueGrey': Colors.blueGrey,
+    'blue': Colors.blue,
+  };
+
   Widget _buildSettingsContent(BuildContext context) {
     return SizedBox.expand(
       child: Column(
@@ -31,6 +50,8 @@ class SettingsPage extends StatelessWidget {
           _buildLogoIcon(context),
           _buildChangeLocaleDropdown(context),
           const SizedBox(height: 8.0),
+          _buildThemepicker(context),
+          const SizedBox(height: 24.0),
           _buildClearPreferencesDropdown(context),
           const SizedBox(height: 16.0),
           _buildAboutSection(context),
@@ -86,6 +107,60 @@ class SettingsPage extends StatelessWidget {
           JournalApp.setLocale(context, Locale(newValue));
         }
       },
+    );
+  }
+
+  Widget _buildThemepicker(BuildContext context) {
+    return SizedBox(
+      width: 270.0,
+      height: 60.0,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 10.0,
+        runSpacing: 10.0,
+        children: themes.keys.map((String theme) {
+          return GestureDetector(
+            onTap: () {
+              JournalApp.setTheme(context, theme);
+            },
+            child: Theme(
+              data: ThemeData.from(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: themes[theme]!,
+                ),
+              ),
+              child: Builder(builder: (BuildContext context) {
+                return Transform.rotate(
+                  angle: math.pi / 4.0,
+                  child: Container(
+                    width: 30.0,
+                    height: 30.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: <Color>[
+                          Theme.of(context).colorScheme.inversePrimary,
+                          Theme.of(context).colorScheme.inversePrimary,
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary,
+                        ],
+                        stops: const <double>[
+                          0.0,
+                          0.5,
+                          0.5,
+                          1.0,
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          );
+        }).toList(growable: false),
+        //children: themes.map((Color theme) {
+        //}).toList(growable: false),
+      ),
     );
   }
 

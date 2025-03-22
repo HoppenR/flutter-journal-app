@@ -12,9 +12,14 @@ import 'utility.dart';
 // --- JournalApp ---
 
 class JournalApp extends StatefulWidget {
-  const JournalApp({super.key, required this.initialLocale});
+  const JournalApp({
+    super.key,
+    required this.initialLocale,
+    required this.initialTheme,
+  });
 
   final Locale? initialLocale;
+  final Color? initialTheme;
 
   @override
   State<JournalApp> createState() => _JournalAppState();
@@ -24,17 +29,25 @@ class JournalApp extends StatefulWidget {
         context.findAncestorStateOfType<_JournalAppState>();
     state?.changeLanguage(newLocale);
   }
+
+  static void setTheme(BuildContext context, String? newTheme) {
+    final _JournalAppState? state =
+        context.findAncestorStateOfType<_JournalAppState>();
+    state?.changeTheme(newTheme);
+  }
 }
 
 // --- _JournalAppState ---
 
 class _JournalAppState extends State<JournalApp> {
   late Locale? _locale;
+  late Color? _theme;
 
   @override
   void initState() {
     super.initState();
     _locale = widget.initialLocale;
+    _theme = widget.initialTheme;
   }
 
   void changeLanguage(Locale? locale) {
@@ -43,6 +56,15 @@ class _JournalAppState extends State<JournalApp> {
     });
     if (locale != null) {
       saveLocale(locale);
+    }
+  }
+
+  void changeTheme(String? theme) {
+    setState(() {
+      _theme = SettingsPage.themes[theme];
+    });
+    if (theme != null) {
+      saveTheme(theme);
     }
   }
 
@@ -57,7 +79,9 @@ class _JournalAppState extends State<JournalApp> {
         return AppLocalizations.of(context).appTitle;
       },
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: _theme ?? Colors.deepPurple,
+        ),
         useMaterial3: true,
       ),
       initialRoute: '/',
