@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
 import 'journal.dart';
@@ -199,12 +200,12 @@ class SettingsPage extends StatelessWidget {
   }
 
   Future<void> _showClearPreferencesWindow(BuildContext context) async {
-    final bool? result = await showDialog(
+    final bool? didClearData = await showDialog(
       context: context,
       builder: _buildClearPreferencesDialog,
     );
 
-    if (result ?? false) {
+    if (didClearData ?? false) {
       if (context.mounted) {
         Navigator.of(context).pop(true);
       }
@@ -212,6 +213,7 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
+    final TagManager tagManager = context.read<TagManager>();
     return AlertDialog(
       title: Text(AppLocalizations.of(context).clearDataTitle),
       content: Text(AppLocalizations.of(context).clearDataPrompt),
@@ -223,9 +225,10 @@ class SettingsPage extends StatelessWidget {
         TextButton(
           onPressed: () {
             clearPreferences(context);
-            TagManager().tags.clear();
-            TagManager().appliedTags.clear();
-            TagManager().nextTagId = 0;
+            tagManager
+              ..tags.clear()
+              ..appliedTags.clear()
+              ..nextTagId = 0;
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
             Navigator.of(context).pop(true);
           },

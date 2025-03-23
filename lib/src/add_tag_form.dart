@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
@@ -114,13 +115,14 @@ class AddTagFormState extends State<AddTagForm> {
   }
 
   Widget _buildTagFormValidateButton(BuildContext context) {
+    final TagManager tagManager = context.read<TagManager>();
     return TextButton(
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           // NOTE: selectedType validator asserts not null before this
           switch (_selectedType!) {
             case TagTypes.list:
-              TagManager().addTagList(
+              tagManager.addTagList(
                 _tagController.text,
                 _optionControllers
                     .map((TextEditingController controller) => controller.text)
@@ -128,12 +130,12 @@ class AddTagFormState extends State<AddTagForm> {
                 _selectedIcon,
               );
             case TagTypes.toggle:
-              TagManager().addTagToggle(
+              tagManager.addTagToggle(
                 _tagController.text,
                 _selectedIcon,
               );
             case TagTypes.multi:
-              TagManager().addTagMulti(
+              tagManager.addTagMulti(
                 _tagController.text,
                 _optionControllers
                     .map((TextEditingController controller) => controller.text)
