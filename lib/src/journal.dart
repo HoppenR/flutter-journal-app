@@ -81,6 +81,7 @@ class _JournalAppState extends State<JournalApp> {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: _theme ?? Colors.deepPurple,
+          surface: Colors.white,
         ),
         useMaterial3: true,
       ),
@@ -179,16 +180,18 @@ class _JournalPageState extends State<JournalPage> {
           ],
         ),
       ),
-      body: Column(children: <Widget>[
-        if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
-          // Calendar View
-          _buildCalendarNavigationTopBar(context),
-          _buildCalendarBody(context),
-        ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
-          // Graph view
-          const Expanded(child: GraphPage()),
+      body: Column(
+        children: <Widget>[
+          if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
+            // Calendar View
+            _buildCalendarNavigationTopBar(context),
+            _buildCalendarBody(context),
+          ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
+            // Graph view
+            const Expanded(child: GraphPage()),
+          ],
         ],
-      ]),
+      ),
     );
   }
 
@@ -337,33 +340,31 @@ class _JournalPageState extends State<JournalPage> {
   }
 
   Future<void> _showAddTagWindow(BuildContext context) async {
-    final bool? result = await Navigator.push<bool?>(
+    final bool? didAddTag = await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
         builder: (BuildContext context) => const AddTagForm(),
       ),
     );
-    if (result ?? false) {
-      // Force update of calendar since a new tag was added
-      setState(() {});
-
+    if (didAddTag ?? false) {
+      // Update of calendar handled by ChangeNotifierProvider
       if (context.mounted) {
-        saveTagData();
-        saveNextTagId();
+        saveTagData(context);
+        saveNextTagId(context);
         showSnackBar(context, AppLocalizations.of(context).saveTagDone);
       }
     }
   }
 
   Future<void> _showSettingsPage(BuildContext context) async {
-    final bool? result = await Navigator.push<bool?>(
+    final bool? didClearData = await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
         builder: (BuildContext context) => const SettingsPage(),
       ),
     );
 
-    if (result ?? false) {
+    if (didClearData ?? false) {
       if (context.mounted) {
         JournalApp.setLocale(context, null);
         JournalApp.setTheme(context, null);

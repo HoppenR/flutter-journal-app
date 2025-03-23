@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'src/journal.dart';
+import 'src/tag.dart';
 import 'src/utility.dart';
 
 void main() async {
@@ -13,7 +15,7 @@ class InitializationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<UserPrefs>(
-      future: loadUserPrefs(),
+      future: loadUserPrefs(context),
       builder: (BuildContext context, AsyncSnapshot<UserPrefs> snapshot) {
         // Show a loading icon until UserPrefs finishes loading
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -26,9 +28,19 @@ class InitializationWidget extends StatelessWidget {
 
         final Locale? initialLocale = snapshot.data!.locale;
         final Color? initialTheme = snapshot.data!.theme;
-        return JournalApp(
-          initialLocale: initialLocale,
-          initialTheme: initialTheme,
+
+        final TagManager tagManager = TagManager(
+          tags: snapshot.data!.tagData,
+          appliedTags: snapshot.data!.appliedTags,
+          nextTagId: snapshot.data!.nextTagId,
+        );
+
+        return ChangeNotifierProvider<TagManager>.value(
+          value: tagManager,
+          child: JournalApp(
+            initialLocale: initialLocale,
+            initialTheme: initialTheme,
+          ),
         );
       },
     );

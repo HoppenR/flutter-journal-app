@@ -1,26 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-// A TagManager singleton with convenience functions for its public tag data
-class TagManager {
-  factory TagManager() => _instance;
-  TagManager._internal();
+// A TagManager class for storing and interacting with tags
+// with functionality for propagating updates to watchers
+class TagManager extends ChangeNotifier {
+  TagManager({
+    required this.tags,
+    required this.appliedTags,
+    required this.nextTagId,
+  });
 
   void addTagList(String name, List<String> listData, IconData icon) {
     final int tagId = nextTagId++;
     final TagData tag = TagData.list(tagId, name, listData, icon, tagId);
     tags[tagId] = tag;
+    notifyListeners();
   }
 
   void addTagToggle(String name, IconData icon) {
     final int tagId = nextTagId++;
     final TagData tag = TagData.toggle(tagId, name, icon, tagId);
     tags[tagId] = tag;
+    notifyListeners();
   }
 
   void addTagMulti(String name, List<String> listData, IconData icon) {
     final int tagId = nextTagId++;
     final TagData tag = TagData.multi(tagId, name, listData, icon, tagId);
     tags[tagId] = tag;
+    notifyListeners();
   }
 
   void removeTag(int id) {
@@ -30,10 +38,12 @@ class TagManager {
       tagList.removeWhere((AppliedTagData tag) => tag.id == id);
       return tagList.isEmpty;
     });
+    notifyListeners();
   }
 
   void applyTag(AppliedTagData appliedTag, DateTime day) {
     appliedTags.putIfAbsent(day, () => <AppliedTagData>[]).add(appliedTag);
+    notifyListeners();
   }
 
   void unapplyTag(AppliedTagData appliedTag, DateTime day) {
@@ -41,14 +51,36 @@ class TagManager {
     if (appliedTags[day]!.isEmpty) {
       appliedTags.remove(day);
     }
+    notifyListeners();
   }
 
-  static final TagManager _instance = TagManager._internal();
+  void toggleTo(AppliedTagData appliedTag, bool value) {
+    assert(tags[appliedTag.id]!.type == TagTypes.toggle);
+    appliedTag.toggleOption = value;
+    notifyListeners();
+  }
+
+  void changeListOption(AppliedTagData appliedTag, int index) {
+    assert(tags[appliedTag.id]!.type == TagTypes.list);
+    appliedTag.listOption = index;
+    notifyListeners();
+  }
+
+  void toggleMultiOption(AppliedTagData appliedTag, int index) {
+    assert(tags[appliedTag.id]!.type == TagTypes.multi);
+    final List<int> multiOptions = appliedTag.multiOptions!;
+    if (multiOptions.contains(index)) {
+      multiOptions.remove(index);
+    } else {
+      multiOptions.add(index);
+    }
+    notifyListeners();
+  }
 
   // NOTE: These are set as side effects in loadUserPrefs upon startup
-  late Map<int, TagData> tags;
-  late Map<DateTime, List<AppliedTagData>> appliedTags;
-  late int nextTagId;
+  Map<int, TagData> tags;
+  Map<DateTime, List<AppliedTagData>> appliedTags;
+  int nextTagId;
 }
 
 enum TagTypes {
@@ -218,14 +250,15 @@ class TagData {
 }
 
 class AppliedTagData {
-  AppliedTagData.list(this.id, int this.listOption)
-      : tag = TagManager().tags[id]!;
-  AppliedTagData.toggle(this.id, bool this.toggleOption)
-      : tag = TagManager().tags[id]!;
-  AppliedTagData.multi(this.id, List<int> this.multiOptions)
-      : tag = TagManager().tags[id]!;
+  AppliedTagData.list(this.id, int this.listOption);
 
-  String get string {
+  AppliedTagData.toggle(this.id, bool this.toggleOption);
+
+  AppliedTagData.multi(this.id, List<int> this.multiOptions);
+
+  String string(BuildContext context) {
+    final TagManager tagManager = context.read<TagManager>();
+    final TagData tag = tagManager.tags[id]!;
     switch (tag.type) {
       case TagTypes.list:
         return tag.list[listOption!];
@@ -245,9 +278,12 @@ class AppliedTagData {
     };
   }
 
-  static AppliedTagData fromJson(Map<String, dynamic> json) {
+  static AppliedTagData fromJson(
+    Map<String, dynamic> json,
+    Map<int, TagData> tags,
+  ) {
     final int id = json['id'];
-    switch (TagManager().tags[id]?.type) {
+    switch (tags[id]?.type) {
       case null:
         throw StateError(
           'tag does not exist while creating its AppliedTagData',
@@ -261,12 +297,11 @@ class AppliedTagData {
     }
   }
 
-  String get name => tag.name;
-  TagTypes get type => tag.type;
-  IconData get icon => tag.icon;
+  //String get name => tag.name;
+  //TagTypes get type => tag.type;
+  //IconData get icon => tag.icon;
 
   final int id;
-  final TagData tag;
 
   int? listOption;
   bool? toggleOption;

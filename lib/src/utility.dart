@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'settings.dart';
@@ -21,8 +22,8 @@ class UserPrefs {
 
   final Locale? locale;
   final Color? theme;
-  final Map<int, dynamic> tagData;
-  final Map<DateTime, dynamic> appliedTags;
+  final Map<int, TagData> tagData;
+  final Map<DateTime, List<AppliedTagData>> appliedTags;
   final int nextTagId;
 }
 
@@ -39,23 +40,29 @@ Future<void> saveTheme(String theme) async {
 }
 
 /// NOTE: If saving new tags probably want to call saveNextTagId after this
-Future<void> saveTagData() async {
+Future<void> saveTagData(BuildContext context) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-  final List<Map<String, dynamic>> tagDataJson = TagManager()
-      .tags
-      .values
+  if (!context.mounted) {
+    throw AssertionError();
+  }
+  final TagManager tagManager = context.read<TagManager>();
+  final List<Map<String, dynamic>> tagDataJson = tagManager.tags.values
       .map((TagData tagData) => tagData.toJson())
       .toList();
 
   await prefs.setString('tagData', json.encode(tagDataJson));
 }
 
-Future<void> saveAppliedTags() async {
+Future<void> saveAppliedTags(BuildContext context) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+  if (!context.mounted) {
+    throw AssertionError();
+  }
+  final TagManager tagManager = context.read<TagManager>();
   final Map<String, List<Map<String, dynamic>>> appliedTagsJson =
-      TagManager().appliedTags.map(
+      tagManager.appliedTags.map(
     (DateTime key, List<AppliedTagData> value) {
       return MapEntry<String, List<Map<String, dynamic>>>(
         DateFormat('yyyy-MM-dd').format(key),
@@ -67,9 +74,14 @@ Future<void> saveAppliedTags() async {
   await prefs.setString('appliedTags', json.encode(appliedTagsJson));
 }
 
-Future<void> saveNextTagId() async {
+Future<void> saveNextTagId(BuildContext context) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final int initialTagId = TagManager().nextTagId;
+
+  if (!context.mounted) {
+    throw AssertionError();
+  }
+  final TagManager tagManager = context.read<TagManager>();
+  final int initialTagId = tagManager.nextTagId;
   prefs.setInt('nextTagId', initialTagId);
 }
 
@@ -85,67 +97,69 @@ Future<Color?> loadTheme() async {
   return theme != null ? SettingsPage.themes[theme] : null;
 }
 
-Future<Map<int, dynamic>> loadTagData() async {
+Future<Map<int, TagData>> loadTagData() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? savedData = prefs.getString('tagData');
 
-  if (savedData != null) {
-    TagManager().tags = Map<int, TagData>.fromEntries(
-        (json.decode(savedData) as List<dynamic>).map(
-      (dynamic value) {
-        final TagData tagData = TagData.fromJson(value);
-        return MapEntry<int, TagData>(tagData.id, tagData);
-      },
-    ));
-  } else {
-    TagManager().tags = <int, TagData>{};
+  if (savedData == null) {
+    return <int, TagData>{};
   }
 
-  return TagManager().tags;
+  return Map<int, TagData>.fromEntries(
+      (json.decode(savedData) as List<dynamic>).map(
+    (dynamic value) {
+      final TagData tagData = TagData.fromJson(value);
+      return MapEntry<int, TagData>(tagData.id, tagData);
+    },
+  ));
 }
 
-Future<Map<DateTime, dynamic>> loadAppliedTags() async {
+Future<Map<DateTime, List<AppliedTagData>>> loadAppliedTags(
+  Map<int, TagData> tags,
+  BuildContext context,
+) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? savedData = prefs.getString('appliedTags');
 
-  if (savedData != null) {
-    TagManager().appliedTags =
-        (json.decode(savedData) as Map<String, dynamic>).map(
-      (String key, dynamic value) {
-        return MapEntry<DateTime, List<AppliedTagData>>(
-          DateTime.parse(key),
-          (value as List<dynamic>).map((dynamic item) {
-            return AppliedTagData.fromJson(item as Map<String, dynamic>);
-          }).toList(growable: true),
-        );
-      },
-    );
-  } else {
-    TagManager().appliedTags = <DateTime, List<AppliedTagData>>{};
+  if (savedData == null) {
+    return <DateTime, List<AppliedTagData>>{};
   }
 
-  return TagManager().appliedTags;
+  return (json.decode(savedData) as Map<String, dynamic>).map(
+    (String key, dynamic value) {
+      return MapEntry<DateTime, List<AppliedTagData>>(
+        DateTime.parse(key),
+        (value as List<dynamic>).map((dynamic item) {
+          return AppliedTagData.fromJson(item as Map<String, dynamic>, tags);
+        }).toList(growable: true),
+      );
+    },
+  );
 }
 
 Future<int> loadNextTagId() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final int initialTagId = prefs.getInt('nextTagId') ?? 0;
-  TagManager().nextTagId = initialTagId;
   return initialTagId;
 }
 
-Future<UserPrefs> loadUserPrefs() async {
+Future<UserPrefs> loadUserPrefs(BuildContext context) async {
   final Future<Locale?> localeFuture = loadLocale();
   final Future<Color?> themeFuture = loadTheme();
   final Future<int> nextTagIdFuture = loadNextTagId();
-  final Future<Map<int, dynamic>> tagDataFuture = loadTagData();
+  final Future<Map<int, TagData>> tagDataFuture = loadTagData();
 
   // NOTE:
   // TagData needs to be loaded for AppliedTagData constructors to be able to
   // save a reference to the corresponding tag via its ID.
   // Wait for all TagData to be loaded before loading all AppliedTag
-  final Map<int, dynamic> tagData = await tagDataFuture;
-  final Future<Map<DateTime, dynamic>> appliedTagsFuture = loadAppliedTags();
+  final Map<int, TagData> tagData = await tagDataFuture;
+
+  if (!context.mounted) {
+    throw AssertionError();
+  }
+  final Future<Map<DateTime, List<AppliedTagData>>> appliedTagsFuture =
+      loadAppliedTags(tagData, context);
 
   return UserPrefs(
     locale: await localeFuture,

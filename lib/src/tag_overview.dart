@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
 import 'tag.dart';
@@ -32,7 +33,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         }
         if (_debouncedSaveTimer?.isActive ?? false) {
           _debouncedSaveTimer!.cancel();
-          _saveCallback();
+          _saveCallback(context);
         }
         Navigator.of(context).pop(_hasMadeChanges);
       },
@@ -68,9 +69,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   Widget _buildReorderableTagList(BuildContext context) {
-    final List<TagData> orderedTags = TagManager()
-        .tags
-        .values
+    final TagManager tagManager = context.read<TagManager>();
+    final List<TagData> orderedTags = tagManager.tags.values
         .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order);
     return ReorderableListView(
       onReorder: (int oldIndex, int newIndex) {
@@ -81,7 +81,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         final int oldIndexOrder = oldIndexTag.order;
         final int newIndexOrder = orderedTags.elementAt(newIndex).order;
 
-        for (final TagData tag in TagManager().tags.values) {
+        for (final TagData tag in tagManager.tags.values) {
           if (tag.order < oldIndexOrder && tag.order >= newIndexOrder) {
             tag.order += 1;
           } else if (tag.order > oldIndexOrder && tag.order <= newIndexOrder) {
@@ -89,28 +89,23 @@ class TagDayOverviewState extends State<TagDayOverview> {
           }
         }
         oldIndexTag.order = newIndexOrder;
-        _debounceSave();
+        _debounceSave(context);
       },
-      children: orderedTags
-          .map(
-            _buildReorderableTagRow,
-          )
-          .toList(growable: false),
+      children: orderedTags.map(_buildReorderTagRow).toList(growable: false),
     );
   }
 
-  Widget _buildReorderableTagRow(TagData entry) {
-    final AppliedTagData? appliedTagData = TagManager()
-        .appliedTags[widget.day]
+  Widget _buildReorderTagRow(TagData entry) {
+    final TagManager tagManager = context.read<TagManager>();
+    final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.id);
     return _buildTagRow(entry, appliedTagData);
   }
 
   Widget _buildDismissibleTagList(BuildContext context) {
+    final TagManager tagManager = context.read<TagManager>();
     return Column(
-      children: TagManager()
-          .tags
-          .values
+      children: tagManager.tags.values
           .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order)
           .map((TagData entry) => _buildDismissibleTagRow(context, entry))
           .toList(growable: false),
@@ -118,8 +113,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   Widget _buildDismissibleTagRow(BuildContext context, TagData tagData) {
-    final AppliedTagData? appliedTagData = TagManager()
-        .appliedTags[widget.day]
+    final TagManager tagManager = context.read<TagManager>();
+    final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
 
     return Dismissible(
@@ -129,9 +124,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
           return _showDeleteTagWindow(context);
         } else if (direction == DismissDirection.endToStart) {
           if (appliedTagData != null) {
-            TagManager().unapplyTag(appliedTagData, widget.day);
+            tagManager.unapplyTag(appliedTagData, widget.day);
           }
-          _debounceSave();
+          _debounceSave(context);
           return false;
         }
         return true;
@@ -165,8 +160,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
       ),
       onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.startToEnd) {
-          TagManager().removeTag(tagData.id);
-          _debounceSave();
+          tagManager.removeTag(tagData.id);
+          _debounceSave(context);
         }
       },
       child: _buildTagRow(tagData, appliedTagData),
@@ -174,22 +169,25 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
+    final TagManager tagManager = context.read<TagManager>();
+
     return List<Widget>.generate(
       tagData.list.length,
       (int index) {
-        final bool isSelected = TagManager().appliedTags[widget.day]?.any(
+        final bool isSelected = tagManager.appliedTags[widget.day]?.any(
               (AppliedTagData tag) {
                 if (tag.id != tagData.id) {
                   return false;
                 }
-                switch (tag.type) {
+                final TagTypes type = tagManager.tags[tag.id]!.type;
+                switch (type) {
                   case TagTypes.list:
                     return tag.listOption == index;
                   case TagTypes.multi:
                     return tag.multiOptions?.contains(index) ?? false;
                   case TagTypes.toggle:
                     throw ArgumentError.value(
-                      tag.type,
+                      type,
                       'tag.type',
                       'argument does not have tag options',
                     );
@@ -208,17 +206,19 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   void _handleTagSelection(TagData tagData, int index) {
-    final int tagIndex = TagManager()
-            .appliedTags[widget.day]
+    final TagManager tagManager = context.read<TagManager>();
+    final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
 
     switch (tagData.type) {
       case TagTypes.list:
         if (tagIndex != -1) {
-          TagManager().appliedTags[widget.day]![tagIndex].listOption = index;
+          final AppliedTagData appliedTag =
+              tagManager.appliedTags[widget.day]![tagIndex];
+          tagManager.changeListOption(appliedTag, index);
         } else {
-          TagManager().applyTag(
+          tagManager.applyTag(
             AppliedTagData.list(tagData.id, index),
             widget.day,
           );
@@ -231,49 +231,49 @@ class TagDayOverviewState extends State<TagDayOverview> {
         );
       case TagTypes.multi:
         if (tagIndex != -1) {
-          final List<int> multiOptions =
-              TagManager().appliedTags[widget.day]![tagIndex].multiOptions!;
-          if (multiOptions.contains(index)) {
-            multiOptions.remove(index);
-          } else {
-            multiOptions.add(index);
-          }
+          final AppliedTagData appliedTag =
+              tagManager.appliedTags[widget.day]![tagIndex];
+          tagManager.toggleMultiOption(appliedTag, index);
         } else {
-          TagManager().applyTag(
+          tagManager.applyTag(
             AppliedTagData.multi(tagData.id, <int>[index]),
             widget.day,
           );
         }
     }
-    _debounceSave();
+    _debounceSave(context);
   }
 
   void _handleToggleChange(TagData tagData, bool value) {
-    final int tagIndex = TagManager()
-            .appliedTags[widget.day]
+    final TagManager tagManager = context.read<TagManager>();
+
+    final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
 
     if (tagIndex != -1) {
-      TagManager().appliedTags[widget.day]![tagIndex].toggleOption = value;
+      final AppliedTagData appliedTag =
+          tagManager.appliedTags[widget.day]![tagIndex];
+      tagManager.toggleTo(appliedTag, value);
     } else {
       final AppliedTagData newTag = AppliedTagData.toggle(tagData.id, value);
-      TagManager().applyTag(newTag, widget.day);
+      tagManager.applyTag(newTag, widget.day);
     }
-    _debounceSave();
+    _debounceSave(context);
   }
 
-  void _debounceSave() {
-    setState(() {
-      _debouncedSaveTimer?.cancel();
-      _debouncedSaveTimer = Timer(const Duration(seconds: 3), _saveCallback);
-      _hasMadeChanges = true;
-    });
+  void _debounceSave(BuildContext context) {
+    _debouncedSaveTimer?.cancel();
+    _debouncedSaveTimer = Timer(
+      const Duration(seconds: 3),
+      () => _saveCallback(context),
+    );
+    _hasMadeChanges = true;
   }
 
-  void _saveCallback() {
-    saveTagData();
-    saveAppliedTags();
+  void _saveCallback(BuildContext context) {
+    saveTagData(context);
+    saveAppliedTags(context);
   }
 
   Widget _buildTagRow(TagData tagData, AppliedTagData? appliedTagData) {
@@ -326,7 +326,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
   }
 
   Future<bool> _showDeleteTagWindow(BuildContext context) async {
-    final bool? result = await showDialog(
+    final bool? didDeleteTag = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -349,6 +349,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
         );
       },
     );
-    return result ?? false;
+    return didDeleteTag ?? false;
   }
 }
