@@ -59,19 +59,24 @@ class TagDayOverviewState extends State<TagDayOverview> {
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
-            child: _editMode
-                ? _buildReorderableTagList(context)
-                : _buildDismissibleTagList(context),
+            child: Consumer<TagManager>(
+              builder: (_, TagManager tagManager, __) => _editMode
+                  ? _buildReorderableTagList(context, tagManager)
+                  : _buildDismissibleTagList(context, tagManager),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildReorderableTagList(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
-    final List<TagData> orderedTags = tagManager.tags.values
-        .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order);
+  Widget _buildReorderableTagList(
+    BuildContext context,
+    TagManager tagManager,
+  ) {
+    final List<TagData> orderedTags = tagManager.tags.values.sorted(
+      (TagData lhs, TagData rhs) => lhs.order - rhs.order,
+    );
     return ReorderableListView(
       onReorder: (int oldIndex, int newIndex) {
         if (oldIndex < newIndex) {
@@ -83,12 +88,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
         for (final TagData tag in tagManager.tags.values) {
           if (tag.order < oldIndexOrder && tag.order >= newIndexOrder) {
-            tag.order += 1;
+            tagManager.changeOrder(tag, tag.order + 1);
           } else if (tag.order > oldIndexOrder && tag.order <= newIndexOrder) {
-            tag.order -= 1;
+            tagManager.changeOrder(tag, tag.order - 1);
           }
         }
-        oldIndexTag.order = newIndexOrder;
+        tagManager.changeOrder(oldIndexTag, newIndexOrder);
         _debounceSave(context);
       },
       children: orderedTags.map(_buildReorderTagRow).toList(growable: false),
@@ -102,8 +107,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
     return _buildTagRow(entry, appliedTagData);
   }
 
-  Widget _buildDismissibleTagList(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
+  Widget _buildDismissibleTagList(
+    BuildContext context,
+    TagManager tagManager,
+  ) {
     return Column(
       children: tagManager.tags.values
           .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order)
@@ -168,9 +175,11 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
-    final TagManager tagManager = context.read<TagManager>();
-
+  List<Widget> _buildTagOptions(
+    BuildContext context,
+    TagManager tagManager,
+    TagData tagData,
+  ) {
     return List<Widget>.generate(
       tagData.list.length,
       (int index) {
@@ -244,9 +253,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  void _handleToggleChange(TagData tagData, bool value) {
-    final TagManager tagManager = context.read<TagManager>();
-
+  void _handleToggleChange(TagManager tagManager, TagData tagData, bool value) {
     final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
@@ -308,20 +315,21 @@ class TagDayOverviewState extends State<TagDayOverview> {
     TagData tagData,
     AppliedTagData? appliedTagData,
   ) {
+    final TagManager tagManager = context.read<TagManager>();
     switch (tagData.type) {
       case TagTypes.list:
-        return _buildTagOptions(context, tagData);
+        return _buildTagOptions(context, tagManager, tagData);
       case TagTypes.toggle:
         return <Widget>[
           Switch(
             value: appliedTagData?.toggleOption ?? false,
             onChanged: (bool value) {
-              _handleToggleChange(tagData, value);
+              _handleToggleChange(tagManager, tagData, value);
             },
           ),
         ];
       case TagTypes.multi:
-        return _buildTagOptions(context, tagData);
+        return _buildTagOptions(context, tagManager, tagData);
     }
   }
 

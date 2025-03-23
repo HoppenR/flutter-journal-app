@@ -77,6 +77,11 @@ class TagManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void changeOrder(TagData tagData, int index) {
+    tagData.order = index;
+    notifyListeners();
+  }
+
   // NOTE: These are set as side effects in loadUserPrefs upon startup
   Map<int, TagData> tags;
   Map<DateTime, List<AppliedTagData>> appliedTags;

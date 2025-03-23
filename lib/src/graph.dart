@@ -18,7 +18,7 @@ class _GraphPageState extends State<GraphPage> {
   }
 
   Widget _buildBarChart(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
+    final TagManager tagManager = context.watch<TagManager>();
 
     final List<double> weekData = List<double>.generate(7, (int index) {
       double counter = 0.0;
