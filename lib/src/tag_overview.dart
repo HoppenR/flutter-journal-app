@@ -96,15 +96,20 @@ class TagDayOverviewState extends State<TagDayOverview> {
         tagManager.changeOrder(oldIndexTag, newIndexOrder);
         _debounceSave(context);
       },
-      children: orderedTags.map(_buildReorderTagRow).toList(growable: false),
+      children: orderedTags
+          .map((TagData tag) => _buildReorderTagRow(context, tagManager, tag))
+          .toList(growable: false),
     );
   }
 
-  Widget _buildReorderTagRow(TagData entry) {
-    final TagManager tagManager = context.read<TagManager>();
+  Widget _buildReorderTagRow(
+    BuildContext context,
+    TagManager tagManager,
+    TagData entry,
+  ) {
     final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.id);
-    return _buildTagRow(entry, appliedTagData);
+    return _buildTagRow(context, tagManager, entry, appliedTagData);
   }
 
   Widget _buildDismissibleTagList(
@@ -114,13 +119,22 @@ class TagDayOverviewState extends State<TagDayOverview> {
     return Column(
       children: tagManager.tags.values
           .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order)
-          .map((TagData entry) => _buildDismissibleTagRow(context, entry))
+          .map(
+            (TagData entry) => _buildDismissibleTagRow(
+              context,
+              tagManager,
+              entry,
+            ),
+          )
           .toList(growable: false),
     );
   }
 
-  Widget _buildDismissibleTagRow(BuildContext context, TagData tagData) {
-    final TagManager tagManager = context.read<TagManager>();
+  Widget _buildDismissibleTagRow(
+    BuildContext context,
+    TagManager tagManager,
+    TagData tagData,
+  ) {
     final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
 
@@ -171,7 +185,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           _debounceSave(context);
         }
       },
-      child: _buildTagRow(tagData, appliedTagData),
+      child: _buildTagRow(context, tagManager, tagData, appliedTagData),
     );
   }
 
@@ -207,15 +221,24 @@ class TagDayOverviewState extends State<TagDayOverview> {
         return ChoiceChip(
           label: Text(tagData.list[index]),
           selected: isSelected,
-          onSelected: (bool selected) => _handleTagSelection(tagData, index),
+          onSelected: (bool selected) => _handleTagSelection(
+            context,
+            tagManager,
+            tagData,
+            index,
+          ),
         );
       },
       growable: false,
     );
   }
 
-  void _handleTagSelection(TagData tagData, int index) {
-    final TagManager tagManager = context.read<TagManager>();
+  void _handleTagSelection(
+    BuildContext context,
+    TagManager tagManager,
+    TagData tagData,
+    int index,
+  ) {
     final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
@@ -253,7 +276,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  void _handleToggleChange(TagManager tagManager, TagData tagData, bool value) {
+  void _handleToggleChange(
+    BuildContext context,
+    TagManager tagManager,
+    TagData tagData,
+    bool value,
+  ) {
     final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
@@ -269,21 +297,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  void _debounceSave(BuildContext context) {
-    _debouncedSaveTimer?.cancel();
-    _debouncedSaveTimer = Timer(
-      const Duration(seconds: 3),
-      () => _saveCallback(context),
-    );
-    _hasMadeChanges = true;
-  }
-
-  void _saveCallback(BuildContext context) {
-    saveTagData(context);
-    saveAppliedTags(context);
-  }
-
-  Widget _buildTagRow(TagData tagData, AppliedTagData? appliedTagData) {
+  Widget _buildTagRow(
+    BuildContext context,
+    TagManager tagManager,
+    TagData tagData,
+    AppliedTagData? appliedTagData,
+  ) {
     return Column(
       key: tagData.key,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,17 +324,23 @@ class TagDayOverviewState extends State<TagDayOverview> {
         Wrap(
           runSpacing: 4.0,
           spacing: 8.0,
-          children: _buildTagRowContent(tagData, appliedTagData),
+          children: _buildTagRowContent(
+            context,
+            tagManager,
+            tagData,
+            appliedTagData,
+          ),
         ),
       ],
     );
   }
 
   List<Widget> _buildTagRowContent(
+    BuildContext context,
+    TagManager tagManager,
     TagData tagData,
     AppliedTagData? appliedTagData,
   ) {
-    final TagManager tagManager = context.read<TagManager>();
     switch (tagData.type) {
       case TagTypes.list:
         return _buildTagOptions(context, tagManager, tagData);
@@ -324,7 +349,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           Switch(
             value: appliedTagData?.toggleOption ?? false,
             onChanged: (bool value) {
-              _handleToggleChange(tagManager, tagData, value);
+              _handleToggleChange(context, tagManager, tagData, value);
             },
           ),
         ];
@@ -358,5 +383,19 @@ class TagDayOverviewState extends State<TagDayOverview> {
       },
     );
     return didDeleteTag ?? false;
+  }
+
+  void _debounceSave(BuildContext context) {
+    _debouncedSaveTimer?.cancel();
+    _debouncedSaveTimer = Timer(
+      const Duration(seconds: 3),
+      () => _saveCallback(context),
+    );
+    _hasMadeChanges = true;
+  }
+
+  void _saveCallback(BuildContext context) {
+    saveTagData(context);
+    saveAppliedTags(context);
   }
 }
