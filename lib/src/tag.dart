@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+// TODO: Look into sealed classes for separating these three
+//       types into subtypes
+
 // A TagManager class for storing and interacting with tags
 // with functionality for propagating updates to watchers
 class TagManager extends ChangeNotifier {
@@ -55,19 +58,19 @@ class TagManager extends ChangeNotifier {
   }
 
   void toggleTo(AppliedTagData appliedTag, bool value) {
-    assert(tags[appliedTag.id]!.type == TagTypes.toggle);
+    assert(appliedTag.type == TagTypes.toggle);
     appliedTag.toggleOption = value;
     notifyListeners();
   }
 
   void changeListOption(AppliedTagData appliedTag, int index) {
-    assert(tags[appliedTag.id]!.type == TagTypes.list);
+    assert(appliedTag.type == TagTypes.list);
     appliedTag.listOption = index;
     notifyListeners();
   }
 
   void toggleMultiOption(AppliedTagData appliedTag, int index) {
-    assert(tags[appliedTag.id]!.type == TagTypes.multi);
+    assert(appliedTag.type == TagTypes.multi);
     final List<int> multiOptions = appliedTag.multiOptions!;
     if (multiOptions.contains(index)) {
       multiOptions.remove(index);
@@ -255,11 +258,11 @@ class TagData {
 }
 
 class AppliedTagData {
-  AppliedTagData.list(this.id, int this.listOption);
+  AppliedTagData.list(this.id, int this.listOption, this.tag);
 
-  AppliedTagData.toggle(this.id, bool this.toggleOption);
+  AppliedTagData.toggle(this.id, bool this.toggleOption, this.tag);
 
-  AppliedTagData.multi(this.id, List<int> this.multiOptions);
+  AppliedTagData.multi(this.id, List<int> this.multiOptions, this.tag);
 
   String string(BuildContext context) {
     final TagManager tagManager = context.read<TagManager>();
@@ -294,19 +297,24 @@ class AppliedTagData {
           'tag does not exist while creating its AppliedTagData',
         );
       case TagTypes.list:
-        return AppliedTagData.list(id, json['listOption']);
+        return AppliedTagData.list(id, json['listOption'], tags[id]!);
       case TagTypes.toggle:
-        return AppliedTagData.toggle(id, json['toggleOption']);
+        return AppliedTagData.toggle(id, json['toggleOption'], tags[id]!);
       case TagTypes.multi:
-        return AppliedTagData.multi(id, List<int>.from(json['multiOptions']));
+        return AppliedTagData.multi(
+          id,
+          List<int>.from(json['multiOptions']),
+          tags[id]!,
+        );
     }
   }
 
-  //String get name => tag.name;
-  //TagTypes get type => tag.type;
-  //IconData get icon => tag.icon;
+  String get name => tag.name;
+  TagTypes get type => tag.type;
+  IconData get icon => tag.icon;
 
   final int id;
+  final TagData tag;
 
   int? listOption;
   bool? toggleOption;
