@@ -202,15 +202,14 @@ class TagDayOverviewState extends State<TagDayOverview> {
                 if (tag.id != tagData.id) {
                   return false;
                 }
-                final TagTypes type = tagManager.tags[tag.id]!.type;
-                switch (type) {
+                switch (tag.type) {
                   case TagTypes.list:
                     return tag.listOption == index;
                   case TagTypes.multi:
                     return tag.multiOptions?.contains(index) ?? false;
                   case TagTypes.toggle:
                     throw ArgumentError.value(
-                      type,
+                      tag.type,
                       'tag.type',
                       'argument does not have tag options',
                     );
@@ -251,7 +250,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           tagManager.changeListOption(appliedTag, index);
         } else {
           tagManager.applyTag(
-            AppliedTagData.list(tagData.id, index),
+            AppliedTagData.list(tagData.id, index, tagData),
             widget.day,
           );
         }
@@ -268,7 +267,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           tagManager.toggleMultiOption(appliedTag, index);
         } else {
           tagManager.applyTag(
-            AppliedTagData.multi(tagData.id, <int>[index]),
+            AppliedTagData.multi(tagData.id, <int>[index], tagData),
             widget.day,
           );
         }
@@ -291,7 +290,11 @@ class TagDayOverviewState extends State<TagDayOverview> {
           tagManager.appliedTags[widget.day]![tagIndex];
       tagManager.toggleTo(appliedTag, value);
     } else {
-      final AppliedTagData newTag = AppliedTagData.toggle(tagData.id, value);
+      final AppliedTagData newTag = AppliedTagData.toggle(
+        tagData.id,
+        value,
+        tagData,
+      );
       tagManager.applyTag(newTag, widget.day);
     }
     _debounceSave(context);

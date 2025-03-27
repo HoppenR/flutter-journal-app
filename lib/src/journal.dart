@@ -113,7 +113,7 @@ class JournalPage extends StatefulWidget {
 // --- _JournalPageState ---
 
 class _JournalPageState extends State<JournalPage> {
-  _JournalPages _selectedViewIndex = _JournalPages.calendar;
+  _JournalPages _selectedViewIndex = _JournalPages.graphs;
 
   static final DateTime _firstDate = DateTime(1);
   static final DateTime _lastDate = DateTime(2100, 12, 31);
