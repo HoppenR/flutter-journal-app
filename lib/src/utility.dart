@@ -116,7 +116,6 @@ Future<Map<int, TagData>> loadTagData() async {
 
 Future<Map<DateTime, List<AppliedTagData>>> loadAppliedTags(
   Map<int, TagData> tags,
-  BuildContext context,
 ) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? savedData = prefs.getString('appliedTags');
@@ -143,31 +142,32 @@ Future<int> loadNextTagId() async {
   return initialTagId;
 }
 
-Future<UserPrefs> loadUserPrefs(BuildContext context) async {
+Future<UserPrefs> loadUserPrefs(BuildContext context) {
   final Future<Locale?> localeFuture = loadLocale();
   final Future<Color?> themeFuture = loadTheme();
   final Future<int> nextTagIdFuture = loadNextTagId();
   final Future<Map<int, TagData>> tagDataFuture = loadTagData();
 
-  // NOTE:
-  // TagData needs to be loaded for AppliedTagData constructors to be able to
-  // save a reference to the corresponding tag via its ID.
-  // Wait for all TagData to be loaded before loading all AppliedTag
-  final Map<int, TagData> tagData = await tagDataFuture;
-
-  if (!context.mounted) {
-    throw AssertionError();
-  }
-  final Future<Map<DateTime, List<AppliedTagData>>> appliedTagsFuture =
-      loadAppliedTags(tagData, context);
-
-  return UserPrefs(
-    locale: await localeFuture,
-    theme: await themeFuture,
-    tagData: tagData,
-    appliedTags: await appliedTagsFuture,
-    nextTagId: await nextTagIdFuture,
-  );
+  return tagDataFuture.then((Map<int, TagData> tagData) {
+    return loadAppliedTags(tagData)
+        .then((Map<DateTime, List<AppliedTagData>> appliedTags) {
+      return Future.wait(
+        <Future<dynamic>>[
+          localeFuture,
+          themeFuture,
+          nextTagIdFuture,
+        ],
+      ).then((List<dynamic> values) {
+        return UserPrefs(
+          locale: values[0] as Locale?,
+          theme: values[1] as Color?,
+          tagData: tagData,
+          appliedTags: appliedTags,
+          nextTagId: values[2] as int,
+        );
+      });
+    });
+  });
 }
 
 Future<void> clearPreferences(BuildContext context) async {

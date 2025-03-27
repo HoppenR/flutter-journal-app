@@ -221,9 +221,8 @@ class CalendarWeekState extends State<CalendarWeek> {
     if (appliedTag == null) {
       return null;
     }
-    final TagData tagData = tagManager.tags[appliedTag.id]!;
 
-    switch (tagData.type) {
+    switch (appliedTag.type) {
       case TagTypes.list:
         return Text(
           appliedTag.string(context),
@@ -235,7 +234,7 @@ class CalendarWeekState extends State<CalendarWeek> {
         );
       case TagTypes.toggle:
         return Icon(
-          tagData.icon,
+          appliedTag.icon,
           color: (appliedTag.toggleOption ?? false)
               ? Theme.of(context).colorScheme.primary
               : Theme.of(context).colorScheme.secondary,
