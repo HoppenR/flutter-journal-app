@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
+import 'graph.dart';
 import 'journal.dart';
 import 'tag.dart';
 import 'utility.dart';
@@ -214,6 +215,8 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
     final TagManager tagManager = context.read<TagManager>();
+    final ChartDashboardManager dashboardManager =
+        context.read<ChartDashboardManager>();
     return AlertDialog(
       title: Text(AppLocalizations.of(context).clearDataTitle),
       content: Text(AppLocalizations.of(context).clearDataPrompt),
@@ -228,7 +231,10 @@ class SettingsPage extends StatelessWidget {
             tagManager
               ..tags.clear()
               ..appliedTags.clear()
-              ..nextTagId = 0;
+              ..categories.clear()
+              ..nextTagId = 0
+              ..nextCategoryId = 0;
+            dashboardManager.dashboards.clear();
             showSnackBar(context, AppLocalizations.of(context).clearDataDone);
             Navigator.of(context).pop(true);
           },

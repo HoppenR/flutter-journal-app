@@ -5,8 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
+import 'graph.dart';
 import 'tag.dart';
 import 'utility.dart';
+
+enum OverviewItemType { tag, header }
+
+class OverviewItem {
+  OverviewItem.tag(TagData this.tag)
+      : type = OverviewItemType.tag,
+        headerCategoryId = null;
+  OverviewItem.header(int this.headerCategoryId)
+      : type = OverviewItemType.header,
+        tag = null;
+
+  final OverviewItemType type;
+  final int? headerCategoryId;
+  final TagData? tag;
+}
 
 class TagDayOverview extends StatefulWidget {
   const TagDayOverview({super.key, required this.day});
@@ -20,11 +36,11 @@ class TagDayOverview extends StatefulWidget {
 class TagDayOverviewState extends State<TagDayOverview> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Timer? _debouncedSaveTimer;
-  bool _hasMadeChanges = false;
   bool _editMode = false;
 
   @override
   Widget build(BuildContext context) {
+    final TagManager tagManager = context.watch<TagManager>();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, _) {
@@ -35,7 +51,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
           _debouncedSaveTimer!.cancel();
           _saveCallback(context);
         }
-        Navigator.of(context).pop(_hasMadeChanges);
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -44,7 +60,28 @@ class TagDayOverviewState extends State<TagDayOverview> {
             AppLocalizations.of(context).tagOverviewTitle(widget.day),
           ),
           actions: <Widget>[
-            Text(AppLocalizations.of(context).moveModeToggle),
+            if (_editMode) ...<Widget>[
+              TextButton.icon(
+                label: Text(AppLocalizations.of(context).category),
+                onPressed: () async {
+                  final String? categoryName = await showDialog<String>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return _buildCategoryNameInput(context, tagManager);
+                    },
+                  );
+
+                  if (categoryName != null) {
+                    if (context.mounted) {
+                      tagManager.addCategory(categoryName);
+                      _debounceSave(context);
+                    }
+                  }
+                },
+                icon: const Icon(Icons.add),
+              )
+            ],
+            Text(AppLocalizations.of(context).editModeToggle),
             Switch(
               value: _editMode,
               onChanged: (bool newValue) {
@@ -59,11 +96,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
           padding: const EdgeInsets.all(16.0),
           child: Form(
             key: _formKey,
-            child: Consumer<TagManager>(
-              builder: (_, TagManager tagManager, __) => _editMode
-                  ? _buildReorderableTagList(context, tagManager)
-                  : _buildDismissibleTagList(context, tagManager),
-            ),
+            child: _editMode
+                ? _buildReorderableTagList(context, tagManager)
+                : _buildDismissibleTagList(context, tagManager),
           ),
         ),
       ),
@@ -74,59 +109,137 @@ class TagDayOverviewState extends State<TagDayOverview> {
     BuildContext context,
     TagManager tagManager,
   ) {
-    final List<TagData> orderedTags = tagManager.tags.values.sorted(
-      (TagData lhs, TagData rhs) => lhs.order - rhs.order,
-    );
-    return ReorderableListView(
+    final List<OverviewItem> orderedItems = orderItems(tagManager);
+    return ReorderableListView.builder(
+      itemCount: orderedItems.length,
+      buildDefaultDragHandles: false,
       onReorder: (int oldIndex, int newIndex) {
+        // Lots of edge cases in here, but this should be optimized as much as
+        // possible now
+        final int direction;
         if (oldIndex < newIndex) {
           newIndex -= 1;
+          direction = -1;
+        } else {
+          direction = 1;
         }
-        final TagData oldIndexTag = orderedTags.elementAt(oldIndex);
-        final int oldIndexOrder = oldIndexTag.order;
-        final int newIndexOrder = orderedTags.elementAt(newIndex).order;
+        final TagData oldIndexItem = orderedItems[oldIndex].tag!;
+        final OverviewItem newIndexItem = orderedItems[newIndex];
 
-        for (final TagData tag in tagManager.tags.values) {
-          if (tag.order < oldIndexOrder && tag.order >= newIndexOrder) {
+        // Calculate the new category and order for the moved tag
+        final int? categoryId;
+        final int newIndexOrd;
+        switch (newIndexItem.type) {
+          case OverviewItemType.tag:
+            // When moving downward we need to use the order of the item above
+            // plus one. When moving upward we can simply take the order of the
+            // other tag. This is because we increase the order of all tags
+            // below, but do not decrease the order of all tags above.
+            // This allows us to make the assumption that moving a tag downward
+            // to a header we can simply set the order to 0.
+            categoryId = newIndexItem.tag!.categoryId;
+            newIndexOrd = newIndexItem.tag!.order + (direction == -1 ? 1 : 0);
+          case OverviewItemType.header:
+            if (direction == -1) {
+              categoryId = newIndexItem.headerCategoryId;
+              newIndexOrd = 0;
+            } else if (newIndex == 0) {
+              categoryId = null;
+              newIndexOrd = 0;
+            } else {
+              final OverviewItem above = orderedItems[newIndex - 1];
+              switch (above.type) {
+                case OverviewItemType.tag:
+                  categoryId = above.tag!.categoryId;
+                  newIndexOrd = above.tag!.order + 1;
+                case OverviewItemType.header:
+                  categoryId = above.headerCategoryId;
+                  newIndexOrd = 0;
+              }
+            }
+        }
+
+        if (categoryId != oldIndexItem.categoryId) {
+          // Make sure tags in the new category update order
+          // update categoryId
+          if (direction == -1) {
+            // no need to increase order of the replaced item, moving downward
+            newIndex += 1;
+          }
+          for (int i = newIndex; i < orderedItems.length; i++) {
+            if (orderedItems[i].type == OverviewItemType.header) {
+              break;
+            }
+            final TagData tag = orderedItems[i].tag!;
             tagManager.changeOrder(tag, tag.order + 1);
-          } else if (tag.order > oldIndexOrder && tag.order <= newIndexOrder) {
-            tagManager.changeOrder(tag, tag.order - 1);
+          }
+          oldIndexItem.categoryId = categoryId;
+        } else {
+          // We are in the same category as the target, onl order is relevant
+          // and we only have to inc/dec order of relevant items
+          for (int i = newIndex; i != oldIndex; i = i + direction) {
+            final TagData tag = orderedItems[i].tag!;
+            tagManager.changeOrder(tag, tag.order + direction);
           }
         }
-        tagManager.changeOrder(oldIndexTag, newIndexOrder);
+        tagManager.changeOrder(oldIndexItem, newIndexOrd);
         _debounceSave(context);
       },
-      children: orderedTags
-          .map((TagData tag) => _buildReorderTagRow(context, tagManager, tag))
-          .toList(growable: false),
+      itemBuilder: (BuildContext context, int index) {
+        final OverviewItem item = orderedItems[index];
+        switch (item.type) {
+          case OverviewItemType.tag:
+            return ReorderableDragStartListener(
+                index: index,
+                key: item.tag!.key,
+                child: ListTile(
+                  title: _buildReorderTagRow(context, tagManager, item),
+                  trailing: const Icon(Icons.drag_handle),
+                ));
+          case OverviewItemType.header:
+            return Container(
+              key: ValueKey<int?>(item.headerCategoryId),
+              child: Text(
+                tagManager.categories[item.headerCategoryId!]!.name,
+                style: const TextStyle(fontSize: 25.0),
+              ),
+            );
+        }
+      },
     );
   }
 
   Widget _buildReorderTagRow(
     BuildContext context,
     TagManager tagManager,
-    TagData entry,
+    OverviewItem entry,
   ) {
     final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
-        ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.id);
-    return _buildTagRow(context, tagManager, entry, appliedTagData);
+        ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.tag?.id);
+    return _buildTagRow(context, tagManager, entry.tag!, appliedTagData);
   }
 
   Widget _buildDismissibleTagList(
     BuildContext context,
     TagManager tagManager,
   ) {
+    final List<OverviewItem> orderedItems = orderItems(tagManager);
     return Column(
-      children: tagManager.tags.values
-          .sorted((TagData lhs, TagData rhs) => lhs.order - rhs.order)
-          .map(
-            (TagData entry) => _buildDismissibleTagRow(
+      children: orderedItems.map((OverviewItem entry) {
+        switch (entry.type) {
+          case OverviewItemType.tag:
+            return _buildDismissibleTagRow(
               context,
               tagManager,
-              entry,
-            ),
-          )
-          .toList(growable: false),
+              entry.tag!,
+            );
+          case OverviewItemType.header:
+            return Text(
+              tagManager.categories[entry.headerCategoryId!]!.name,
+              style: const TextStyle(fontSize: 25.0),
+            );
+        }
+      }).toList(growable: false),
     );
   }
 
@@ -181,6 +294,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
       ),
       onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.startToEnd) {
+          context
+              .read<ChartDashboardManager>()
+              .removeTagFromDashboards(tagData.id);
           tagManager.removeTag(tagData.id);
           _debounceSave(context);
         }
@@ -322,6 +438,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
                 ),
               ),
             ),
+            if (tagData.categoryId != null)
+              Text(
+                'debug:${tagManager.categories[tagData.categoryId]!.name}${tagData.order}',
+              ),
           ],
         ),
         Wrap(
@@ -351,14 +471,49 @@ class TagDayOverviewState extends State<TagDayOverview> {
         return <Widget>[
           Switch(
             value: appliedTagData?.toggleOption ?? false,
-            onChanged: (bool value) {
-              _handleToggleChange(context, tagManager, tagData, value);
-            },
+            onChanged: !_editMode
+                ? (bool value) {
+                    _handleToggleChange(context, tagManager, tagData, value);
+                  }
+                : null,
           ),
         ];
       case TagTypes.multi:
         return _buildTagOptions(context, tagManager, tagData);
     }
+  }
+
+  Widget _buildCategoryNameInput(BuildContext context, TagManager tagManager) {
+    String categoryName = '';
+    return AlertDialog(
+      title: Text(AppLocalizations.of(context).enterCategoryNameTitle),
+      content: TextField(
+        onChanged: (String value) {
+          categoryName = value;
+        },
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context).enterCategoryNameHint,
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(AppLocalizations.of(context).promptNegative),
+        ),
+        TextButton(
+          onPressed: () {
+            if (categoryName.isNotEmpty) {
+              Navigator.of(context).pop(categoryName);
+              return;
+            }
+            Navigator.of(context).pop();
+          },
+          child: Text(AppLocalizations.of(context).saveTag),
+        ),
+      ],
+    );
   }
 
   Future<bool> _showDeleteTagWindow(BuildContext context) async {
@@ -377,9 +532,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
-              child: Text(
-                AppLocalizations.of(context).promptAffirmative,
-              ),
+              child: Text(AppLocalizations.of(context).promptAffirmative),
             ),
           ],
         );
@@ -394,11 +547,43 @@ class TagDayOverviewState extends State<TagDayOverview> {
       const Duration(seconds: 3),
       () => _saveCallback(context),
     );
-    _hasMadeChanges = true;
   }
 
   void _saveCallback(BuildContext context) {
     saveTagData(context);
     saveAppliedTags(context);
+    saveCategories(context);
+    saveChartDashboardData(context);
+    saveNextCategoryId(context);
+  }
+
+  List<OverviewItem> orderItems(TagManager tagManager) {
+    final Map<int, List<TagData>> tagsByCategory = <int, List<TagData>>{
+      for (final int key in tagManager.categories.keys) key: <TagData>[]
+    };
+    final List<OverviewItem> ret = <OverviewItem>[];
+
+    for (final TagData tag in tagManager.tags.values) {
+      if (tag.categoryId != null) {
+        tagsByCategory[tag.categoryId!]!.add(tag);
+      } else {
+        ret.add(OverviewItem.tag(tag));
+      }
+    }
+    ret.sortBy<num>((OverviewItem item) => item.tag!.order);
+
+    for (final List<TagData> category in tagsByCategory.values) {
+      category.sortBy<num>((TagData tag) => tag.order);
+    }
+
+    for (final MapEntry<int, List<TagData>> entry in tagsByCategory.entries) {
+      ret.add(OverviewItem.header(entry.key));
+      ret.addAll(
+        entry.value.map(
+          (TagData tag) => OverviewItem.tag(tag),
+        ),
+      );
+    }
+    return ret;
   }
 }

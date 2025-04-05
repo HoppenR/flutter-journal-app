@@ -7,6 +7,10 @@
 	"@addTag": {
 		"description": "Plus button hover tooltip in calendar overview, also shown as title of Add Tag Form"
 	},
+    "category": "Category",
+    "@category": {
+		"description": "Text shown next to add-button in tag overview"
+	},
 	"clearDataTitle": "Clear data",
 	"@clearDataTitle": {
 		"description": "Trash can hover tooltip in calendar overview"
@@ -18,6 +22,18 @@
 	"clearDataDone": "Cleared all data",
 	"@clearDataDone": {
 		"description": "Popup text after clearing data"
+	},
+	"editModeToggle": "Edit",
+	"@editModeToggle": {
+		"description": "Text shown next to edit toggle in tag overview"
+	},
+    "enterCategoryNameTitle": "Enter category name",
+    "@enterCategoryNameTitle": {
+		"description": "Title in dialog when entering new category name"
+	},
+    "enterCategoryNameHint": "Category name",
+    "@enterCategoryNameHint": {
+		"description": "Hint shown in textbox dialog when entering new category name"
 	},
 	"prevWeek": "Previous week",
 	"@prevWeek": {
@@ -37,7 +53,7 @@
 	},
 	"saveTag": "Save",
 	"@saveTag": {
-		"description": "Content on save button in form to add tag data"
+		"description": "Content on save buttons"
 	},
 	"saveTagDone": "Tag saved",
 	"@saveTagDone": {
@@ -128,6 +144,5 @@
 	"saveDataDone": "Saved data...",
 	"@saveDataDone": {
 		"description": "Text displayed when exiting tag overview after changes made, or after a debounce timer after making said changes"
-	},
-	"moveModeToggle": "Move"
+	}
 }
