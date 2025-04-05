@@ -41,16 +41,12 @@ class CalendarWeekState extends State<CalendarWeek> {
   }
 
   Future<void> _showTagDayOverview(BuildContext context, DateTime day) async {
-    final bool? didMakeChanges = await Navigator.push<bool?>(
+    await Navigator.push<bool?>(
       context,
       MaterialPageRoute<bool?>(
         builder: (BuildContext context) => TagDayOverview(day: day),
       ),
     );
-
-    if (didMakeChanges ?? false) {
-      // Update of calendar handled by ChangeNotifierProvider
-    }
   }
 
   @override

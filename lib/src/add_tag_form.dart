@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
+import 'graph.dart';
+import 'graph/configuration.dart';
+import 'graph/dashboard.dart';
 import 'tag.dart';
 
 class AddTagForm extends StatefulWidget {
@@ -17,7 +20,7 @@ class AddTagFormState extends State<AddTagForm> {
       <TextEditingController>[
     TextEditingController(),
   ];
-  final TextEditingController _tagController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   TagTypes? _selectedType;
   IconData _selectedIcon = Icons.favorite;
@@ -26,7 +29,7 @@ class AddTagFormState extends State<AddTagForm> {
 
   @override
   void dispose() {
-    _tagController.dispose();
+    _nameController.dispose();
     for (final TextEditingController controller in _optionControllers) {
       controller.dispose();
     }
@@ -68,7 +71,7 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagFormName(BuildContext context) {
     return TextFormField(
-      controller: _tagController,
+      controller: _nameController,
       decoration: InputDecoration(
         hintText: AppLocalizations.of(context).tagNameHint,
       ),
@@ -116,33 +119,56 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagFormValidateButton(BuildContext context) {
     final TagManager tagManager = context.read<TagManager>();
+    final ChartDashboardManager dashboardManager =
+        context.read<ChartDashboardManager>();
     return TextButton(
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           // NOTE: selectedType validator asserts not null before this
+          int addedId;
           switch (_selectedType!) {
             case TagTypes.list:
-              tagManager.addTagList(
-                _tagController.text,
+              addedId = tagManager.addTagList(
+                _nameController.text,
                 _optionControllers
                     .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
                 _selectedIcon,
               );
             case TagTypes.toggle:
-              tagManager.addTagToggle(
-                _tagController.text,
+              addedId = tagManager.addTagToggle(
+                _nameController.text,
                 _selectedIcon,
               );
             case TagTypes.multi:
-              tagManager.addTagMulti(
-                _tagController.text,
+              addedId = tagManager.addTagMulti(
+                _nameController.text,
                 _optionControllers
                     .map((TextEditingController controller) => controller.text)
                     .toList(growable: false),
                 _selectedIcon,
               );
           }
+          dashboardManager.addDashboard(
+            ChartDashboardData(
+              title: _nameController.text,
+              icon: _selectedIcon,
+              configurations: <GraphConfiguration>[
+                GraphConfiguration(
+                  graphType: GraphType.lineChart,
+                  ids: <int>[addedId],
+                ),
+                GraphConfiguration(
+                  graphType: GraphType.weekdayBarChart,
+                  ids: <int>[addedId],
+                ),
+                GraphConfiguration(
+                  graphType: GraphType.heatmap,
+                  ids: <int>[addedId],
+                ),
+              ],
+            ),
+          );
           Navigator.of(context).pop(true);
         }
       },
