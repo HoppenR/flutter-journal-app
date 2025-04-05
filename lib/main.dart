@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'src/graph.dart';
 import 'src/journal.dart';
 import 'src/tag.dart';
 import 'src/utility.dart';
@@ -26,17 +27,30 @@ class InitializationWidget extends StatelessWidget {
           );
         }
 
+        if (snapshot.hasError) {
+          print(snapshot.error);
+        }
+
         final Locale? initialLocale = snapshot.data!.locale;
         final Color? initialTheme = snapshot.data!.theme;
 
-        final TagManager tagManager = TagManager(
-          tags: snapshot.data!.tagData,
-          appliedTags: snapshot.data!.appliedTags,
-          nextTagId: snapshot.data!.nextTagId,
-        );
-
-        return ChangeNotifierProvider<TagManager>.value(
-          value: tagManager,
+        return MultiProvider(
+          providers: <ChangeNotifierProvider<dynamic>>[
+            ChangeNotifierProvider<TagManager>(
+              create: (_) => TagManager(
+                tags: snapshot.data!.tagData,
+                appliedTags: snapshot.data!.appliedTags,
+                categories: snapshot.data!.categories,
+                nextTagId: snapshot.data!.nextTagId,
+                nextCategoryId: snapshot.data!.nextCategoryId,
+              ),
+            ),
+            ChangeNotifierProvider<ChartDashboardManager>(
+              create: (_) => ChartDashboardManager(
+                dashboards: snapshot.data!.dashboards,
+              ),
+            ),
+          ],
           child: JournalApp(
             initialLocale: initialLocale,
             initialTheme: initialTheme,

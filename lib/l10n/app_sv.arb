@@ -1,9 +1,13 @@
 {
 	"appTitle": "Luunies Dagbok",
 	"addTag": "Lägg till etikett",
+    "category": "Kategori",
 	"clearDataTitle": "Rensa data",
 	"clearDataPrompt": "Vill du verkligen rensa all data?",
 	"clearDataDone": "Rensade all data",
+	"editModeToggle": "Redigera",
+    "enterCategoryNameTitle": "Döp ny kategori",
+    "enterCategoryNameHint": "Kategorinamn",
 	"prevWeek": "Föregående vecka",
 	"nextWeek": "Nästa vecka",
 	"promptAffirmative": "Ja",
@@ -28,6 +32,5 @@
 	"settingsTitle": "Inställningar",
 	"aboutTitle": "Om projektet",
 	"aboutDescription": "Enkelt dagboksprogram skrivet i Flutter som låter en använda etiketter för att hålla koll på vanor, humör och menscykler genom en tydlig kalenderöverblick.",
-	"saveDataDone": "Sparade data...",
-	"moveModeToggle": "Flytta"
+	"saveDataDone": "Sparade data..."
 }

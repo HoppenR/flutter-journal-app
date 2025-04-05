@@ -6,6 +6,7 @@ import 'add_tag_form.dart';
 import 'calendar_week.dart';
 import 'generated/l10n/app_localizations.dart';
 import 'graph.dart';
+import 'graph/add_dashboard_form.dart';
 import 'settings.dart';
 import 'utility.dart';
 
@@ -112,8 +113,9 @@ class JournalPage extends StatefulWidget {
 
 // --- _JournalPageState ---
 
-class _JournalPageState extends State<JournalPage> {
-  _JournalPages _selectedViewIndex = _JournalPages.graphs;
+class _JournalPageState extends State<JournalPage>
+    with SingleTickerProviderStateMixin {
+  _JournalPages _selectedViewIndex = _JournalPages.calendar;
 
   static final DateTime _firstDate = DateTime(1);
   static final DateTime _lastDate = DateTime(2100, 12, 31);
@@ -125,6 +127,9 @@ class _JournalPageState extends State<JournalPage> {
   late final ValueNotifier<int> _focusedPageNotifier;
   late final PageController _pageController;
 
+  late Animation<double> _fabIconAnimation;
+  late AnimationController _fabIconAnimationController;
+
   @override
   void initState() {
     super.initState();
@@ -135,6 +140,16 @@ class _JournalPageState extends State<JournalPage> {
     _lastPage = _dateToPageIndex(DateTime(2100, 12, 31));
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
+
+    _fabIconAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+
+    _fabIconAnimation = CurvedAnimation(
+      curve: Curves.linear,
+      parent: _fabIconAnimationController,
+    );
   }
 
   @override
@@ -160,15 +175,20 @@ class _JournalPageState extends State<JournalPage> {
       ),
       resizeToAvoidBottomInset: false,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: _selectedViewIndex == _JournalPages.calendar
-          ? FloatingActionButton(
-              elevation: 8.0,
-              shape: const CircleBorder(),
-              onPressed: () => _showAddTagWindow(context),
-              tooltip: AppLocalizations.of(context).addTag,
-              child: const Icon(Icons.add),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        elevation: 8.0,
+        shape: const CircleBorder(),
+        onPressed: () => _selectedViewIndex == _JournalPages.calendar
+            ? _showAddTagWindow(context)
+            : _showAddDashboardWindow(context),
+        tooltip: _selectedViewIndex == _JournalPages.calendar
+            ? AppLocalizations.of(context).addTag
+            : 'Add dashboard',
+        child: AnimatedIcon(
+          icon: AnimatedIcons.event_add,
+          progress: _fabIconAnimation,
+        ),
+      ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,
@@ -204,6 +224,7 @@ class _JournalPageState extends State<JournalPage> {
       onTap: () {
         setState(() {
           _selectedViewIndex = _JournalPages.calendar;
+          _fabIconAnimationController.reverse();
         });
       },
       child: Column(
@@ -224,6 +245,7 @@ class _JournalPageState extends State<JournalPage> {
       onTap: () {
         setState(() {
           _selectedViewIndex = _JournalPages.graphs;
+          _fabIconAnimationController.forward();
         });
       },
       child: Column(
@@ -347,10 +369,27 @@ class _JournalPageState extends State<JournalPage> {
       ),
     );
     if (didAddTag ?? false) {
-      // Update of calendar handled by ChangeNotifierProvider
       if (context.mounted) {
         saveTagData(context);
         saveNextTagId(context);
+        saveChartDashboardData(context);
+        showSnackBar(context, AppLocalizations.of(context).saveTagDone);
+      }
+    }
+  }
+
+  Future<void> _showAddDashboardWindow(BuildContext context) async {
+    final bool? didAddDashboard = await Navigator.push<bool?>(
+      context,
+      MaterialPageRoute<bool?>(
+        builder: (BuildContext context) => const AddDashboardForm(),
+      ),
+    );
+    if (didAddDashboard ?? false) {
+      if (context.mounted) {
+        //saveTagData(context);
+        //saveNextTagId(context);
+        saveChartDashboardData(context);
         showSnackBar(context, AppLocalizations.of(context).saveTagDone);
       }
     }
