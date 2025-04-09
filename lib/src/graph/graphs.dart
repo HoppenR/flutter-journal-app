@@ -449,6 +449,7 @@ Widget buildMonthHabitRadar(
 // --- COMMON ---
 
 Widget _bottomTitles(double value, TitleMeta meta) {
+  // TODO: localize
   const List<String> days = <String>['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   if (value.toInt() != value) {
     return const SizedBox.shrink();

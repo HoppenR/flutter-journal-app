@@ -438,10 +438,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
                 ),
               ),
             ),
-            if (tagData.categoryId != null)
-              Text(
-                'debug:${tagManager.categories[tagData.categoryId]!.name}${tagData.order}',
-              ),
           ],
         ),
         Wrap(

@@ -26,6 +26,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // TODO: localize
         title: const Text('Add dashboard'),
         actions: <Widget>[
           _buildTagFormValidateButton(context),
@@ -56,10 +57,12 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     return TextFormField(
       controller: _nameController,
       decoration: const InputDecoration(
+        // TODO: localize
         hintText: 'Enter a dashboard name',
       ),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
+          // TODO: localize
           return 'Name is required';
         }
         return null;
@@ -71,22 +74,27 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   Widget _buildDashboardOptionType(BuildContext context) {
     return DropdownButtonFormField<GraphType>(
       value: _selectedType,
+      // TODO: localize
       hint: const Text('Select chart type'),
       items: const <DropdownMenuItem<GraphType>>[
         DropdownMenuItem<GraphType>(
           value: GraphType.lineChart,
+          // TODO: localize
           child: Text('lineChart'),
         ),
         DropdownMenuItem<GraphType>(
           value: GraphType.weekdayBarChart,
+          // TODO: localize
           child: Text('weekdayBarChart'),
         ),
         DropdownMenuItem<GraphType>(
           value: GraphType.heatmap,
+          // TODO: localize
           child: Text('heatmap'),
         ),
         DropdownMenuItem<GraphType>(
           value: GraphType.radar,
+          // TODO: localize
           child: Text('radar'),
         ),
       ],
@@ -102,6 +110,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       },
       validator: (GraphType? value) {
         if (value == null) {
+          // TODO: localize
           return 'Chart type is required';
         }
         return null;
@@ -113,6 +122,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     return <Widget>[
       const SizedBox(height: 16.0),
       const Text(
+        // TODO: localize
         'Tags',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
@@ -139,6 +149,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedTagIds[index],
+                // TODO: localize
                 hint: const Text('select tag'),
                 items: tagManager.tags.entries.map(
                   (MapEntry<int, TagData> entry) {
@@ -155,6 +166,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
                 },
                 validator: (int? value) {
                   if (value == null) {
+                    // TODO: localize
                     return 'id is required';
                   }
                   return null;

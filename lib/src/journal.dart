@@ -183,6 +183,7 @@ class _JournalPageState extends State<JournalPage>
             : _showAddDashboardWindow(context),
         tooltip: _selectedViewIndex == _JournalPages.calendar
             ? AppLocalizations.of(context).addTag
+            // TODO: localize
             : 'Add dashboard',
         child: AnimatedIcon(
           icon: AnimatedIcons.event_add,
