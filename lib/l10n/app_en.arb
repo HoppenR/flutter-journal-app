@@ -1,148 +1,148 @@
 {
-	"appTitle": "Luunie's Journal",
-	"@appTitle": {
-		"description": "Title of app, also shown on scaffold bar top-left"
-	},
-	"addTag": "Add tag",
-	"@addTag": {
-		"description": "Plus button hover tooltip in calendar overview, also shown as title of Add Tag Form"
-	},
+    "appTitle": "Luunie's Journal",
+    "@appTitle": {
+        "description": "Title of app, also shown on scaffold bar top-left"
+    },
+    "addTag": "Add tag",
+    "@addTag": {
+        "description": "Plus button hover tooltip in calendar overview, also shown as title of Add Tag Form"
+    },
     "category": "Category",
     "@category": {
-		"description": "Text shown next to add-button in tag overview"
-	},
-	"clearDataTitle": "Clear data",
-	"@clearDataTitle": {
-		"description": "Trash can hover tooltip in calendar overview"
-	},
-	"clearDataPrompt": "Do you really wish to clear all data?",
-	"@clearDataPrompt": {
-		"description": "Content on clear data prompt"
-	},
-	"clearDataDone": "Cleared all data",
-	"@clearDataDone": {
-		"description": "Popup text after clearing data"
-	},
-	"editModeToggle": "Edit",
-	"@editModeToggle": {
-		"description": "Text shown next to edit toggle in tag overview"
-	},
+        "description": "Text shown next to add-button in tag overview"
+    },
+    "clearDataTitle": "Clear data",
+    "@clearDataTitle": {
+        "description": "Trash can hover tooltip in calendar overview"
+    },
+    "clearDataPrompt": "Do you really wish to clear all data?",
+    "@clearDataPrompt": {
+        "description": "Content on clear data prompt"
+    },
+    "clearDataDone": "Cleared all data",
+    "@clearDataDone": {
+        "description": "Popup text after clearing data"
+    },
+    "editModeToggle": "Edit",
+    "@editModeToggle": {
+        "description": "Text shown next to edit toggle in tag overview"
+    },
     "enterCategoryNameTitle": "Enter category name",
     "@enterCategoryNameTitle": {
-		"description": "Title in dialog when entering new category name"
-	},
+        "description": "Title in dialog when entering new category name"
+    },
     "enterCategoryNameHint": "Category name",
     "@enterCategoryNameHint": {
-		"description": "Hint shown in textbox dialog when entering new category name"
-	},
-	"prevWeek": "Previous week",
-	"@prevWeek": {
-		"description": "Left arrow hover tooltip in calendar overview"
-	},
-	"nextWeek": "Next week",
-	"@nextWeek": {
-		"description": "Right arrow hover tooltip in calendar overview"
-	},
-	"promptAffirmative": "Yes",
-	"@promptAffirmative": {
-		"description": "Affirmative option in prompt"
-	},
-	"promptNegative": "Cancel",
-	"@promptNegative": {
-		"description": "Negative option in prompt"
-	},
-	"saveTag": "Save",
-	"@saveTag": {
-		"description": "Content on save buttons"
-	},
-	"saveTagDone": "Tag saved",
-	"@saveTagDone": {
-		"description": "Text displayed when saving tag data"
-	},
-	"tagNameHint": "Enter a tag name",
-	"@tagNameHint": {
-		"description": "Hint text for entering a tag in form for adding tag"
-	},
-	"tagNameMissing": "Name is required",
-	"@tagNameMissing": {
-		"description": "Text displayed when tag name value is empty while validating in form for adding tag"
-	},
-	"tagSelectType": "Select tag type",
-	"@tagSelectType": {
-		"description": "Content shown in add tag form above tag type drop down menu"
-	},
-	"tagTypeMissing": "Tag type is required",
-	"@tagTypeMissing": {
-		"description": "Text displayed when tag type value is empty while validating in form for adding tag"
-	},
-	"tagAddOption": "Enter an option",
-	"@tagAddOption": {
-		"description": "Hint text for entering an option in form for adding tag"
-	},
-	"tagOptionMissing": "Tag option is required",
-	"@tagOptionMissing": {
-		"description": "Text displayed when tag type value is empty while validating in form for adding tag"
-	},
-	"tagSelectIcon": "Select an icon",
-	"@tagSelectIcon": {
-		"description": "Content shown in add tag form above icon list"
-	},
-	"tagOptions": "Options",
-	"@tagOptions": {
-		"description": "Content shown in add tag form above user specified tag options"
-	},
-	"tagTypeList": "List",
-	"@tagTypeList": {
-		"description": "Name of list tag type"
-	},
-	"tagTypeToggle": "Toggle",
-	"@tagTypeToggle": {
-		"description": "Name of toggle tag type"
-	},
-	"tagTypeMulti": "Multi",
-	"@tagTypeMulti": {
-		"description": "Name of multi tag type"
-	},
-	"navigationCalendar": "Calendar",
-	"@navigationCalendar": {
-		"description": "Content below navigation icon of a calendar"
-	},
-	"navigationGraphs": "Graphs",
-	"@navigationGraphs": {
-		"description": "Content below navigation icon of a graph"
-	},
-	"tagOverviewTitle": "Tag Overview {date}",
-	"@tagOverviewTitle": {
-		"description": "Content shown above calendar in calendar overview",
-		"placeholders": {
-			"date": {
-				"format": "yMMMd",
-				"type": "DateTime"
-			}
-		}
-	},
-	"yearAndWeek": "{year} w{week}",
-	"@yearAndWeek": {
-		"description": "Content shown above calendar in calendar overview",
-		"placeholders": {
-			"year": {},
-			"week": {}
-		}
-	},
-	"settingsTitle": "Settings",
-	"@settingsTitle": {
-		"description": "Title of settings page, also shown on settings icon hover"
-	},
-	"aboutTitle": "About the project",
-	"@aboutTitle": {
-		"description": "Header for content in about-section in settings page"
-	},
-	"aboutDescription": "Simple journal app built in Flutter that allows users to use tags to track habits, mood and period cycles in a clear calendar overview.",
-	"@aboutDescription": {
-		"description": "Body for content in about-section in settings page"
-	},
-	"saveDataDone": "Saved data...",
-	"@saveDataDone": {
-		"description": "Text displayed when exiting tag overview after changes made, or after a debounce timer after making said changes"
-	}
+        "description": "Hint shown in textbox dialog when entering new category name"
+    },
+    "prevWeek": "Previous week",
+    "@prevWeek": {
+        "description": "Left arrow hover tooltip in calendar overview"
+    },
+    "nextWeek": "Next week",
+    "@nextWeek": {
+        "description": "Right arrow hover tooltip in calendar overview"
+    },
+    "promptAffirmative": "Yes",
+    "@promptAffirmative": {
+        "description": "Affirmative option in prompt"
+    },
+    "promptNegative": "Cancel",
+    "@promptNegative": {
+        "description": "Negative option in prompt"
+    },
+    "saveTag": "Save",
+    "@saveTag": {
+        "description": "Content on save buttons"
+    },
+    "saveTagDone": "Tag saved",
+    "@saveTagDone": {
+        "description": "Text displayed when saving tag data"
+    },
+    "tagNameHint": "Enter a tag name",
+    "@tagNameHint": {
+        "description": "Hint text for entering a tag in form for adding tag"
+    },
+    "tagNameMissing": "Name is required",
+    "@tagNameMissing": {
+        "description": "Text displayed when tag name value is empty while validating in form for adding tag"
+    },
+    "tagSelectType": "Select tag type",
+    "@tagSelectType": {
+        "description": "Content shown in add tag form above tag type drop down menu"
+    },
+    "tagTypeMissing": "Tag type is required",
+    "@tagTypeMissing": {
+        "description": "Text displayed when tag type value is empty while validating in form for adding tag"
+    },
+    "tagAddOption": "Enter an option",
+    "@tagAddOption": {
+        "description": "Hint text for entering an option in form for adding tag"
+    },
+    "tagOptionMissing": "Tag option is required",
+    "@tagOptionMissing": {
+        "description": "Text displayed when tag type value is empty while validating in form for adding tag"
+    },
+    "tagSelectIcon": "Select an icon",
+    "@tagSelectIcon": {
+        "description": "Content shown in add tag form above icon list"
+    },
+    "tagOptions": "Options",
+    "@tagOptions": {
+        "description": "Content shown in add tag form above user specified tag options"
+    },
+    "tagTypeList": "List",
+    "@tagTypeList": {
+        "description": "Name of list tag type"
+    },
+    "tagTypeToggle": "Toggle",
+    "@tagTypeToggle": {
+        "description": "Name of toggle tag type"
+    },
+    "tagTypeMulti": "Multi",
+    "@tagTypeMulti": {
+        "description": "Name of multi tag type"
+    },
+    "navigationCalendar": "Calendar",
+    "@navigationCalendar": {
+        "description": "Content below navigation icon of a calendar"
+    },
+    "navigationGraphs": "Graphs",
+    "@navigationGraphs": {
+        "description": "Content below navigation icon of a graph"
+    },
+    "tagOverviewTitle": "Tag Overview {date}",
+    "@tagOverviewTitle": {
+        "description": "Content shown above calendar in calendar overview",
+        "placeholders": {
+            "date": {
+                "format": "yMMMd",
+                "type": "DateTime"
+            }
+        }
+    },
+    "yearAndWeek": "{year} w{week}",
+    "@yearAndWeek": {
+        "description": "Content shown above calendar in calendar overview",
+        "placeholders": {
+            "year": {},
+            "week": {}
+        }
+    },
+    "settingsTitle": "Settings",
+    "@settingsTitle": {
+        "description": "Title of settings page, also shown on settings icon hover"
+    },
+    "aboutTitle": "About the project",
+    "@aboutTitle": {
+        "description": "Header for content in about-section in settings page"
+    },
+    "aboutDescription": "Simple journal app built in Flutter that allows users to use tags to track habits, mood and period cycles in a clear calendar overview.",
+    "@aboutDescription": {
+        "description": "Body for content in about-section in settings page"
+    },
+    "saveDataDone": "Saved data...",
+    "@saveDataDone": {
+        "description": "Text displayed when exiting tag overview after changes made, or after a debounce timer after making said changes"
+    }
 }
