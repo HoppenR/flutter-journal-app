@@ -58,7 +58,6 @@ class TagManager extends ChangeNotifier {
       tagList.removeWhere((AppliedTagData tag) => tag.id == id);
       return tagList.isEmpty;
     });
-    // TODO: remove the tag from all GraphConfigurations
     notifyListeners();
   }
 

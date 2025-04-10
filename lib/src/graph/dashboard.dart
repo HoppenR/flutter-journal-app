@@ -63,13 +63,13 @@ class ChartDashboard extends StatelessWidget {
     return Row(
       children: configurations.map(
         (GraphConfiguration conf) {
-          switch (conf.graphType) {
-            case GraphType.heatmap:
-              switch (conf.timeSpanPreset) {
-                case GraphTimespan.week:
+          switch (conf.type) {
+            case GraphTypes.heatmap:
+              switch (conf.timeSpan) {
+                case GraphTimespans.week:
                   // TODO: Handle this case.
                   throw UnimplementedError();
-                case GraphTimespan.month:
+                case GraphTimespans.month:
                   return Expanded(
                     child: buildMonthHeatMap(
                       context,
@@ -79,16 +79,16 @@ class ChartDashboard extends StatelessWidget {
                       colors,
                     ),
                   );
-                case GraphTimespan.year:
+                case GraphTimespans.year:
                   // TODO: Handle this case.
                   throw UnimplementedError();
               }
-            case GraphType.weekdayBarChart:
-              switch (conf.timeSpanPreset) {
-                case GraphTimespan.week:
+            case GraphTypes.weekdayBarChart:
+              switch (conf.timeSpan) {
+                case GraphTimespans.week:
                   // TODO: Handle this case.
                   throw UnimplementedError();
-                case GraphTimespan.month:
+                case GraphTimespans.month:
                   return Expanded(
                     child: buildMonthBarChart(
                       context,
@@ -98,16 +98,16 @@ class ChartDashboard extends StatelessWidget {
                       colors,
                     ),
                   );
-                case GraphTimespan.year:
+                case GraphTimespans.year:
                   // TODO: Handle this case.
                   throw UnimplementedError();
               }
-            case GraphType.lineChart:
-              switch (conf.timeSpanPreset) {
-                case GraphTimespan.week:
+            case GraphTypes.lineChart:
+              switch (conf.timeSpan) {
+                case GraphTimespans.week:
                   // TODO: Handle this case.
                   throw UnimplementedError();
-                case GraphTimespan.month:
+                case GraphTimespans.month:
                   return Expanded(
                     child: buildMonthLineChart(
                       context,
@@ -117,16 +117,16 @@ class ChartDashboard extends StatelessWidget {
                       colors,
                     ),
                   );
-                case GraphTimespan.year:
+                case GraphTimespans.year:
                   // TODO: Handle this case.
                   throw UnimplementedError();
               }
-            case GraphType.radar:
-              switch (conf.timeSpanPreset) {
-                case GraphTimespan.week:
+            case GraphTypes.radar:
+              switch (conf.timeSpan) {
+                case GraphTimespans.week:
                   // TODO: Handle this case.
                   throw UnimplementedError();
-                case GraphTimespan.month:
+                case GraphTimespans.month:
                   return Expanded(
                     child: buildMonthHabitRadar(
                       context,
@@ -136,8 +136,10 @@ class ChartDashboard extends StatelessWidget {
                       colors,
                     ),
                   );
-                case GraphTimespan.year:
+                case GraphTimespans.year:
                   // TODO: Handle this case.
+                  // This one has special rules, and uses categories, see:
+                  // https://github.com/HoppenR/flutter-journal-app/issues/10
                   throw UnimplementedError();
               }
           }

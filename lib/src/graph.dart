@@ -25,7 +25,7 @@ class ChartDashboardManager extends ChangeNotifier {
     dashboards.removeWhere((ChartDashboardData dashboard) {
       dashboard.configurations.removeWhere((GraphConfiguration config) {
         config.ids.remove(tagId);
-        return config.ids.length < config.minimumItemAmt;
+        return config.ids.length < config.type.minimumItemAmt;
       });
       return dashboard.configurations.isEmpty;
     });

@@ -1,47 +1,81 @@
-enum GraphType { heatmap, weekdayBarChart, lineChart, radar }
+enum GraphTypes { heatmap, weekdayBarChart, lineChart, radar }
 
-enum GraphTimespan { week, month, year }
+extension GraphType on GraphTypes {
+  int get minimumItemAmt {
+    switch (this) {
+      case GraphTypes.heatmap:
+      case GraphTypes.weekdayBarChart:
+      case GraphTypes.lineChart:
+        return 1;
+      case GraphTypes.radar:
+        return 3;
+    }
+  }
+
+  static GraphTypes fromJson(Map<String, dynamic> json) {
+    if (json['type'] == 'heatmap') {
+      return GraphTypes.heatmap;
+    } else if (json['type'] == 'weekdayBarChart') {
+      return GraphTypes.weekdayBarChart;
+    } else if (json['type'] == 'lineChart') {
+      return GraphTypes.lineChart;
+    } else if (json['type'] == 'radar') {
+      return GraphTypes.radar;
+    } else {
+      throw AssertionError('invalid type in json');
+    }
+  }
+
+  String toJson() {
+    return toString().split('.').last;
+  }
+}
+
+enum GraphTimespans { week, month, year }
+
+extension GraphTimespan on GraphTimespans {
+  static GraphTimespans fromJson(Map<String, dynamic> json) {
+    if (json['timeSpan'] == 'week') {
+      return GraphTimespans.week;
+    } else if (json['timeSpan'] == 'month') {
+      return GraphTimespans.month;
+    } else if (json['timeSpan'] == 'year') {
+      return GraphTimespans.year;
+    } else {
+      throw AssertionError('invalid type in json');
+    }
+  }
+
+  String toJson() {
+    return toString().split('.').last;
+  }
+}
 
 class GraphConfiguration {
   GraphConfiguration({
-    required this.graphType,
+    required this.type,
     required this.ids,
-    this.timeSpanPreset = GraphTimespan.month,
+    this.timeSpan = GraphTimespans.month,
   });
 
   factory GraphConfiguration.fromJson(Map<String, dynamic> json) {
     return GraphConfiguration(
-      graphType: GraphType.values.firstWhere(
-        (GraphType e) => e.toString() == json['graphType'],
-      ),
-      timeSpanPreset: GraphTimespan.values.firstWhere(
-        (GraphTimespan e) => e.toString() == json['timeSpanPreset'],
-      ),
+      type: GraphType.fromJson(json),
+      timeSpan: GraphTimespan.fromJson(json),
       ids: List<int>.from(json['tagIds'] ?? <int>[]),
     );
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'graphType': graphType.toString(),
-      'timeSpanPreset': timeSpanPreset.toString(),
+      'type': type.toJson(),
+      'timeSpan': timeSpan.toJson(),
       'tagIds': ids,
     };
   }
 
-  int get minimumItemAmt {
-    switch (graphType) {
-      case GraphType.heatmap:
-      case GraphType.weekdayBarChart:
-      case GraphType.lineChart:
-        return 1;
-      case GraphType.radar:
-        return 3;
-    }
-  }
-
-  final GraphType graphType;
-  final GraphTimespan timeSpanPreset;
+  final GraphTypes type;
+  final GraphTimespans timeSpan;
 
   // NOTE: should not exceed size 4 atm, since we are indexing into 4 primary
   //       colors

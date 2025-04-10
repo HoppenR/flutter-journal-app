@@ -19,15 +19,14 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   final List<int?> _selectedTagIds = <int?>[null];
   final TextEditingController _nameController = TextEditingController();
 
-  GraphType? _selectedType;
+  GraphTypes? _selectedType;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // TODO: localize
-        title: const Text('Add dashboard'),
+        title: Text(AppLocalizations.of(context).addDashboard),
         actions: <Widget>[
           _buildTagFormValidateButton(context),
         ],
@@ -56,14 +55,12 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   Widget _buildDashboardFormName(BuildContext context) {
     return TextFormField(
       controller: _nameController,
-      decoration: const InputDecoration(
-        // TODO: localize
-        hintText: 'Enter a dashboard name',
+      decoration: InputDecoration(
+        hintText: AppLocalizations.of(context).dashboardNameHint,
       ),
       validator: (String? value) {
         if (value == null || value.isEmpty) {
-          // TODO: localize
-          return 'Name is required';
+          return AppLocalizations.of(context).dashboardNameMissing;
         }
         return null;
       },
@@ -72,34 +69,29 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   }
 
   Widget _buildDashboardOptionType(BuildContext context) {
-    return DropdownButtonFormField<GraphType>(
+    return DropdownButtonFormField<GraphTypes>(
       value: _selectedType,
-      // TODO: localize
-      hint: const Text('Select chart type'),
-      items: const <DropdownMenuItem<GraphType>>[
-        DropdownMenuItem<GraphType>(
-          value: GraphType.lineChart,
-          // TODO: localize
-          child: Text('lineChart'),
+      hint: Text(AppLocalizations.of(context).chartSelectType),
+      items: <DropdownMenuItem<GraphTypes>>[
+        DropdownMenuItem<GraphTypes>(
+          value: GraphTypes.lineChart,
+          child: Text(AppLocalizations.of(context).chartTypeLine),
         ),
-        DropdownMenuItem<GraphType>(
-          value: GraphType.weekdayBarChart,
-          // TODO: localize
-          child: Text('weekdayBarChart'),
+        DropdownMenuItem<GraphTypes>(
+          value: GraphTypes.weekdayBarChart,
+          child: Text(AppLocalizations.of(context).chartTypeBar),
         ),
-        DropdownMenuItem<GraphType>(
-          value: GraphType.heatmap,
-          // TODO: localize
-          child: Text('heatmap'),
+        DropdownMenuItem<GraphTypes>(
+          value: GraphTypes.heatmap,
+          child: Text(AppLocalizations.of(context).chartTypeHeatmap),
         ),
-        DropdownMenuItem<GraphType>(
-          value: GraphType.radar,
-          // TODO: localize
-          child: Text('radar'),
+        DropdownMenuItem<GraphTypes>(
+          value: GraphTypes.radar,
+          child: Text(AppLocalizations.of(context).chartTypeRadar),
         ),
       ],
-      onChanged: (GraphType? value) {
-        if (value == GraphType.radar) {
+      onChanged: (GraphTypes? value) {
+        if (value == GraphTypes.radar) {
           while (_selectedTagIds.length < 3) {
             _selectedTagIds.add(null);
           }
@@ -108,10 +100,9 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           _selectedType = value;
         });
       },
-      validator: (GraphType? value) {
+      validator: (GraphTypes? value) {
         if (value == null) {
-          // TODO: localize
-          return 'Chart type is required';
+          return AppLocalizations.of(context).chartTypeMissing;
         }
         return null;
       },
@@ -121,10 +112,9 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   List<Widget> _buildOptionFields(BuildContext context) {
     return <Widget>[
       const SizedBox(height: 16.0),
-      const Text(
-        // TODO: localize
-        'Tags',
-        style: TextStyle(fontWeight: FontWeight.bold),
+      Text(
+        AppLocalizations.of(context).tagOptions,
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       ..._buildOptionInputs(context),
       if (_selectedTagIds.length < 4)
@@ -149,9 +139,13 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedTagIds[index],
-                // TODO: localize
-                hint: const Text('select tag'),
-                items: tagManager.tags.entries.map(
+                items: tagManager.tags.entries.where(
+                  (MapEntry<int, TagData> val) {
+                    // Must include its own selection as a possible value
+                    return val.key == _selectedTagIds[index] ||
+                        !_selectedTagIds.contains(val.key);
+                  },
+                ).map(
                   (MapEntry<int, TagData> entry) {
                     return DropdownMenuItem<int>(
                       value: entry.key,
@@ -166,15 +160,13 @@ class AddDashboardFormState extends State<AddDashboardForm> {
                 },
                 validator: (int? value) {
                   if (value == null) {
-                    // TODO: localize
-                    return 'id is required';
+                    return AppLocalizations.of(context).tagOptionMissing;
                   }
                   return null;
                 },
               ),
             ),
-            if (_selectedType != GraphType.radar && index > 0 ||
-                _selectedType == GraphType.radar && index > 2)
+            if (index > (_selectedType?.minimumItemAmt ?? 0))
               IconButton(
                 icon: const Icon(Icons.remove_circle),
                 onPressed: () {
@@ -202,9 +194,9 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           // TODO: Allow user to add more than one configuration per dashboard
           configurations.add(
             GraphConfiguration(
-              graphType: _selectedType!,
-              // NOTE: This is resizable because a TagData might be removed
-              ids: _selectedTagIds.nonNulls.toList(growable: true),
+              type: _selectedType!,
+              // NOTE: DropdownMenuItem validators assert not null for each
+              ids: _selectedTagIds.cast<int>(),
             ),
           );
           dashboardManager.addDashboard(

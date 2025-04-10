@@ -7,9 +7,37 @@
     "@addTag": {
         "description": "Plus button hover tooltip in calendar overview, also shown as title of Add Tag Form"
     },
+    "addDashboard": "Add dashboard",
+    "@addDashboard": {
+        "description": "Plus button hover tooltip in calendar overview, also shown as title of Add Dashboard Form"
+    },
     "category": "Category",
     "@category": {
         "description": "Text shown next to add-button in tag overview"
+    },
+    "chartTypeMissing": "Chart type is required",
+    "@chartTypeMissing": {
+        "description": "Text displayed when chart type value is empty while validating in form for adding chart"
+    },
+    "chartTypeLine": "Line chart",
+    "@chartTypeLine": {
+        "description": "Name of line chart type in form for adding chart"
+    },
+    "chartTypeBar": "Bar chart",
+    "@chartTypeBar": {
+        "description": "Name of bar chart type in form for adding chart"
+    },
+    "chartTypeHeatmap": "Heatmap",
+    "@chartTypeHeatmap": {
+        "description": "Name of heatmap chart type in form for adding chart"
+    },
+    "chartTypeRadar": "Radar chart",
+    "@chartTypeRadar": {
+        "description": "Name of radar chart type in form for adding chart"
+    },
+    "chartSelectType": "Select chart type",
+    "@chartSelectType": {
+        "description": "Content shown in add dashboard form above tag type drop down menu"
     },
     "clearDataTitle": "Clear data",
     "@clearDataTitle": {
@@ -22,6 +50,14 @@
     "clearDataDone": "Cleared all data",
     "@clearDataDone": {
         "description": "Popup text after clearing data"
+    },
+    "dashboardNameHint": "Enter a dashboard name",
+    "@dashboardNameHint": {
+        "description": "Hint text for entering a tag in form for adding dashboard"
+    },
+    "dashboardNameMissing": "Name is required",
+    "@dashboardNameMissing": {
+        "description": "Text displayed when tag name value is empty while validating in form for adding tag"
     },
     "editModeToggle": "Edit",
     "@editModeToggle": {
