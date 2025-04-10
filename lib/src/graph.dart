@@ -31,6 +31,11 @@ class ChartDashboardManager extends ChangeNotifier {
     });
     notifyListeners();
   }
+
+  void clear() {
+    dashboards.clear();
+    notifyListeners();
+  }
 }
 
 class GraphPage extends StatefulWidget {
@@ -41,12 +46,17 @@ class GraphPage extends StatefulWidget {
 }
 
 class _GraphPageState extends State<GraphPage> {
-  ChartDashboardData? _selectedDashboard;
+  int? _selectedDashboardIndex;
 
   @override
   Widget build(BuildContext context) {
     final ChartDashboardManager dashboardManager =
         context.watch<ChartDashboardManager>();
+
+    if (_selectedDashboardIndex != null &&
+        _selectedDashboardIndex! >= dashboardManager.dashboards.length) {
+      _selectedDashboardIndex = null;
+    }
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -58,14 +68,13 @@ class _GraphPageState extends State<GraphPage> {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: dashboardManager.dashboards.length,
-              prototypeItem: const Icon(Icons.favorite, size: 40),
               itemBuilder: (BuildContext context, int index) {
                 final ChartDashboardData dashboard =
                     dashboardManager.dashboards[index];
                 return IconButton(
                   onPressed: () {
                     setState(() {
-                      _selectedDashboard = dashboard;
+                      _selectedDashboardIndex = index;
                     });
                   },
                   icon: Icon(
@@ -76,14 +85,15 @@ class _GraphPageState extends State<GraphPage> {
               },
             ),
           ),
-          if (_selectedDashboard != null) ...<Widget>[
+          if (_selectedDashboardIndex != null) ...<Widget>[
             Text(
-              _selectedDashboard!.title,
+              dashboardManager.dashboards[_selectedDashboardIndex!].title,
               style: const TextStyle(fontSize: 50.0),
             ),
             Expanded(
               child: ChartDashboard(
-                configurations: _selectedDashboard!.configurations,
+                configurations: dashboardManager
+                    .dashboards[_selectedDashboardIndex!].configurations,
               ),
             ),
           ],
