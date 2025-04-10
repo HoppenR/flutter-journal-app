@@ -183,8 +183,7 @@ class _JournalPageState extends State<JournalPage>
             : _showAddDashboardWindow(context),
         tooltip: _selectedViewIndex == _JournalPages.calendar
             ? AppLocalizations.of(context).addTag
-            // TODO: localize
-            : 'Add dashboard',
+            : AppLocalizations.of(context).addDashboard,
         child: AnimatedIcon(
           icon: AnimatedIcons.event_add,
           progress: _fabIconAnimation,
@@ -391,7 +390,7 @@ class _JournalPageState extends State<JournalPage>
         //saveTagData(context);
         //saveNextTagId(context);
         saveChartDashboardData(context);
-        showSnackBar(context, AppLocalizations.of(context).saveTagDone);
+        showSnackBar(context, AppLocalizations.of(context).saveDataDone);
       }
     }
   }

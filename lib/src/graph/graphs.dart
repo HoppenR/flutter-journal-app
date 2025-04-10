@@ -8,6 +8,7 @@ import '../tag.dart';
 import 'configuration.dart';
 
 // --- HEATMAP ---
+// TODO: make multiple overlapping circles visible
 Widget buildMonthHeatMap(
   BuildContext context,
   TagManager tagManager,
@@ -169,14 +170,16 @@ Widget buildMonthBarChart(
           return _getGraphLine(context, value);
         },
       ),
-      titlesData: const FlTitlesData(
-        topTitles: AxisTitles(),
-        leftTitles: AxisTitles(),
-        rightTitles: AxisTitles(),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(),
+        leftTitles: const AxisTitles(),
+        rightTitles: const AxisTitles(),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: _bottomTitles,
+            getTitlesWidget: (double value, TitleMeta meta) {
+              return _bottomTitles(context, value, meta);
+            },
           ),
         ),
       ),
@@ -190,7 +193,6 @@ BarChartGroupData _buildBarChartGroupData(
   List<double> ys,
   List<Color> colors,
 ) {
-  // TODO: dynamic width based on widget size
   return BarChartGroupData(
     x: x,
     barRods: <BarChartRodData>[
@@ -299,14 +301,16 @@ Widget buildMonthLineChart(
           return _getGraphLine(context, value);
         },
       ),
-      titlesData: const FlTitlesData(
-        topTitles: AxisTitles(),
-        leftTitles: AxisTitles(),
-        rightTitles: AxisTitles(),
+      titlesData: FlTitlesData(
+        topTitles: const AxisTitles(),
+        leftTitles: const AxisTitles(),
+        rightTitles: const AxisTitles(),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: _bottomTitles,
+            getTitlesWidget: (double value, TitleMeta meta) {
+              return _bottomTitles(context, value, meta);
+            },
           ),
         ),
       ),
@@ -448,16 +452,15 @@ Widget buildMonthHabitRadar(
 
 // --- COMMON ---
 
-Widget _bottomTitles(double value, TitleMeta meta) {
-  // TODO: localize
-  const List<String> days = <String>['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+Widget _bottomTitles(BuildContext context, double value, TitleMeta meta) {
+  final List<String> days = MaterialLocalizations.of(context).narrowWeekdays;
   if (value.toInt() != value) {
     return const SizedBox.shrink();
   }
   return SideTitleWidget(
     space: 0.0,
     meta: meta,
-    child: Text(days[value.toInt()]),
+    child: Text(days[(value.toInt() + 1) % 7]),
   );
 }
 

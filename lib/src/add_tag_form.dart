@@ -155,15 +155,15 @@ class AddTagFormState extends State<AddTagForm> {
               icon: _selectedIcon,
               configurations: <GraphConfiguration>[
                 GraphConfiguration(
-                  graphType: GraphType.lineChart,
+                  type: GraphTypes.lineChart,
                   ids: <int>[addedId],
                 ),
                 GraphConfiguration(
-                  graphType: GraphType.weekdayBarChart,
+                  type: GraphTypes.weekdayBarChart,
                   ids: <int>[addedId],
                 ),
                 GraphConfiguration(
-                  graphType: GraphType.heatmap,
+                  type: GraphTypes.heatmap,
                   ids: <int>[addedId],
                 ),
               ],

@@ -28,7 +28,7 @@ class InitializationWidget extends StatelessWidget {
         }
 
         if (snapshot.hasError) {
-          print(snapshot.error);
+          print('error loading user prefs: ${snapshot.error}');
         }
 
         final Locale? initialLocale = snapshot.data!.locale;
