@@ -105,6 +105,15 @@ class TagManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clear() {
+    tags.clear();
+    appliedTags.clear();
+    categories.clear();
+    nextTagId = 0;
+    nextCategoryId = 0;
+    notifyListeners();
+  }
+
   void changeOrder(TagData tagData, int index) {
     tagData.order = index;
     notifyListeners();
