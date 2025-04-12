@@ -9,7 +9,6 @@ import '../tag.dart';
 import 'configuration.dart';
 
 // --- HEATMAP ---
-// TODO: make multiple overlapping circles visible
 Widget buildMonthHeatMap(
   BuildContext context,
   GraphConfiguration conf,
@@ -90,7 +89,8 @@ List<ScatterSpot> _getScatterSpots(
             context,
             (index % 7).toDouble(),
             (index ~/ 7).toDouble(),
-            colors[tagIndex % colors.length],
+            colors,
+            tagIndex,
           ),
         );
       }
@@ -103,16 +103,17 @@ ScatterSpot _makeSpot(
   BuildContext context,
   double x,
   double y,
-  Color color,
+  List<Color> colors,
+  int tagIndex,
 ) {
   final Size screenSz = MediaQuery.of(context).size;
-  final double baseRadius = (screenSz.width + screenSz.height) * 0.02 - 20.0;
+  final double baseRadius = screenSz.width * 0.005 * (colors.length - tagIndex);
   return ScatterSpot(
     x + 0.5,
     -y + 4.5,
     dotPainter: FlDotCirclePainter(
       radius: baseRadius,
-      color: color,
+      color: colors[tagIndex % colors.length],
     ),
   );
 }
