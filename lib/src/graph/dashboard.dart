@@ -69,7 +69,7 @@ class ChartDashboard extends StatelessWidget {
               switch (conf.timeSpan) {
                 case GraphTimespans.month:
                   return Expanded(
-                    child: buildMonthHeatMap(context, conf, now, colors),
+                    child: buildMonthHeatMap(context, conf, now, colors[0]),
                   );
                 case GraphTimespans.year:
                   return Expanded(
