@@ -9,6 +9,52 @@ import '../tag.dart';
 import 'configuration.dart';
 
 // --- HEATMAP ---
+
+Widget buildYearHeatMap(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  List<Color> colors,
+) {
+  Widget makeRowBetweenMonths(int start, int end) {
+    return _buildMonthRowHeatMap(context, conf, now, colors, start, end);
+  }
+
+  return Column(
+    children: <Widget>[
+      makeRowBetweenMonths(DateTime.january, DateTime.march),
+      makeRowBetweenMonths(DateTime.april, DateTime.june),
+      makeRowBetweenMonths(DateTime.july, DateTime.september),
+      makeRowBetweenMonths(DateTime.october, DateTime.december),
+    ],
+  );
+}
+
+Widget _buildMonthRowHeatMap(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  List<Color> colors,
+  int monthStart,
+  int monthEnd,
+) {
+  return Expanded(
+    child: Row(
+      children: <Widget>[
+        for (int month = monthStart; month <= monthEnd; month++)
+          Expanded(
+            child: buildMonthHeatMap(
+              context,
+              conf,
+              now.copyWith(month: month),
+              colors,
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 Widget buildMonthHeatMap(
   BuildContext context,
   GraphConfiguration conf,
@@ -116,16 +162,6 @@ ScatterSpot _makeSpot(
       color: colors[tagIndex % colors.length],
     ),
   );
-}
-
-Widget buildYearHeatMap(
-  BuildContext context,
-  GraphConfiguration conf,
-  DateTime now,
-  List<Color> colors,
-) {
-  // TODO: implement this
-  throw UnimplementedError();
 }
 
 // --- BARCHART ---
