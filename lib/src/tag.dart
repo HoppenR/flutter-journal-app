@@ -343,7 +343,7 @@ class AppliedTagData {
   }
 
   String string(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
+    final TagManager tagManager = context.watch<TagManager>();
     final TagData tag = tagManager.tags[id]!;
     switch (tag.type) {
       case TagTypes.list:
@@ -358,6 +358,7 @@ class AppliedTagData {
   String get name => tag.name;
   TagTypes get type => tag.type;
   IconData get icon => tag.icon;
+  int? get categoryId => tag.categoryId;
 
   final int id;
   final TagData tag;

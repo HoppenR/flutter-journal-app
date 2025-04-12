@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../tag.dart';
 import 'configuration.dart';
@@ -11,9 +12,8 @@ import 'configuration.dart';
 // TODO: make multiple overlapping circles visible
 Widget buildMonthHeatMap(
   BuildContext context,
-  TagManager tagManager,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
   List<Color> colors,
 ) {
   return ScatterChart(
@@ -43,9 +43,8 @@ Widget buildMonthHeatMap(
       ),
       scatterSpots: _getScatterSpots(
         context,
-        tagManager,
         conf,
-        time,
+        now,
         colors,
       ),
     ),
@@ -54,46 +53,46 @@ Widget buildMonthHeatMap(
 
 List<ScatterSpot> _getScatterSpots(
   BuildContext context,
-  TagManager tagManager,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
   List<Color> colors,
 ) {
   final List<ScatterSpot> spots = <ScatterSpot>[];
-
+  final TagManager tagManager = context.watch<TagManager>();
   for (final MapEntry<DateTime, List<AppliedTagData>> entry
       in tagManager.appliedTags.entries) {
-    if (entry.key.year == time.year && entry.key.month == time.month) {
-      for (final AppliedTagData appliedTag in entry.value) {
-        final int tagIndex = conf.ids.indexOf(appliedTag.id);
-        if (tagIndex != -1) {
-          switch (appliedTag.type) {
-            case TagTypes.list:
-              break;
-            case TagTypes.toggle:
-              if (!appliedTag.toggleOption!) {
-                continue;
-              }
-            case TagTypes.multi:
-              if (appliedTag.multiOptions!.isEmpty) {
-                continue;
-              }
-          }
-          final int firstDayOffset = DateUtils.firstDayOffset(
-            entry.key.year,
-            entry.key.month,
-            MaterialLocalizations.of(context),
-          );
-          final int index = (entry.key.day - 1) + firstDayOffset - 1;
-          spots.add(
-            _makeSpot(
-              context,
-              (index % 7).toDouble(),
-              (index ~/ 7).toDouble(),
-              colors[tagIndex],
-            ),
-          );
+    if (entry.key.year != now.year || entry.key.month != now.month) {
+      continue;
+    }
+    for (final AppliedTagData appliedTag in entry.value) {
+      final int tagIndex = conf.ids.indexOf(appliedTag.id);
+      if (tagIndex != -1) {
+        switch (appliedTag.type) {
+          case TagTypes.list:
+            break;
+          case TagTypes.toggle:
+            if (!appliedTag.toggleOption!) {
+              continue;
+            }
+          case TagTypes.multi:
+            if (appliedTag.multiOptions!.isEmpty) {
+              continue;
+            }
         }
+        final int firstDayOffset = DateUtils.firstDayOffset(
+          entry.key.year,
+          entry.key.month,
+          MaterialLocalizations.of(context),
+        );
+        final int index = (entry.key.day - 1) + firstDayOffset - 1;
+        spots.add(
+          _makeSpot(
+            context,
+            (index % 7).toDouble(),
+            (index ~/ 7).toDouble(),
+            colors[tagIndex % colors.length],
+          ),
+        );
       }
     }
   }
@@ -118,18 +117,27 @@ ScatterSpot _makeSpot(
   );
 }
 
+Widget buildYearHeatMap(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  List<Color> colors,
+) {
+  // TODO: implement this
+  throw UnimplementedError();
+}
+
 // --- BARCHART ---
 Widget buildMonthBarChart(
   BuildContext context,
-  TagManager tagManager,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
   List<Color> colors,
 ) {
   final List<List<double>> weekData = _generateBarGroupData(
-    tagManager,
+    context,
     conf,
-    time,
+    now,
   );
 
   final double maxValue = weekData.fold(
@@ -199,7 +207,7 @@ BarChartGroupData _buildBarChartGroupData(
       ...ys.asMap().entries.map((MapEntry<int, double> entry) {
         return BarChartRodData(
           toY: entry.value,
-          color: colors[entry.key],
+          color: colors[entry.key % colors.length],
           width: 14.0,
         );
       })
@@ -209,17 +217,18 @@ BarChartGroupData _buildBarChartGroupData(
 
 // Returns a list grouped by day in first order and tag in second order
 List<List<double>> _generateBarGroupData(
-  TagManager tagManager,
+  BuildContext context,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
 ) {
+  final TagManager tagManager = context.watch<TagManager>();
   return List<List<double>>.generate(7, (int index) {
     return conf.ids.map((int tagId) {
       double counter = 0.0;
       for (final MapEntry<DateTime, List<AppliedTagData>> entry
           in tagManager.appliedTags.entries) {
-        if (entry.key.year == time.year &&
-            entry.key.month == time.month &&
+        if (entry.key.year == now.year &&
+            entry.key.month == now.month &&
             entry.key.weekday - 1 == index) {
           for (final AppliedTagData data in entry.value) {
             if (data.tag.id == tagId) {
@@ -248,15 +257,14 @@ List<List<double>> _generateBarGroupData(
 // --- LINECHART ---
 Widget buildMonthLineChart(
   BuildContext context,
-  TagManager tagManager,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
   List<Color> colors,
 ) {
   final List<List<double>> weekData = _generateLineChartData(
-    tagManager,
+    context,
     conf,
-    time,
+    now,
   );
 
   final double maxValue = weekData.fold(
@@ -282,7 +290,7 @@ Widget buildMonthLineChart(
       lineBarsData: percentData.asMap().entries.map(
         (MapEntry<int, List<double>> entry) {
           return LineChartBarData(
-            color: colors[entry.key],
+            color: colors[entry.key % colors.length],
             isCurved: true,
             barWidth: 6.0,
             spots: _buildLineChartBarData(context, entry.key, entry.value),
@@ -336,17 +344,18 @@ List<FlSpot> _buildLineChartBarData(
 
 // Returns a list grouped by tags in first order and day in second order
 List<List<double>> _generateLineChartData(
-  TagManager tagManager,
+  BuildContext context,
   GraphConfiguration conf,
-  DateTime time,
+  DateTime now,
 ) {
+  final TagManager tagManager = context.watch<TagManager>();
   return conf.ids.map((int tagId) {
     return List<double>.generate(7, (int index) {
       double counter = 0.0;
       for (final MapEntry<DateTime, List<AppliedTagData>> entry
           in tagManager.appliedTags.entries) {
-        if (entry.key.year == time.year &&
-            entry.key.month == time.month &&
+        if (entry.key.year == now.year &&
+            entry.key.month == now.month &&
             entry.key.weekday - 1 == index) {
           for (final AppliedTagData data in entry.value) {
             if (data.tag.id == tagId) {
@@ -381,7 +390,6 @@ class RadarGraphData {
 
 Widget buildMonthHabitRadar(
   BuildContext context,
-  TagManager tagManager,
   GraphConfiguration conf,
   DateTime now,
   List<Color> colors,
@@ -391,6 +399,7 @@ Widget buildMonthHabitRadar(
   // often.
   // Data will be based on 30-31 days (one month). (Current?)
   // Habit will be shown on outer area.
+  final TagManager tagManager = context.watch<TagManager>();
   final Map<int, RadarGraphData> radarChartData = <int, RadarGraphData>{
     for (final MapEntry<int, TagData> entry in tagManager.tags.entries)
       if (conf.ids.contains(entry.key))
@@ -398,12 +407,15 @@ Widget buildMonthHabitRadar(
   };
   for (final MapEntry<DateTime, List<AppliedTagData>> entry
       in tagManager.appliedTags.entries) {
+    if (entry.key.year != now.year || entry.key.month != now.month) {
+      continue;
+    }
     for (final AppliedTagData appliedTag in entry.value) {
       switch (appliedTag.type) {
         case TagTypes.list:
           break;
         case TagTypes.toggle:
-          if (appliedTag.toggleOption!) {
+          if (!appliedTag.toggleOption!) {
             continue;
           }
         case TagTypes.multi:
@@ -421,6 +433,7 @@ Widget buildMonthHabitRadar(
           text: radarChartData.entries.elementAt(index).value.name,
         );
       },
+      radarShape: RadarShape.polygon,
       dataSets: <RadarDataSet>[
         RadarDataSet(
           dataEntries: radarChartData.entries.map(
@@ -430,19 +443,123 @@ Widget buildMonthHabitRadar(
           ).toList(growable: false),
         )
       ],
-      //dataSets: <RadarDataSet>[
-      //  RadarDataSet(
-      //    dataEntries: conf.ids.map(
-      //      (int categoryId) {
-      //        return RadarEntry(
-      //          value: tagManager.tags.values
-      //              .where((TagData tag) => tag.categoryId == categoryId)
-      //              .fold(0, (double acc, _) => acc + 1),
-      //        );
-      //      },
-      //    ).toList(growable: false),
-      //  )
-      //],
+      borderData: FlBorderData(
+        show: false,
+      ),
+    ),
+  );
+}
+
+Widget buildYearCategoryRadar(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  List<Color> colors,
+) {
+  // we want to see yearly view, every month has one own radar graph
+  // data will be based on most amount filled category,
+  // aka most popular / used CATEGORY, aka streaks
+  // Months are sorted 3 months next to each other, and 4 times under each other
+  // (3x4 = 12 months)
+  // we probably want to include 12 charts through a monthCategoryFunction
+  Widget makeRowBetweenMonths(int start, int end) {
+    return _buildMonthRowCategoryRadar(context, conf, now, colors, start, end);
+  }
+
+  return Column(
+    children: <Widget>[
+      makeRowBetweenMonths(DateTime.january, DateTime.march),
+      makeRowBetweenMonths(DateTime.april, DateTime.june),
+      makeRowBetweenMonths(DateTime.july, DateTime.september),
+      makeRowBetweenMonths(DateTime.october, DateTime.december),
+    ],
+  );
+}
+
+Widget _buildMonthRowCategoryRadar(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  List<Color> colors,
+  int monthStart,
+  int monthEnd,
+) {
+  return Expanded(
+    child: Row(
+      children: <Widget>[
+        for (int month = monthStart; month <= monthEnd; month++)
+          Expanded(
+            child: buildMonthCategoryRadar(
+              context,
+              conf,
+              now.copyWith(month: month),
+              colors[month ~/ colors.length],
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
+Widget buildMonthCategoryRadar(
+  BuildContext context,
+  GraphConfiguration conf,
+  DateTime now,
+  Color color,
+) {
+  final TagManager tagManager = context.watch<TagManager>();
+  final Map<int, RadarGraphData> radarChartData = <int, RadarGraphData>{
+    for (final MapEntry<int, TagCategory> entry
+        in tagManager.categories.entries)
+      if (conf.ids.contains(entry.key))
+        entry.key: RadarGraphData(name: entry.value.name, count: 0.0)
+  };
+  for (final MapEntry<DateTime, List<AppliedTagData>> entry
+      in tagManager.appliedTags.entries) {
+    if (entry.key.year != now.year || entry.key.month != now.month) {
+      continue;
+    }
+    for (final AppliedTagData appliedTag in entry.value) {
+      switch (appliedTag.type) {
+        case TagTypes.list:
+          break;
+        case TagTypes.toggle:
+          if (!appliedTag.toggleOption!) {
+            continue;
+          }
+        case TagTypes.multi:
+          if (appliedTag.multiOptions!.isEmpty) {
+            continue;
+          }
+      }
+      radarChartData[appliedTag.categoryId]?.count += 1;
+    }
+  }
+  return RadarChart(
+    RadarChartData(
+      getTitle: (int index, _) {
+        return RadarChartTitle(
+          text: radarChartData.entries.elementAt(index).value.name,
+        );
+      },
+      radarShape: RadarShape.polygon,
+      tickCount: 3,
+      ticksTextStyle: const TextStyle(color: Colors.transparent),
+      tickBorderData: const BorderSide(width: 0.4),
+      gridBorderData: const BorderSide(width: 0.4),
+      radarBorderData: const BorderSide(width: 0.4),
+      dataSets: <RadarDataSet>[
+        RadarDataSet(
+          entryRadius: 0,
+          fillColor: color.withAlpha(200),
+          borderColor: color,
+          dataEntries: radarChartData.entries.map(
+            (MapEntry<int, RadarGraphData> arg) {
+              return RadarEntry(value: arg.value.count);
+            },
+          ).toList(growable: false),
+        )
+      ],
       borderData: FlBorderData(
         show: false,
       ),

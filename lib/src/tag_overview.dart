@@ -40,7 +40,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   @override
   Widget build(BuildContext context) {
-    final TagManager tagManager = context.watch<TagManager>();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, _) {
@@ -67,13 +66,13 @@ class TagDayOverviewState extends State<TagDayOverview> {
                   final String? categoryName = await showDialog<String>(
                     context: context,
                     builder: (BuildContext context) {
-                      return _buildCategoryNameInput(context, tagManager);
+                      return _buildCategoryNameInput(context);
                     },
                   );
 
                   if (categoryName != null) {
                     if (context.mounted) {
-                      tagManager.addCategory(categoryName);
+                      context.read<TagManager>().addCategory(categoryName);
                       _debounceSave(context);
                     }
                   }
@@ -97,8 +96,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
           child: Form(
             key: _formKey,
             child: _editMode
-                ? _buildReorderableTagList(context, tagManager)
-                : _buildDismissibleTagList(context, tagManager),
+                ? _buildReorderableTagList(context)
+                : _buildDismissibleTagList(context),
           ),
         ),
       ),
@@ -107,9 +106,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildReorderableTagList(
     BuildContext context,
-    TagManager tagManager,
   ) {
-    final List<OverviewItem> orderedItems = orderItems(tagManager);
+    final List<OverviewItem> orderedItems = orderItems();
     return ReorderableListView.builder(
       itemCount: orderedItems.length,
       buildDefaultDragHandles: false,
@@ -125,6 +123,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         }
         final TagData oldIndexItem = orderedItems[oldIndex].tag!;
         final OverviewItem newIndexItem = orderedItems[newIndex];
+        final TagManager tagManager = context.read<TagManager>();
 
         // Calculate the new category and order for the moved tag
         final int? categoryId;
@@ -190,17 +189,21 @@ class TagDayOverviewState extends State<TagDayOverview> {
         switch (item.type) {
           case OverviewItemType.tag:
             return ReorderableDragStartListener(
-                index: index,
-                key: item.tag!.key,
-                child: ListTile(
-                  title: _buildReorderTagRow(context, tagManager, item),
-                  trailing: const Icon(Icons.drag_handle),
-                ));
+              index: index,
+              key: item.tag!.key,
+              child: ListTile(
+                title: _buildReorderTagRow(context, item),
+                trailing: const Icon(Icons.drag_handle),
+              ),
+            );
           case OverviewItemType.header:
             return Container(
               key: ValueKey<int?>(item.headerCategoryId),
               child: Text(
-                tagManager.categories[item.headerCategoryId!]!.name,
+                context
+                    .watch<TagManager>()
+                    .categories[item.headerCategoryId!]!
+                    .name,
                 style: const TextStyle(fontSize: 25.0),
               ),
             );
@@ -209,28 +212,22 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  Widget _buildReorderTagRow(
-    BuildContext context,
-    TagManager tagManager,
-    OverviewItem entry,
-  ) {
+  Widget _buildReorderTagRow(BuildContext context, OverviewItem entry) {
+    final TagManager tagManager = context.watch<TagManager>();
     final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.tag?.id);
-    return _buildTagRow(context, tagManager, entry.tag!, appliedTagData);
+    return _buildTagRow(context, entry.tag!, appliedTagData);
   }
 
-  Widget _buildDismissibleTagList(
-    BuildContext context,
-    TagManager tagManager,
-  ) {
-    final List<OverviewItem> orderedItems = orderItems(tagManager);
+  Widget _buildDismissibleTagList(BuildContext context) {
+    final TagManager tagManager = context.watch<TagManager>();
+    final List<OverviewItem> orderedItems = orderItems();
     return Column(
       children: orderedItems.map((OverviewItem entry) {
         switch (entry.type) {
           case OverviewItemType.tag:
             return _buildDismissibleTagRow(
               context,
-              tagManager,
               entry.tag!,
             );
           case OverviewItemType.header:
@@ -243,11 +240,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  Widget _buildDismissibleTagRow(
-    BuildContext context,
-    TagManager tagManager,
-    TagData tagData,
-  ) {
+  Widget _buildDismissibleTagRow(BuildContext context, TagData tagData) {
+    final TagManager tagManager = context.watch<TagManager>();
     final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
 
@@ -301,15 +295,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
           _debounceSave(context);
         }
       },
-      child: _buildTagRow(context, tagManager, tagData, appliedTagData),
+      child: _buildTagRow(context, tagData, appliedTagData),
     );
   }
 
-  List<Widget> _buildTagOptions(
-    BuildContext context,
-    TagManager tagManager,
-    TagData tagData,
-  ) {
+  List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
+    final TagManager tagManager = context.watch<TagManager>();
     return List<Widget>.generate(
       tagData.list.length,
       (int index) {
@@ -338,7 +329,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
           selected: isSelected,
           onSelected: (bool selected) => _handleTagSelection(
             context,
-            tagManager,
             tagData,
             index,
           ),
@@ -348,12 +338,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  void _handleTagSelection(
-    BuildContext context,
-    TagManager tagManager,
-    TagData tagData,
-    int index,
-  ) {
+  void _handleTagSelection(BuildContext context, TagData tagData, int index) {
+    final TagManager tagManager = context.watch<TagManager>();
     final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
@@ -391,12 +377,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  void _handleToggleChange(
-    BuildContext context,
-    TagManager tagManager,
-    TagData tagData,
-    bool value,
-  ) {
+  void _handleToggleChange(BuildContext context, TagData tagData, bool value) {
+    // HERE<++>
+    final TagManager tagManager = context.read<TagManager>();
     final int tagIndex = tagManager.appliedTags[widget.day]
             ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
         -1;
@@ -418,7 +401,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildTagRow(
     BuildContext context,
-    TagManager tagManager,
     TagData tagData,
     AppliedTagData? appliedTagData,
   ) {
@@ -445,7 +427,6 @@ class TagDayOverviewState extends State<TagDayOverview> {
           spacing: 8.0,
           children: _buildTagRowContent(
             context,
-            tagManager,
             tagData,
             appliedTagData,
           ),
@@ -456,30 +437,29 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   List<Widget> _buildTagRowContent(
     BuildContext context,
-    TagManager tagManager,
     TagData tagData,
     AppliedTagData? appliedTagData,
   ) {
     switch (tagData.type) {
       case TagTypes.list:
-        return _buildTagOptions(context, tagManager, tagData);
+        return _buildTagOptions(context, tagData);
       case TagTypes.toggle:
         return <Widget>[
           Switch(
             value: appliedTagData?.toggleOption ?? false,
             onChanged: !_editMode
                 ? (bool value) {
-                    _handleToggleChange(context, tagManager, tagData, value);
+                    _handleToggleChange(context, tagData, value);
                   }
                 : null,
           ),
         ];
       case TagTypes.multi:
-        return _buildTagOptions(context, tagManager, tagData);
+        return _buildTagOptions(context, tagData);
     }
   }
 
-  Widget _buildCategoryNameInput(BuildContext context, TagManager tagManager) {
+  Widget _buildCategoryNameInput(BuildContext context) {
     String categoryName = '';
     return AlertDialog(
       title: Text(AppLocalizations.of(context).enterCategoryNameTitle),
@@ -553,7 +533,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
     saveNextCategoryId(context);
   }
 
-  List<OverviewItem> orderItems(TagManager tagManager) {
+  List<OverviewItem> orderItems() {
+    final TagManager tagManager = context.watch<TagManager>();
     final Map<int, List<TagData>> tagsByCategory = <int, List<TagData>>{
       for (final int key in tagManager.categories.keys) key: <TagData>[]
     };
