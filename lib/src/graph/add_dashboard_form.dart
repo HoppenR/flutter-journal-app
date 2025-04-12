@@ -141,9 +141,10 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             Expanded(
               child: DropdownButtonFormField<int>(
                 value: _selectedIds[index],
-                items: _selectedTimespan != GraphTimespans.year
-                    ? _buildTagSelectDropdowns(context, index)
-                    : _buildCategorySelectDropdowns(context, index),
+                items: _selectedTimespan == GraphTimespans.year &&
+                        _selectedType == GraphTypes.radar
+                    ? _buildCategorySelectDropdowns(context, index)
+                    : _buildTagSelectDropdowns(context, index),
                 onChanged: (int? newValue) {
                   setState(() {
                     _selectedIds[index] = newValue;

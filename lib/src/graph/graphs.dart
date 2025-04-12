@@ -47,7 +47,7 @@ Widget _buildMonthRowHeatMap(
               context,
               conf,
               now.copyWith(month: month),
-              colors,
+              colors[month % colors.length],
             ),
           ),
       ],
@@ -59,7 +59,7 @@ Widget buildMonthHeatMap(
   BuildContext context,
   GraphConfiguration conf,
   DateTime now,
-  List<Color> colors,
+  Color color,
 ) {
   return ScatterChart(
     ScatterChartData(
@@ -90,7 +90,7 @@ Widget buildMonthHeatMap(
         context,
         conf,
         now,
-        colors,
+        color,
       ),
     ),
   );
@@ -100,7 +100,7 @@ List<ScatterSpot> _getScatterSpots(
   BuildContext context,
   GraphConfiguration conf,
   DateTime now,
-  List<Color> colors,
+  Color color,
 ) {
   final List<ScatterSpot> spots = <ScatterSpot>[];
   final TagManager tagManager = context.watch<TagManager>();
@@ -135,7 +135,7 @@ List<ScatterSpot> _getScatterSpots(
             context,
             (index % 7).toDouble(),
             (index ~/ 7).toDouble(),
-            colors[tagIndex % colors.length],
+            color,
           ),
         );
       }
