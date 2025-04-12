@@ -31,13 +31,11 @@ extension GraphType on GraphTypes {
   }
 }
 
-enum GraphTimespans { week, month, year }
+enum GraphTimespans { month, year }
 
 extension GraphTimespan on GraphTimespans {
   static GraphTimespans fromJson(Map<String, dynamic> json) {
-    if (json['timeSpan'] == 'week') {
-      return GraphTimespans.week;
-    } else if (json['timeSpan'] == 'month') {
+    if (json['timeSpan'] == 'month') {
       return GraphTimespans.month;
     } else if (json['timeSpan'] == 'year') {
       return GraphTimespans.year;

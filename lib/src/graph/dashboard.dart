@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../tag.dart';
 import 'configuration.dart';
@@ -46,7 +45,6 @@ class ChartDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TagManager tagManager = context.watch<TagManager>();
     final List<Color> colors = <Color>[
       Theme.of(context).colorScheme.primary,
       Theme.of(context).colorScheme.inversePrimary,
@@ -54,7 +52,10 @@ class ChartDashboard extends StatelessWidget {
         Theme.of(context).colorScheme.primary.withAlpha(108),
         Theme.of(context).colorScheme.inversePrimary,
       ),
-      Theme.of(context).colorScheme.error,
+      Color.alphaBlend(
+        Theme.of(context).colorScheme.primary.withAlpha(150),
+        Theme.of(context).colorScheme.inversePrimary,
+      ),
     ];
 
     // TODO: this date should be changeable by the user to
@@ -66,37 +67,20 @@ class ChartDashboard extends StatelessWidget {
           switch (conf.type) {
             case GraphTypes.heatmap:
               switch (conf.timeSpan) {
-                case GraphTimespans.week:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
                 case GraphTimespans.month:
                   return Expanded(
-                    child: buildMonthHeatMap(
-                      context,
-                      tagManager,
-                      conf,
-                      now,
-                      colors,
-                    ),
+                    child: buildMonthHeatMap(context, conf, now, colors),
                   );
                 case GraphTimespans.year:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
+                  return Expanded(
+                    child: buildYearHeatMap(context, conf, now, colors),
+                  );
               }
             case GraphTypes.weekdayBarChart:
               switch (conf.timeSpan) {
-                case GraphTimespans.week:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
                 case GraphTimespans.month:
                   return Expanded(
-                    child: buildMonthBarChart(
-                      context,
-                      tagManager,
-                      conf,
-                      now,
-                      colors,
-                    ),
+                    child: buildMonthBarChart(context, conf, now, colors),
                   );
                 case GraphTimespans.year:
                   // TODO: Handle this case.
@@ -104,43 +88,26 @@ class ChartDashboard extends StatelessWidget {
               }
             case GraphTypes.lineChart:
               switch (conf.timeSpan) {
-                case GraphTimespans.week:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
                 case GraphTimespans.month:
                   return Expanded(
-                    child: buildMonthLineChart(
-                      context,
-                      tagManager,
-                      conf,
-                      now,
-                      colors,
-                    ),
+                    child: buildMonthLineChart(context, conf, now, colors),
                   );
                 case GraphTimespans.year:
                   // TODO: Handle this case.
                   throw UnimplementedError();
               }
             case GraphTypes.radar:
+              // TODO: can create new types: radarHabit and radarCategory?
+              //       alternatively make it an option at tag creation
               switch (conf.timeSpan) {
-                case GraphTimespans.week:
-                  // TODO: Handle this case.
-                  throw UnimplementedError();
                 case GraphTimespans.month:
                   return Expanded(
-                    child: buildMonthHabitRadar(
-                      context,
-                      tagManager,
-                      conf,
-                      now,
-                      colors,
-                    ),
+                    child: buildMonthHabitRadar(context, conf, now, colors),
                   );
                 case GraphTimespans.year:
-                  // TODO: Handle this case.
-                  // This one has special rules, and uses categories, see:
-                  // https://github.com/HoppenR/flutter-journal-app/issues/10
-                  throw UnimplementedError();
+                  return Expanded(
+                    child: buildYearCategoryRadar(context, conf, now, colors),
+                  );
               }
           }
         },

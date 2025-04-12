@@ -18,7 +18,8 @@ class CalendarWeek extends StatefulWidget {
 class CalendarWeekState extends State<CalendarWeek> {
   bool _isExpanded = false;
 
-  double _getMaxTagColumnWidth(BuildContext context, TagManager tagManager) {
+  double _getMaxTagColumnWidth(BuildContext context) {
+    final TagManager tagManager = context.watch<TagManager>();
     final TagData longestTag = tagManager.tags.values.reduce(
       (TagData lhs, TagData rhs) {
         if (lhs.name.length > rhs.name.length) {
@@ -66,10 +67,10 @@ class CalendarWeekState extends State<CalendarWeek> {
         padding: const EdgeInsets.all(gridEdgeInset),
         child: Row(
           children: <Widget>[
-            _buildTagBannerColumn(context, tagManager, cellHeight, tagCount),
+            _buildTagBannerColumn(context, cellHeight, tagCount),
             const SizedBox(width: 4.0),
             Expanded(
-              child: _buildCalendarGrid(context, tagManager, cellHeight),
+              child: _buildCalendarGrid(context, cellHeight),
             ),
           ],
         ),
@@ -77,11 +78,8 @@ class CalendarWeekState extends State<CalendarWeek> {
     });
   }
 
-  Widget _buildCalendarGrid(
-    BuildContext context,
-    TagManager tagManager,
-    double cellHeight,
-  ) {
+  Widget _buildCalendarGrid(BuildContext context, double cellHeight) {
+    final TagManager tagManager = context.watch<TagManager>();
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -100,7 +98,7 @@ class CalendarWeekState extends State<CalendarWeek> {
         return TextButton(
           onPressed: () => _showTagDayOverview(context, curDay),
           style: _buttonStyle(context),
-          child: _buttonContent(context, tagManager, curDay, tagIndex),
+          child: _buttonContent(context, curDay, tagIndex),
         );
       },
     );
@@ -108,7 +106,6 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   Widget _buildTagBannerColumn(
     BuildContext context,
-    TagManager tagManager,
     double cellHeight,
     int tagCount,
   ) {
@@ -120,7 +117,7 @@ class CalendarWeekState extends State<CalendarWeek> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        width: _isExpanded ? _getMaxTagColumnWidth(context, tagManager) : 40.0,
+        width: _isExpanded ? _getMaxTagColumnWidth(context) : 40.0,
         child: GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -131,7 +128,7 @@ class CalendarWeekState extends State<CalendarWeek> {
           ),
           itemCount: tagCount,
           itemBuilder: (BuildContext context, int index) {
-            return _buildTagBannerCell(context, tagManager, index, cellHeight);
+            return _buildTagBannerCell(context, index, cellHeight);
           },
         ),
       ),
@@ -140,10 +137,10 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   Widget _buildTagBannerCell(
     BuildContext context,
-    TagManager tagManager,
     int index,
     double cellHeight,
   ) {
+    final TagManager tagManager = context.watch<TagManager>();
     final TagData curTag = tagManager.tags.values.elementAt(index);
     return Container(
       height: cellHeight,
@@ -189,14 +186,14 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   Widget _buttonContent(
     BuildContext context,
-    TagManager tagManager,
     DateTime curDay,
     int tagIndex,
   ) {
+    final TagManager tagManager = context.watch<TagManager>();
     final int targetTagId = tagManager.tags.keys.elementAt(tagIndex);
     final AppliedTagData? tag = tagManager.appliedTags[curDay]
         ?.firstWhereOrNull((AppliedTagData t) => t.id == targetTagId);
-    final Widget? tagShorthand = _buildTagShorthand(tagManager, tag);
+    final Widget? tagShorthand = _buildTagShorthand(tag);
     return Stack(
       alignment: Alignment.center,
       children: <Widget>[
@@ -210,10 +207,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     );
   }
 
-  Widget? _buildTagShorthand(
-    TagManager tagManager,
-    AppliedTagData? appliedTag,
-  ) {
+  Widget? _buildTagShorthand(AppliedTagData? appliedTag) {
     if (appliedTag == null) {
       return null;
     }

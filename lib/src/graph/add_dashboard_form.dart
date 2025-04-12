@@ -16,10 +16,11 @@ class AddDashboardForm extends StatefulWidget {
 
 class AddDashboardFormState extends State<AddDashboardForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final List<int?> _selectedTagIds = <int?>[null];
+  final List<int?> _selectedIds = <int?>[null];
   final TextEditingController _nameController = TextEditingController();
 
   GraphTypes? _selectedType;
+  GraphTimespans? _selectedTimespan;
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +46,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           children: <Widget>[
             _buildDashboardFormName(context),
             _buildDashboardOptionType(context),
+            _buildDashboardTimespan(context),
             ..._buildOptionFields(context),
           ],
         ),
@@ -91,10 +93,8 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         ),
       ],
       onChanged: (GraphTypes? value) {
-        if (value == GraphTypes.radar) {
-          while (_selectedTagIds.length < 3) {
-            _selectedTagIds.add(null);
-          }
+        while (_selectedIds.length < (value?.minimumItemAmt ?? 0)) {
+          _selectedIds.add(null);
         }
         setState(() {
           _selectedType = value;
@@ -117,45 +117,32 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       ..._buildOptionInputs(context),
-      if (_selectedTagIds.length < 4)
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            setState(() {
-              _selectedTagIds.add(null);
-            });
-          },
-        ),
+      IconButton(
+        icon: const Icon(Icons.add),
+        onPressed: () {
+          setState(() {
+            _selectedIds.add(null);
+          });
+        },
+      ),
     ];
   }
 
   List<Row> _buildOptionInputs(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
     return List<Row>.generate(
-      _selectedTagIds.length,
+      _selectedIds.length,
       (int index) {
         return Row(
           children: <Widget>[
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: _selectedTagIds[index],
-                items: tagManager.tags.entries.where(
-                  (MapEntry<int, TagData> val) {
-                    // Must include its own selection as a possible value
-                    return val.key == _selectedTagIds[index] ||
-                        !_selectedTagIds.contains(val.key);
-                  },
-                ).map(
-                  (MapEntry<int, TagData> entry) {
-                    return DropdownMenuItem<int>(
-                      value: entry.key,
-                      child: Text(entry.value.name),
-                    );
-                  },
-                ).toList(growable: false),
+                value: _selectedIds[index],
+                items: _selectedTimespan != GraphTimespans.year
+                    ? _buildTagSelectDropdowns(context, index)
+                    : _buildCategorySelectDropdowns(context, index),
                 onChanged: (int? newValue) {
                   setState(() {
-                    _selectedTagIds[index] = newValue;
+                    _selectedIds[index] = newValue;
                   });
                 },
                 validator: (int? value) {
@@ -166,12 +153,12 @@ class AddDashboardFormState extends State<AddDashboardForm> {
                 },
               ),
             ),
-            if (index > (_selectedType?.minimumItemAmt ?? 0))
+            if (index >= (_selectedType?.minimumItemAmt ?? 1))
               IconButton(
                 icon: const Icon(Icons.remove_circle),
                 onPressed: () {
                   setState(() {
-                    _selectedTagIds.removeAt(index);
+                    _selectedIds.removeAt(index);
                   });
                 },
               ),
@@ -196,7 +183,8 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             GraphConfiguration(
               type: _selectedType!,
               // NOTE: DropdownMenuItem validators assert not null for each
-              ids: _selectedTagIds.cast<int>(),
+              ids: _selectedIds.cast<int>(),
+              timeSpan: _selectedTimespan!,
             ),
           );
           dashboardManager.addDashboard(
@@ -211,5 +199,80 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       },
       child: Text(AppLocalizations.of(context).saveTag),
     );
+  }
+
+  Widget _buildDashboardTimespan(BuildContext context) {
+    return DropdownButtonFormField<GraphTimespans>(
+      value: _selectedTimespan,
+      hint: const Text('timespan experimental! (only month supported for now)'),
+      items: const <DropdownMenuItem<GraphTimespans>>[
+        DropdownMenuItem<GraphTimespans>(
+          value: GraphTimespans.year,
+          child: Text('current year'),
+        ),
+        DropdownMenuItem<GraphTimespans>(
+          value: GraphTimespans.month,
+          child: Text('current month'),
+        ),
+      ],
+      onChanged: (GraphTimespans? value) {
+        setState(() {
+          _selectedTimespan = value;
+          _selectedIds.clear();
+          while (_selectedIds.length < (_selectedType?.minimumItemAmt ?? 0)) {
+            _selectedIds.add(null);
+          }
+        });
+      },
+      validator: (GraphTimespans? value) {
+        if (value == null) {
+          // TODO: localize
+          return 'timespan required';
+        }
+        return null;
+      },
+    );
+  }
+
+  List<DropdownMenuItem<int>> _buildTagSelectDropdowns(
+    BuildContext context,
+    int index,
+  ) {
+    final TagManager tagManager = context.watch<TagManager>();
+    return tagManager.tags.entries.where(
+      (MapEntry<int, TagData> val) {
+        // Must include its own selection as a possible value
+        return val.key == _selectedIds[index] ||
+            !_selectedIds.contains(val.key);
+      },
+    ).map(
+      (MapEntry<int, TagData> entry) {
+        return DropdownMenuItem<int>(
+          value: entry.key,
+          child: Text(entry.value.name),
+        );
+      },
+    ).toList(growable: false);
+  }
+
+  List<DropdownMenuItem<int>> _buildCategorySelectDropdowns(
+    BuildContext context,
+    int index,
+  ) {
+    final TagManager tagManager = context.watch<TagManager>();
+    return tagManager.categories.entries.where(
+      (MapEntry<int, TagCategory> val) {
+        // Must include its own selection as a possible value
+        return val.key == _selectedIds[index] ||
+            !_selectedIds.contains(val.key);
+      },
+    ).map(
+      (MapEntry<int, TagCategory> entry) {
+        return DropdownMenuItem<int>(
+          value: entry.key,
+          child: Text(entry.value.name),
+        );
+      },
+    ).toList(growable: false);
   }
 }

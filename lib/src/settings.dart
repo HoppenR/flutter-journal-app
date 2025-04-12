@@ -214,7 +214,7 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
-    final TagManager tagManager = context.read<TagManager>();
+    final TagManager tagManager = context.watch<TagManager>();
     final ChartDashboardManager dashboardManager =
         context.read<ChartDashboardManager>();
     return AlertDialog(
