@@ -95,6 +95,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         ),
       ],
       onChanged: (GraphTypes? value) {
+        _selectedIds.clear();
         while (_selectedIds.length < (value?.minimumItemAmt ?? 0)) {
           _selectedIds.add(null);
         }
@@ -119,14 +120,15 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       ..._buildOptionInputs(context),
-      IconButton(
-        icon: const Icon(Icons.add),
-        onPressed: () {
-          setState(() {
-            _selectedIds.add(null);
-          });
-        },
-      ),
+      if (_selectedIds.length < (_selectedType?.maximumItemAmt ?? 9))
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+            setState(() {
+              _selectedIds.add(null);
+            });
+          },
+        ),
     ];
   }
 
