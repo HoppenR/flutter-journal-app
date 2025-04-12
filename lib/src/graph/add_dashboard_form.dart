@@ -219,7 +219,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         }
       },
       // TODO: Localize
-      child: const Text('add another...'),
+      child: const Text('add another graph to dashboard'),
     );
   }
 
