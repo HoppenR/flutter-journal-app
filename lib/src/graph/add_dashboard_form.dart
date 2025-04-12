@@ -21,6 +21,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
 
   GraphTypes? _selectedType;
   GraphTimespans? _selectedTimespan;
+  final List<GraphConfiguration> _configurations = <GraphConfiguration>[];
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +30,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(AppLocalizations.of(context).addDashboard),
         actions: <Widget>[
+          _buildTagFormAddMoreButton(context),
           _buildTagFormValidateButton(context),
         ],
       ),
@@ -176,10 +178,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           // NOTE: selectedType validator asserts not null before this
-          final List<GraphConfiguration> configurations =
-              <GraphConfiguration>[];
-          // TODO: Allow user to add more than one configuration per dashboard
-          configurations.add(
+          _configurations.add(
             GraphConfiguration(
               type: _selectedType!,
               // NOTE: DropdownMenuItem validators assert not null for each
@@ -191,13 +190,36 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             ChartDashboardData(
               title: _nameController.text,
               icon: Icons.shield_moon,
-              configurations: configurations,
+              configurations: _configurations,
             ),
           );
           Navigator.of(context).pop(true);
         }
       },
       child: Text(AppLocalizations.of(context).saveTag),
+    );
+  }
+
+  Widget _buildTagFormAddMoreButton(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        if (_formKey.currentState?.validate() ?? false) {
+          _configurations.add(
+            GraphConfiguration(
+              type: _selectedType!,
+              ids: List<int>.from(_selectedIds),
+              timeSpan: _selectedTimespan!,
+            ),
+          );
+          setState(() {
+            _selectedType = null;
+            _selectedIds.clear();
+            _selectedTimespan = null;
+          });
+        }
+      },
+      // TODO: Localize
+      child: const Text('add another...'),
     );
   }
 
