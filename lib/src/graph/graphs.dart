@@ -135,8 +135,7 @@ List<ScatterSpot> _getScatterSpots(
             context,
             (index % 7).toDouble(),
             (index ~/ 7).toDouble(),
-            colors,
-            tagIndex,
+            colors[tagIndex % colors.length],
           ),
         );
       }
@@ -149,17 +148,16 @@ ScatterSpot _makeSpot(
   BuildContext context,
   double x,
   double y,
-  List<Color> colors,
-  int tagIndex,
+  Color color,
 ) {
   final Size screenSz = MediaQuery.of(context).size;
-  final double baseRadius = screenSz.width * 0.005 * (colors.length - tagIndex);
+  final double baseRadius = (screenSz.width + screenSz.height) * 0.02 - 20.0;
   return ScatterSpot(
     x + 0.5,
     -y + 4.5,
     dotPainter: FlDotCirclePainter(
       radius: baseRadius,
-      color: colors[tagIndex % colors.length],
+      color: color,
     ),
   );
 }

@@ -12,6 +12,17 @@ extension GraphType on GraphTypes {
     }
   }
 
+  int get maximumItemAmt {
+    switch (this) {
+      case GraphTypes.heatmap:
+        return 1;
+      case GraphTypes.weekdayBarChart:
+      case GraphTypes.lineChart:
+      case GraphTypes.radar:
+        return 9;
+    }
+  }
+
   static GraphTypes fromJson(Map<String, dynamic> json) {
     if (json['type'] == 'heatmap') {
       return GraphTypes.heatmap;
