@@ -117,8 +117,8 @@ class _JournalPageState extends State<JournalPage>
     with SingleTickerProviderStateMixin {
   _JournalPages _selectedViewIndex = _JournalPages.calendar;
 
-  static final DateTime _firstDate = DateTime(1);
-  static final DateTime _lastDate = DateTime(2100, 12, 31);
+  static final DateTime _firstDate = DateTime.utc(1);
+  static final DateTime _lastDate = DateTime.utc(2100, 12, 31);
   static const int _firstPage = 0;
 
   late final int _initialPage;
@@ -134,10 +134,10 @@ class _JournalPageState extends State<JournalPage>
   void initState() {
     super.initState();
     final DateTime now = DateTime.now();
-    _initialDate = DateTime(now.year, now.month, now.day)
+    _initialDate = DateTime.utc(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1));
     _initialPage = _dateToPageIndex(_initialDate);
-    _lastPage = _dateToPageIndex(DateTime(2100, 12, 31));
+    _lastPage = _dateToPageIndex(_lastDate);
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
     _pageController = PageController(initialPage: _initialPage);
 
@@ -340,13 +340,13 @@ class _JournalPageState extends State<JournalPage>
   }
 
   int _dateToPageIndex(DateTime date) {
-    final int diffDays = date.difference(_firstDate).inDays;
+    final int diffDays = date.difference(_firstDate).inDays + 1;
     return diffDays ~/ 7;
   }
 
   // This is a purely cosmetic number displayed on the screen and might be wrong
   int _dateToWeekNumber(DateTime date) {
-    return (date.difference(DateTime(date.year)).inDays / 7).ceil() + 1;
+    return (date.difference(DateTime.utc(date.year)).inDays / 7).ceil() + 1;
   }
 
   void _jumpToPage(int page) {
