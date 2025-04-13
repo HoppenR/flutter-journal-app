@@ -22,6 +22,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   GraphTypes? _selectedType;
   GraphTimespans? _selectedTimespan;
   final List<GraphConfiguration> _configurations = <GraphConfiguration>[];
+  int tagFormNumber = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +188,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
               // NOTE: DropdownMenuItem validators assert not null for each
               ids: _selectedIds.cast<int>(),
               timeSpan: _selectedTimespan!,
+              offset: Offset(tagFormNumber.toDouble(), 0.0),
             ),
           );
           dashboardManager.addDashboard(
@@ -212,6 +214,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
               type: _selectedType!,
               ids: List<int>.from(_selectedIds),
               timeSpan: _selectedTimespan!,
+              offset: Offset((tagFormNumber++).toDouble(), 0.0),
             ),
           );
           setState(() {
@@ -229,7 +232,10 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   Widget _buildDashboardTimespan(BuildContext context) {
     return DropdownButtonFormField<GraphTimespans>(
       value: _selectedTimespan,
-      hint: const Text('timespan experimental! (only month supported for now)'),
+      // TODO: Localize
+      hint: const Text(
+        'timespan (experimental, only "month" supported for line/bar)',
+      ),
       items: const <DropdownMenuItem<GraphTimespans>>[
         DropdownMenuItem<GraphTimespans>(
           value: GraphTimespans.year,
@@ -251,7 +257,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       },
       validator: (GraphTimespans? value) {
         if (value == null) {
-          // TODO: localize
+          // TODO: Localize
           return 'timespan required';
         }
         return null;

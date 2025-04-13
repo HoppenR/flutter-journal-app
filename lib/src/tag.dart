@@ -221,7 +221,8 @@ class TagData {
     this.icon,
     this.order, [
     this.categoryId,
-  ]) : type = TagTypes.list;
+  ])  : type = TagTypes.list,
+        key = ValueKey<int>(id);
   TagData.toggle(
     this.id,
     this.name,
@@ -229,7 +230,8 @@ class TagData {
     this.order, [
     this.categoryId,
   ])  : type = TagTypes.toggle,
-        listData = null;
+        listData = null,
+        key = ValueKey<int>(id);
   TagData.multi(
     this.id,
     this.name,
@@ -237,7 +239,8 @@ class TagData {
     this.icon,
     this.order, [
     this.categoryId,
-  ]) : type = TagTypes.multi;
+  ])  : type = TagTypes.multi,
+        key = ValueKey<int>(id);
 
   factory TagData.fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
@@ -300,7 +303,7 @@ class TagData {
   int? categoryId;
   final List<String>? listData;
 
-  final Key key = UniqueKey();
+  final Key key;
 }
 
 class AppliedTagData {

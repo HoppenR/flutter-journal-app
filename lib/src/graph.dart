@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'graph/configuration.dart';
 import 'graph/dashboard.dart';
+import 'graph/grid.dart';
 
 class ChartDashboardManager extends ChangeNotifier {
   ChartDashboardManager({
@@ -46,16 +47,16 @@ class GraphPage extends StatefulWidget {
 }
 
 class _GraphPageState extends State<GraphPage> {
-  int? _selectedDashboardIndex;
+  int? _dashboardIndex;
 
   @override
   Widget build(BuildContext context) {
     final ChartDashboardManager dashboardManager =
         context.watch<ChartDashboardManager>();
 
-    if (_selectedDashboardIndex != null &&
-        _selectedDashboardIndex! >= dashboardManager.dashboards.length) {
-      _selectedDashboardIndex = null;
+    if (_dashboardIndex != null &&
+        _dashboardIndex! >= dashboardManager.dashboards.length) {
+      _dashboardIndex = null;
     }
 
     return Padding(
@@ -74,7 +75,7 @@ class _GraphPageState extends State<GraphPage> {
                 return IconButton(
                   onPressed: () {
                     setState(() {
-                      _selectedDashboardIndex = index;
+                      _dashboardIndex = index;
                     });
                   },
                   icon: Icon(
@@ -85,15 +86,16 @@ class _GraphPageState extends State<GraphPage> {
               },
             ),
           ),
-          if (_selectedDashboardIndex != null) ...<Widget>[
+          if (_dashboardIndex != null) ...<Widget>[
             Text(
-              dashboardManager.dashboards[_selectedDashboardIndex!].title,
+              dashboardManager.dashboards[_dashboardIndex!].title,
               style: const TextStyle(fontSize: 50.0),
             ),
             Expanded(
-              child: ChartDashboard(
-                configurations: dashboardManager
-                    .dashboards[_selectedDashboardIndex!].configurations,
+              child: ChartDashboardGrid(
+                dashboard: dashboardManager.dashboards[_dashboardIndex!],
+                // TODO: Introduce dashboard ID and use ValueKey instead?
+                key: UniqueKey(),
               ),
             ),
           ],
