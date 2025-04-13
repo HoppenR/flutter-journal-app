@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 enum GraphTypes { heatmap, weekdayBarChart, lineChart, radar }
 
 extension GraphType on GraphTypes {
@@ -63,15 +65,21 @@ extension GraphTimespan on GraphTimespans {
 class GraphConfiguration {
   GraphConfiguration({
     required this.type,
-    required this.ids,
     this.timeSpan = GraphTimespans.month,
+    required this.ids,
+    this.size = const Size(1.0, 1.0),
+    required this.offset,
   });
 
   factory GraphConfiguration.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> size = json['size'];
+    final Map<String, dynamic> offset = json['offset'];
     return GraphConfiguration(
       type: GraphType.fromJson(json),
       timeSpan: GraphTimespan.fromJson(json),
-      ids: List<int>.from(json['tagIds'] ?? <int>[]),
+      ids: List<int>.from(json['ids']),
+      size: Size(size['width']!, size['height']!),
+      offset: Offset(offset['dx']!, offset['dy']!),
     );
   }
 
@@ -79,18 +87,15 @@ class GraphConfiguration {
     return <String, dynamic>{
       'type': type.toJson(),
       'timeSpan': timeSpan.toJson(),
-      'tagIds': ids,
+      'ids': ids,
+      'size': <String, double>{'width': size.width, 'height': size.height},
+      'offset': <String, double>{'dx': offset.dx, 'dy': offset.dy},
     };
   }
 
   final GraphTypes type;
   final GraphTimespans timeSpan;
-
-  // NOTE: should not exceed size 4 atm, since we are indexing into 4 primary
-  //       colors
-  // NOTE: this is tag IDs for most `GraphType`s
-  // NOTE: this is graph IDs for radar chart
-  //       which needs at least 3 graph IDs to render, if it ever drops below
-  //       then the config should be deleted
   final List<int> ids;
+  Size size;
+  Offset offset;
 }

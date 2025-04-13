@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -73,7 +72,7 @@ Future<void> saveAppliedTags(BuildContext context) async {
       tagManager.appliedTags.map(
     (DateTime key, List<AppliedTagData> value) {
       return MapEntry<String, List<Map<String, dynamic>>>(
-        DateFormat('yyyy-MM-dd').format(key),
+        key.toIso8601String(),
         value.map((AppliedTagData tag) => tag.toJson()).toList(growable: false),
       );
     },

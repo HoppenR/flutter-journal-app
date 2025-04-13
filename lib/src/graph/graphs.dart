@@ -124,12 +124,8 @@ List<ScatterSpot> _getScatterSpots(
               continue;
             }
         }
-        final int firstDayOffset = DateUtils.firstDayOffset(
-          entry.key.year,
-          entry.key.month,
-          MaterialLocalizations.of(context),
-        );
-        final int index = (entry.key.day - 1) + firstDayOffset - 1;
+        final int firstWeekdayInMonth = entry.key.copyWith(day: 1).weekday - 1;
+        final int index = (entry.key.day - 1) + firstWeekdayInMonth - 1;
         spots.add(
           _makeSpot(
             context,
@@ -150,8 +146,7 @@ ScatterSpot _makeSpot(
   double y,
   Color color,
 ) {
-  final Size screenSz = MediaQuery.of(context).size;
-  final double baseRadius = (screenSz.width + screenSz.height) * 0.02 - 20.0;
+  const double baseRadius = 10;
   return ScatterSpot(
     x + 0.5,
     -y + 4.5,

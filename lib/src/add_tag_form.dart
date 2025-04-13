@@ -157,14 +157,17 @@ class AddTagFormState extends State<AddTagForm> {
                 GraphConfiguration(
                   type: GraphTypes.lineChart,
                   ids: <int>[addedId],
+                  offset: Offset.zero,
                 ),
                 GraphConfiguration(
                   type: GraphTypes.weekdayBarChart,
                   ids: <int>[addedId],
+                  offset: const Offset(1.0, 0.0),
                 ),
                 GraphConfiguration(
                   type: GraphTypes.heatmap,
                   ids: <int>[addedId],
+                  offset: const Offset(2.0, 0.0),
                 ),
               ],
             ),
