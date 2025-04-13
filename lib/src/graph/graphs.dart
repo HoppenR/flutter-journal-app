@@ -124,7 +124,7 @@ List<ScatterSpot> _getScatterSpots(
               continue;
             }
         }
-        final int firstWeekdayInMonth = entry.key.copyWith(day: 1).weekday - 1;
+        final int firstWeekdayInMonth = entry.key.copyWith(day: 1).weekday;
         final int index = (entry.key.day - 1) + firstWeekdayInMonth - 1;
         spots.add(
           _makeSpot(
