@@ -206,7 +206,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   }
 
   Widget _buildTagFormAddMoreButton(BuildContext context) {
-    return TextButton(
+    return IconButton(
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           _configurations.add(
@@ -225,7 +225,8 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         }
       },
       // TODO: Localize
-      child: const Text('add another graph to dashboard'),
+      tooltip: 'add another graph',
+      icon: const Icon(Icons.addchart),
     );
   }
 
