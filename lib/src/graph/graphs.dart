@@ -13,11 +13,20 @@ import 'configuration.dart';
 Widget buildYearHeatMap(
   BuildContext context,
   GraphConfiguration conf,
+  Size size,
   DateTime now,
   List<Color> colors,
 ) {
   Widget makeRowBetweenMonths(int start, int end) {
-    return _buildMonthRowHeatMap(context, conf, now, colors, start, end);
+    return _buildMonthRowHeatMap(
+      context,
+      conf,
+      size,
+      now,
+      colors,
+      start,
+      end,
+    );
   }
 
   return Column(
@@ -33,6 +42,7 @@ Widget buildYearHeatMap(
 Widget _buildMonthRowHeatMap(
   BuildContext context,
   GraphConfiguration conf,
+  Size size,
   DateTime now,
   List<Color> colors,
   int monthStart,
@@ -46,6 +56,7 @@ Widget _buildMonthRowHeatMap(
             child: buildMonthHeatMap(
               context,
               conf,
+              Size(size.width / 3.0, size.height / 4.0),
               now.copyWith(month: month),
               colors[month % colors.length],
             ),
@@ -58,6 +69,7 @@ Widget _buildMonthRowHeatMap(
 Widget buildMonthHeatMap(
   BuildContext context,
   GraphConfiguration conf,
+  Size size,
   DateTime now,
   Color color,
 ) {
@@ -89,6 +101,7 @@ Widget buildMonthHeatMap(
       scatterSpots: _getScatterSpots(
         context,
         conf,
+        size,
         now,
         color,
       ),
@@ -99,6 +112,7 @@ Widget buildMonthHeatMap(
 List<ScatterSpot> _getScatterSpots(
   BuildContext context,
   GraphConfiguration conf,
+  Size size,
   DateTime now,
   Color color,
 ) {
@@ -131,6 +145,7 @@ List<ScatterSpot> _getScatterSpots(
             context,
             (index % 7).toDouble(),
             (index ~/ 7).toDouble(),
+            size,
             color,
           ),
         );
@@ -144,9 +159,14 @@ ScatterSpot _makeSpot(
   BuildContext context,
   double x,
   double y,
+  Size size,
   Color color,
 ) {
-  const double baseRadius = 10;
+  final Size squareSize = Size(
+    size.width / DateTime.daysPerWeek,
+    size.height / 5.0,
+  );
+  final double baseRadius = squareSize.shortestSide / 2.0;
   return ScatterSpot(
     x + 0.5,
     -y + 4.5,
@@ -161,6 +181,7 @@ ScatterSpot _makeSpot(
 Widget buildMonthBarChart(
   BuildContext context,
   GraphConfiguration conf,
+  Size size,
   DateTime now,
   List<Color> colors,
 ) {
@@ -188,13 +209,13 @@ Widget buildMonthBarChart(
       maxY: 100.0,
       minY: 0.0,
       barGroups: <BarChartGroupData>[
-        _buildBarChartGroupData(context, 0, percentData[0], colors),
-        _buildBarChartGroupData(context, 1, percentData[1], colors),
-        _buildBarChartGroupData(context, 2, percentData[2], colors),
-        _buildBarChartGroupData(context, 3, percentData[3], colors),
-        _buildBarChartGroupData(context, 4, percentData[4], colors),
-        _buildBarChartGroupData(context, 5, percentData[5], colors),
-        _buildBarChartGroupData(context, 6, percentData[6], colors),
+        _buildBarChartGroupData(context, 0, percentData[0], size, colors),
+        _buildBarChartGroupData(context, 1, percentData[1], size, colors),
+        _buildBarChartGroupData(context, 2, percentData[2], size, colors),
+        _buildBarChartGroupData(context, 3, percentData[3], size, colors),
+        _buildBarChartGroupData(context, 4, percentData[4], size, colors),
+        _buildBarChartGroupData(context, 5, percentData[5], size, colors),
+        _buildBarChartGroupData(context, 6, percentData[6], size, colors),
       ],
       borderData: FlBorderData(
         show: false,
@@ -229,8 +250,10 @@ BarChartGroupData _buildBarChartGroupData(
   BuildContext context,
   int x,
   List<double> ys,
+  Size size,
   List<Color> colors,
 ) {
+  final double baseWidth = size.width / DateTime.daysPerWeek / 2.0;
   return BarChartGroupData(
     x: x,
     barRods: <BarChartRodData>[
@@ -238,7 +261,7 @@ BarChartGroupData _buildBarChartGroupData(
         return BarChartRodData(
           toY: entry.value,
           color: colors[entry.key % colors.length],
-          width: 14.0,
+          width: baseWidth,
         );
       })
     ],
@@ -422,7 +445,7 @@ Widget buildMonthHabitRadar(
   BuildContext context,
   GraphConfiguration conf,
   DateTime now,
-  List<Color> colors,
+  Color color,
 ) {
   // User case one:
   // we want to view monthly view and see which HABIT has been used the most
@@ -464,8 +487,16 @@ Widget buildMonthHabitRadar(
         );
       },
       radarShape: RadarShape.polygon,
+      tickCount: 3,
+      ticksTextStyle: const TextStyle(color: Colors.transparent),
+      tickBorderData: const BorderSide(width: 0.4),
+      gridBorderData: const BorderSide(width: 0.4),
+      radarBorderData: const BorderSide(width: 0.4),
       dataSets: <RadarDataSet>[
         RadarDataSet(
+          entryRadius: 0.0,
+          fillColor: color.withAlpha(200),
+          borderColor: color,
           dataEntries: radarChartData.entries.map(
             (MapEntry<int, RadarGraphData> arg) {
               return RadarEntry(value: arg.value.count);

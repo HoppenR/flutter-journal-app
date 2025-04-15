@@ -234,7 +234,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       value: _selectedTimespan,
       // TODO: Localize
       hint: const Text(
-        'timespan (experimental, only "month" supported for line/bar)',
+        'timespan(month works fully)',
       ),
       items: const <DropdownMenuItem<GraphTimespans>>[
         DropdownMenuItem<GraphTimespans>(
