@@ -321,7 +321,7 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
                         width: 2.0,
                       ),
               ),
-              child: _buildGraph(context, widget.conf, colors),
+              child: _buildGraph(context, colors),
             ),
             if (_resizeMode) _buildDragHandle(context),
           ],
@@ -332,31 +332,54 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
 
   Widget _buildGraph(
     BuildContext context,
-    GraphConfiguration conf,
     List<Color> colors,
   ) {
-    // TODO: Pass on BoxConstraints into graphs so they can resize easier
+    // TODO: User should be able to customize time.
+    //       perhaps by sliding the graph to the sides, it might inc/dec by month/year
+    //       depending on the GraphTimespan?
+    final Size graphSize = Size(
+      widget.conf.size.width * widget.gridSize.width,
+      widget.conf.size.height * widget.gridSize.height,
+    );
     final DateTime time = DateTime.now();
-    switch (conf.type) {
+    switch (widget.conf.type) {
       case GraphTypes.heatmap:
-        switch (conf.timeSpan) {
+        switch (widget.conf.timeSpan) {
           case GraphTimespans.month:
-            return buildMonthHeatMap(context, conf, time, colors[0]);
+            return buildMonthHeatMap(
+              context,
+              widget.conf,
+              graphSize,
+              time,
+              colors[0],
+            );
           case GraphTimespans.year:
-            return buildYearHeatMap(context, conf, time, colors);
+            return buildYearHeatMap(
+              context,
+              widget.conf,
+              graphSize,
+              time,
+              colors,
+            );
         }
       case GraphTypes.weekdayBarChart:
-        switch (conf.timeSpan) {
+        switch (widget.conf.timeSpan) {
           case GraphTimespans.month:
-            return buildMonthBarChart(context, conf, time, colors);
+            return buildMonthBarChart(
+              context,
+              widget.conf,
+              graphSize,
+              time,
+              colors,
+            );
           case GraphTimespans.year:
             // TODO: Handle this case.
             throw UnimplementedError();
         }
       case GraphTypes.lineChart:
-        switch (conf.timeSpan) {
+        switch (widget.conf.timeSpan) {
           case GraphTimespans.month:
-            return buildMonthLineChart(context, conf, time, colors);
+            return buildMonthLineChart(context, widget.conf, time, colors);
           case GraphTimespans.year:
             // TODO: Handle this case.
             throw UnimplementedError();
@@ -364,11 +387,21 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
       case GraphTypes.radar:
         // TODO: can create new types: radarHabit and radarCategory?
         //       alternatively make it an option at tag creation
-        switch (conf.timeSpan) {
+        switch (widget.conf.timeSpan) {
           case GraphTimespans.month:
-            return buildMonthHabitRadar(context, conf, time, colors);
+            return buildMonthHabitRadar(
+              context,
+              widget.conf,
+              time,
+              colors[0],
+            );
           case GraphTimespans.year:
-            return buildYearCategoryRadar(context, conf, time, colors);
+            return buildYearCategoryRadar(
+              context,
+              widget.conf,
+              time,
+              colors,
+            );
         }
     }
   }
