@@ -25,6 +25,7 @@ class ChartDashboardGrid extends StatelessWidget {
             children: dashboard.configurations.map(
               (GraphConfiguration conf) {
                 return DraggableResizableGraph(
+                  dashboard: dashboard,
                   gridSize: gridBoxSize,
                   conf: conf,
                 );
@@ -40,10 +41,12 @@ class ChartDashboardGrid extends StatelessWidget {
 class DraggableResizableGraph extends StatefulWidget {
   const DraggableResizableGraph({
     super.key,
+    required this.dashboard,
     required this.gridSize,
     required this.conf,
   });
 
+  final ChartDashboardData dashboard;
   final Size gridSize;
   final GraphConfiguration conf;
 
@@ -82,7 +85,6 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
 
   @override
   Widget build(BuildContext context) {
-    final Size snappedPreviewSize = _snapToGridSize(_previewSize);
     final List<Color> colors = <Color>[
       Theme.of(context).colorScheme.primary,
       Theme.of(context).colorScheme.inversePrimary,
@@ -97,168 +99,114 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
     ];
     return Stack(
       children: <Widget>[
-        Positioned(
-          left: _containerPosition.dx,
-          top: _containerPosition.dy,
-          child: LongPressDraggable<Offset>(
-            data: _containerPosition,
-            onDragStarted: () {
-              _showPreview = true;
-              _previewPosition = _containerPosition;
-            },
-            onDragUpdate: (DragUpdateDetails details) {
-              // While dragging, update the preview position.
-              final RenderBox? box = context.findRenderObject() as RenderBox?;
-              final Offset localOffset =
-                  box!.globalToLocal(details.globalPosition) - _dragOffset;
-              setState(() {
-                if (_containerSize.width + localOffset.dx <=
-                        widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
-                    _containerSize.height + localOffset.dy <=
-                        widget.gridSize.height *
-                            ChartDashboardGrid.gridCellsY &&
-                    localOffset.dx >= 0 &&
-                    localOffset.dy >= 0) {
-                  // TODO: smoother experience if this moves the axis that is
-                  //       in bounds even if both aren't
-                  _previewPosition = _snapToGridOffset(localOffset);
-                }
-              });
-            },
-            onDragEnd: (DraggableDetails details) {
-              final RenderBox? box = context.findRenderObject() as RenderBox?;
-              final Offset newPos = box!.globalToLocal(details.offset);
-              // TODO: newPosGrid might collide, should check collisions
-              final Offset newPosGrid = _snapToGridOffset(newPos);
-              setState(() {
-                if (_containerSize.width + newPosGrid.dx <=
-                        widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
-                    _containerSize.height + newPosGrid.dy <=
-                        widget.gridSize.height *
-                            ChartDashboardGrid.gridCellsY &&
-                    newPosGrid.dx >= 0 &&
-                    newPosGrid.dy >= 0) {
-                  _containerPosition = newPosGrid;
-                  widget.conf.offset = Offset(
-                    newPosGrid.dx / widget.gridSize.width,
-                    newPosGrid.dy / widget.gridSize.height,
-                  );
-                  saveChartDashboardData(context);
-                }
-                _resizeMode = true;
-                _showPreview = false;
-              });
-            },
-            feedback: Container(
-              height: _containerSize.height,
-              width: _containerSize.width,
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Icon(Icons.reorder),
-            ),
-            childWhenDragging: Container(
-              height: _containerSize.height,
-              width: _containerSize.width,
-              color: Theme.of(context).colorScheme.secondaryFixed,
-            ),
-            child: GestureDetector(
-              onPanDown: (DragDownDetails details) {
-                setState(() {
-                  _dragOffset = details.localPosition;
-                  if (_dragOffset.dy >= _containerSize.height - 20.0 &&
-                      _dragOffset.dx >= _containerSize.width - 20.0) {
-                    _isResizing = true;
-                    _showPreview = true;
-                    _previewSize = _containerSize;
-                  }
-                });
-              },
-              onPanCancel: () {
-                setState(() {
-                  _resizeMode = false;
-                  _isResizing = false;
-                  _showPreview = false;
-                });
-              },
-              onPanUpdate: _resizeMode
-                  ? (DragUpdateDetails details) {
-                      setState(() {
-                        if (_isResizing) {
-                          _previewSize += details.delta;
-                        }
-                      });
-                    }
-                  : null,
-              onPanEnd: (DragEndDetails details) {
-                setState(() {
-                  if (_isResizing) {
-                    _containerSize = snappedPreviewSize;
-                    //_resizeMode = false;
-                    _isResizing = false;
-                    _showPreview = false;
-                    // TODO: previewSize might become negative, should check
-                    //       whether in bounds and positive, and if is colliding
-                    //       with other graphs
-                    widget.conf.size = Size(
-                      snappedPreviewSize.width / widget.gridSize.width,
-                      snappedPreviewSize.height / widget.gridSize.height,
-                    );
-                    saveChartDashboardData(context);
-                  }
-                });
-              },
-              child: AbsorbPointer(
-                child: Stack(
-                  children: <Widget>[
-                    Container(
-                      height: _containerSize.height,
-                      width: _containerSize.width,
-                      decoration: BoxDecoration(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                        border: _resizeMode
-                            ? Border.all(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 4.0,
-                              )
-                            : Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .inversePrimary,
-                                width: 2.0,
-                              ),
-                      ),
-                      child: buildGraph(context, widget.conf, colors),
-                    ),
-                    if (_resizeMode) _buildDragHandle(_containerSize),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (_showPreview)
-          Positioned(
-            left: _previewPosition.dx,
-            top: _previewPosition.dy,
-            child: Container(
-              width: snappedPreviewSize.width,
-              height: snappedPreviewSize.height,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                  width: 3,
-                ),
-              ),
-            ),
-          ),
+        _buildGraphContainer(context, colors),
+        if (_showPreview) _buildDragPreview(context),
       ],
     );
   }
 
-  Widget _buildDragHandle(Size size) {
+  Widget _buildGraphContainer(
+    BuildContext context,
+    List<Color> colors,
+  ) {
     return Positioned(
-      left: size.width - 15,
-      top: size.height - 15,
+      left: _containerPosition.dx,
+      top: _containerPosition.dy,
+      child: LongPressDraggable<Offset>(
+        onDragStarted: () {
+          _showPreview = true;
+          _previewPosition = _containerPosition;
+        },
+        onDragUpdate: (DragUpdateDetails details) {
+          // While dragging, update the preview position.
+          final RenderBox? box = context.findRenderObject() as RenderBox?;
+          final Offset newPreviewOffset =
+              box!.globalToLocal(details.globalPosition) - _dragOffset;
+          final bool inBoundsX = _containerSize.width + newPreviewOffset.dx <=
+                  widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
+              newPreviewOffset.dx >= 0;
+          final bool inBoundsY = _containerSize.height + newPreviewOffset.dy <=
+                  widget.gridSize.height * ChartDashboardGrid.gridCellsY &&
+              newPreviewOffset.dy >= 0;
+          final Offset snappedPreviewOffset =
+              _snapToGridOffset(newPreviewOffset);
+          setState(() {
+            if (inBoundsX && inBoundsY) {
+              _previewPosition = snappedPreviewOffset;
+            } else if (inBoundsX) {
+              _previewPosition = Offset(
+                snappedPreviewOffset.dx,
+                _previewPosition.dy,
+              );
+            } else if (inBoundsY) {
+              _previewPosition = Offset(
+                _previewPosition.dx,
+                snappedPreviewOffset.dy,
+              );
+            }
+          });
+        },
+        onDragEnd: (DraggableDetails _) {
+          final Offset newPosGridNormalized = Offset(
+            _previewPosition.dx / widget.gridSize.width,
+            _previewPosition.dy / widget.gridSize.height,
+          );
+          final Size newSizeGridNormalized = Size(
+            _previewSize.width / widget.gridSize.width,
+            _previewSize.height / widget.gridSize.height,
+          );
+          final bool collided = _checkCollisions(
+            newPosGridNormalized & newSizeGridNormalized,
+          );
+          setState(() {
+            if (!collided) {
+              _containerPosition = _previewPosition;
+              widget.conf.offset = newPosGridNormalized;
+              saveChartDashboardData(context);
+            } else {
+              _previewPosition = _containerPosition;
+            }
+            _resizeMode = true;
+            _showPreview = false;
+          });
+        },
+        feedback: Container(
+          height: _containerSize.height,
+          width: _containerSize.width,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.reorder),
+        ),
+        childWhenDragging: Container(
+          height: _containerSize.height,
+          width: _containerSize.width,
+          color: Theme.of(context).colorScheme.secondaryFixed,
+        ),
+        child: _buildResizableGraph(colors),
+      ),
+    );
+  }
+
+  Widget _buildDragPreview(BuildContext context) {
+    return Positioned(
+      left: _previewPosition.dx,
+      top: _previewPosition.dy,
+      child: Container(
+        width: _previewSize.width,
+        height: _previewSize.height,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            width: 3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDragHandle(BuildContext context) {
+    return Positioned(
+      right: -15,
+      bottom: -15,
       width: 30,
       height: 30,
       child: Container(
@@ -270,27 +218,124 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
     );
   }
 
-  Offset _snapToGridOffset(Offset offset) {
-    final double snappedX =
-        (offset.dx / widget.gridSize.width).round() * widget.gridSize.width;
-    final double snappedY =
-        (offset.dy / widget.gridSize.height).round() * widget.gridSize.height;
-    return Offset(snappedX, snappedY);
+  Widget _buildResizableGraph(List<Color> colors) {
+    return GestureDetector(
+      onPanDown: (DragDownDetails details) {
+        setState(() {
+          _dragOffset = details.localPosition;
+          if (_dragOffset.dy >= _containerSize.height - 20.0 &&
+              _dragOffset.dx >= _containerSize.width - 20.0) {
+            if (_resizeMode) {
+              _isResizing = true;
+              _showPreview = true;
+              _previewSize = _containerSize;
+            }
+          }
+        });
+      },
+      onPanCancel: () {
+        setState(() {
+          _resizeMode = false;
+          _isResizing = false;
+          _showPreview = false;
+        });
+      },
+      onPanUpdate: _resizeMode
+          ? (DragUpdateDetails details) {
+              if (!_isResizing) {
+                return;
+              }
+
+              final Size newPreviewSize =
+                  _containerSize + details.localPosition + (-_dragOffset);
+              final bool inBoundsX = newPreviewSize.width +
+                          _containerPosition.dx <=
+                      widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
+                  newPreviewSize.width >= widget.gridSize.width;
+              final bool inBoundsY = newPreviewSize.height +
+                          _containerPosition.dy <=
+                      widget.gridSize.height * ChartDashboardGrid.gridCellsY &&
+                  newPreviewSize.height >= widget.gridSize.height;
+              final Size snappedPreviewSize = _snapToGridSize(newPreviewSize);
+              setState(() {
+                if (inBoundsX && inBoundsY) {
+                  _previewSize = snappedPreviewSize;
+                } else if (inBoundsX) {
+                  _previewSize = Size(
+                    snappedPreviewSize.width,
+                    _previewSize.height,
+                  );
+                } else if (inBoundsY) {
+                  _previewSize = Size(
+                    _previewSize.width,
+                    snappedPreviewSize.height,
+                  );
+                }
+              });
+            }
+          : null,
+      onPanEnd: (DragEndDetails _) {
+        setState(() {
+          if (!_isResizing) {
+            return;
+          }
+
+          final Offset newPosGridNormalized = Offset(
+            _previewPosition.dx / widget.gridSize.width,
+            _previewPosition.dy / widget.gridSize.height,
+          );
+          final Size newSizeGridNormalized = Size(
+            _previewSize.width / widget.gridSize.width,
+            _previewSize.height / widget.gridSize.height,
+          );
+          final bool collided = _checkCollisions(
+            newPosGridNormalized & newSizeGridNormalized,
+          );
+          if (!collided) {
+            _containerSize = _previewSize;
+            _resizeMode = false;
+            widget.conf.size = newSizeGridNormalized;
+            saveChartDashboardData(context);
+          } else {
+            _previewSize = _containerSize;
+          }
+          _isResizing = false;
+          _showPreview = false;
+        });
+      },
+      child: AbsorbPointer(
+        child: Stack(
+          children: <Widget>[
+            Container(
+              height: _containerSize.height,
+              width: _containerSize.width,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                border: _resizeMode
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 4.0,
+                      )
+                    : Border.all(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        width: 2.0,
+                      ),
+              ),
+              child: _buildGraph(context, widget.conf, colors),
+            ),
+            if (_resizeMode) _buildDragHandle(context),
+          ],
+        ),
+      ),
+    );
   }
 
-  Size _snapToGridSize(Size offset) {
-    final double snappedX =
-        (offset.width / widget.gridSize.width).round() * widget.gridSize.width;
-    final double snappedY = (offset.height / widget.gridSize.height).round() *
-        widget.gridSize.height;
-    return Size(snappedX, snappedY);
-  }
-
-  Widget buildGraph(
+  Widget _buildGraph(
     BuildContext context,
     GraphConfiguration conf,
     List<Color> colors,
   ) {
+    // TODO: Pass on BoxConstraints into graphs so they can resize easier
     final DateTime time = DateTime.now();
     switch (conf.type) {
       case GraphTypes.heatmap:
@@ -326,5 +371,34 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
             return buildYearCategoryRadar(context, conf, time, colors);
         }
     }
+  }
+
+  bool _checkCollisions(Rect newRect) {
+    for (final GraphConfiguration conf in widget.dashboard.configurations) {
+      if (conf == widget.conf) {
+        continue;
+      }
+      final Rect oRect = conf.offset & conf.size;
+      if (newRect.overlaps(oRect)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Offset _snapToGridOffset(Offset offset) {
+    final double snappedX =
+        (offset.dx / widget.gridSize.width).round() * widget.gridSize.width;
+    final double snappedY =
+        (offset.dy / widget.gridSize.height).round() * widget.gridSize.height;
+    return Offset(snappedX, snappedY);
+  }
+
+  Size _snapToGridSize(Size offset) {
+    final double snappedX =
+        (offset.width / widget.gridSize.width).round() * widget.gridSize.width;
+    final double snappedY = (offset.height / widget.gridSize.height).round() *
+        widget.gridSize.height;
+    return Size(snappedX, snappedY);
   }
 }
