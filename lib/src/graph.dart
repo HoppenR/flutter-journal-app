@@ -59,6 +59,9 @@ class _GraphPageState extends State<GraphPage> {
       _dashboardIndex = null;
     }
 
+    final ChartDashboardData? selectedDashboard = _dashboardIndex != null
+        ? dashboardManager.dashboards[_dashboardIndex!]
+        : null;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -86,16 +89,15 @@ class _GraphPageState extends State<GraphPage> {
               },
             ),
           ),
-          if (_dashboardIndex != null) ...<Widget>[
+          if (selectedDashboard != null) ...<Widget>[
             Text(
-              dashboardManager.dashboards[_dashboardIndex!].title,
+              selectedDashboard.title,
               style: const TextStyle(fontSize: 50.0),
             ),
             Expanded(
               child: ChartDashboardGrid(
-                dashboard: dashboardManager.dashboards[_dashboardIndex!],
-                // TODO: Introduce dashboard ID and use ValueKey instead?
-                key: UniqueKey(),
+                dashboard: selectedDashboard,
+                key: selectedDashboard.key,
               ),
             ),
           ],

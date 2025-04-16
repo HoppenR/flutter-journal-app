@@ -4,7 +4,7 @@ import '../tag.dart';
 import 'configuration.dart';
 
 class ChartDashboardData {
-  const ChartDashboardData({
+  ChartDashboardData({
     required this.title,
     required this.icon,
     required this.configurations,
@@ -34,4 +34,5 @@ class ChartDashboardData {
   final List<GraphConfiguration> configurations;
   final String title;
   final IconData icon;
+  final Key key = UniqueKey();
 }

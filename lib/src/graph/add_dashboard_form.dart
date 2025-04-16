@@ -224,8 +224,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           });
         }
       },
-      // TODO: Localize
-      tooltip: 'add another graph',
+      tooltip: AppLocalizations.of(context).addGraph,
       icon: const Icon(Icons.addchart),
     );
   }
@@ -234,9 +233,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     return DropdownButtonFormField<GraphTimespans>(
       value: _selectedTimespan,
       // TODO: Localize
-      hint: const Text(
-        'timespan(month works fully)',
-      ),
+      hint: const Text('timespan(month works fully)'),
       items: const <DropdownMenuItem<GraphTimespans>>[
         DropdownMenuItem<GraphTimespans>(
           value: GraphTimespans.year,
@@ -258,8 +255,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       },
       validator: (GraphTimespans? value) {
         if (value == null) {
-          // TODO: Localize
-          return 'timespan required';
+          return AppLocalizations.of(context).chartTimespanMissing;
         }
         return null;
       },
