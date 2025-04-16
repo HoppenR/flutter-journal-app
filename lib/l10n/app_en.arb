@@ -11,9 +11,17 @@
     "@addDashboard": {
         "description": "Plus button hover tooltip in calendar overview, also shown as title of Add Dashboard Form"
     },
+    "addGraph": "Add graph",
+    "@addGraph": {
+        "description": "Plus-graph button hover tooltip in add-dashboard-form"
+    },
     "category": "Category",
     "@category": {
         "description": "Text shown next to add-button in tag overview"
+    },
+    "chartTimespanMissing": "Chart timespan is required",
+    "@chartTimespanMissing": {
+        "description": "Text displayed when chart timespan value is empty while validating in form for adding chart"
     },
     "chartTypeMissing": "Chart type is required",
     "@chartTypeMissing": {
