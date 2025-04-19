@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
-import 'graph.dart';
+import 'graph/dashboard.dart';
 import 'journal.dart';
 import 'tag.dart';
 import 'utility.dart';

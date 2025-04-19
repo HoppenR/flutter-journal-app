@@ -3,12 +3,44 @@ import 'package:flutter/material.dart';
 import '../tag.dart';
 import 'configuration.dart';
 
+class ChartDashboardManager with ChangeNotifier {
+  ChartDashboardManager({required this.dashboards});
+
+  void addDashboard(ChartDashboardData dashboard) {
+    dashboards.add(dashboard);
+    notifyListeners();
+  }
+
+  void removeDashboard(ChartDashboardData dashboard) {
+    dashboards.remove(dashboard);
+    notifyListeners();
+  }
+
+  void removeTagFromDashboards(int tagId) {
+    dashboards.removeWhere((ChartDashboardData dashboard) {
+      dashboard.configurations.removeWhere((GraphConfiguration config) {
+        config.ids.remove(tagId);
+        return config.ids.length < config.type.minimumItemAmt;
+      });
+      return dashboard.configurations.isEmpty;
+    });
+    notifyListeners();
+  }
+
+  void clear() {
+    dashboards.clear();
+    notifyListeners();
+  }
+
+  List<ChartDashboardData> dashboards;
+}
+
 class ChartDashboardData {
   ChartDashboardData({
     required this.title,
     required this.icon,
     required this.configurations,
-  });
+  }) : key = UniqueKey();
 
   factory ChartDashboardData.fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
@@ -34,5 +66,5 @@ class ChartDashboardData {
   final List<GraphConfiguration> configurations;
   final String title;
   final IconData icon;
-  final Key key = UniqueKey();
+  final Key key;
 }

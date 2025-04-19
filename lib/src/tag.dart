@@ -1,155 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-// A TagManager class for storing and interacting with tags
-// with functionality for propagating updates to watchers
-class TagManager extends ChangeNotifier {
-  TagManager({
-    required this.tags,
-    required this.appliedTags,
-    required this.categories,
-    required this.nextTagId,
-    required this.nextCategoryId,
-  });
-
-  int addTagList(String name, List<String> listData, IconData icon) {
-    final int tagId = nextTagId++;
-    final TagData tag = TagData.list(tagId, name, listData, icon, tagId);
-    tags[tagId] = tag;
-    notifyListeners();
-    return tagId;
-  }
-
-  int addTagToggle(String name, IconData icon) {
-    final int tagId = nextTagId++;
-    final TagData tag = TagData.toggle(tagId, name, icon, tagId);
-    tags[tagId] = tag;
-    notifyListeners();
-    return tagId;
-  }
-
-  int addTagMulti(String name, List<String> listData, IconData icon) {
-    final int tagId = nextTagId++;
-    final TagData tag = TagData.multi(tagId, name, listData, icon, tagId);
-    tags[tagId] = tag;
-    notifyListeners();
-    return tagId;
-  }
-
-  void applyTag(AppliedTagData appliedTag, DateTime day) {
-    appliedTags.putIfAbsent(day, () => <AppliedTagData>[]).add(appliedTag);
-    notifyListeners();
-  }
-
-  int addCategory(String name) {
-    final int categoryId = nextCategoryId++;
-    categories[categoryId] = TagCategory(
-      name: name,
-      id: categoryId,
-    );
-    notifyListeners();
-    return categoryId;
-  }
-
-  void removeTag(int id) {
-    tags.remove(id);
-
-    appliedTags.removeWhere((_, List<AppliedTagData> tagList) {
-      tagList.removeWhere((AppliedTagData tag) => tag.id == id);
-      return tagList.isEmpty;
-    });
-    notifyListeners();
-  }
-
-  void unapplyTag(AppliedTagData appliedTag, DateTime day) {
-    appliedTags[day]!.remove(appliedTag);
-    if (appliedTags[day]!.isEmpty) {
-      appliedTags.remove(day);
-    }
-    notifyListeners();
-  }
-
-  /// NOTE: if this ever gets used, the ordering of orphaned tags has to be
-  ///       figured out, best to assign them values after
-  ///       max(tags.order.nonNulls) to preserve visual location
-  void removeCategory(int id) {
-    for (final TagData tag in tags.values) {
-      if (tag.categoryId == id) {
-        tag.categoryId = null;
-      }
-    }
-    categories.remove(id);
-    notifyListeners();
-  }
-
-  void toggleTo(AppliedTagData appliedTag, bool value) {
-    assert(appliedTag.type == TagTypes.toggle);
-    appliedTag.toggleOption = value;
-    notifyListeners();
-  }
-
-  void changeListOption(AppliedTagData appliedTag, int index) {
-    assert(appliedTag.type == TagTypes.list);
-    appliedTag.listOption = index;
-    notifyListeners();
-  }
-
-  void toggleMultiOption(AppliedTagData appliedTag, int index) {
-    assert(appliedTag.type == TagTypes.multi);
-    final List<int> multiOptions = appliedTag.multiOptions!;
-    if (multiOptions.contains(index)) {
-      multiOptions.remove(index);
-    } else {
-      multiOptions.add(index);
-    }
-    notifyListeners();
-  }
-
-  void clear() {
-    tags.clear();
-    appliedTags.clear();
-    categories.clear();
-    nextTagId = 0;
-    nextCategoryId = 0;
-    notifyListeners();
-  }
-
-  void changeOrder(TagData tagData, int index) {
-    tagData.order = index;
-    notifyListeners();
-  }
-
-  // NOTE: These are set as side effects in loadUserPrefs upon startup
-  Map<int, TagData> tags;
-  Map<DateTime, List<AppliedTagData>> appliedTags;
-  Map<int, TagCategory> categories;
-  int nextTagId;
-  int nextCategoryId;
-}
-
-enum TagTypes {
-  list,
-  toggle,
-  multi,
-}
-
-extension TagType on TagTypes {
-  static TagTypes fromJson(Map<String, dynamic> json) {
-    if (json['type'] == 'list') {
-      return TagTypes.list;
-    } else if (json['type'] == 'toggle') {
-      return TagTypes.toggle;
-    } else if (json['type'] == 'multi') {
-      return TagTypes.multi;
-    } else {
-      throw AssertionError('invalid type in json');
-    }
-  }
-
-  String toJson() {
-    return toString().split('.').last;
-  }
-}
 
 final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.favorite.codePoint: Icons.favorite,
@@ -213,162 +62,342 @@ final Map<int, IconData> availableIcons = <int, IconData>{
   Icons.work.codePoint: Icons.work,
 };
 
-class TagData {
-  TagData.list(
-    this.id,
-    this.name,
-    List<String> this.listData,
-    this.icon,
-    this.order, [
-    this.categoryId,
-  ])  : type = TagTypes.list,
-        key = ValueKey<int>(id);
-  TagData.toggle(
-    this.id,
-    this.name,
-    this.icon,
-    this.order, [
-    this.categoryId,
-  ])  : type = TagTypes.toggle,
-        listData = null,
-        key = ValueKey<int>(id);
-  TagData.multi(
-    this.id,
-    this.name,
-    List<String> this.listData,
-    this.icon,
-    this.order, [
-    this.categoryId,
-  ])  : type = TagTypes.multi,
-        key = ValueKey<int>(id);
+// --- TAGMANAGER ---
+/// A TagManager class for storing and interacting with tags
+/// with functionality for propagating updates to watchers
+class TagManager with ChangeNotifier {
+  TagManager({
+    required this.tags,
+    required this.appliedTags,
+    required this.categories,
+    required this.nextTagId,
+    required this.nextCategory,
+  });
 
-  factory TagData.fromJson(Map<String, dynamic> json) {
+  /// Add a tag by providing minimal data required. The 'list' argument is
+  /// ignored for types that do not extend TagWithList but must be supplied to
+  /// satisfy the TagFactory type signature
+  int addTag<T extends Tag>(
+    TagFactory<T> createTag,
+    String name,
+    IconData icon,
+    List<String> list,
+  ) {
+    final int tagId = nextTagId++;
+    final int order = tagId;
+    tags[tagId] = createTag(tagId, name, icon, order, list: list);
+    notifyListeners();
+    return tagId;
+  }
+
+  void applyTag<A extends AppliedTag>(A appliedTag, DateTime day) {
+    appliedTags.putIfAbsent(day, () => <AppliedTag>[]).add(appliedTag);
+    notifyListeners();
+  }
+
+  int addCategory(String name) {
+    final int category = nextCategory++;
+    categories[category] = TagCategory(
+      name: name,
+      id: category,
+    );
+    notifyListeners();
+    return category;
+  }
+
+  void removeTag(int id) {
+    tags.remove(id);
+    appliedTags.removeWhere((_, List<AppliedTag> tagList) {
+      tagList.removeWhere((AppliedTag tag) => tag.id == id);
+      return tagList.isEmpty;
+    });
+    notifyListeners();
+  }
+
+  void unapplyTag<A extends AppliedTag>(A appliedTag, DateTime day) {
+    appliedTags[day]!.remove(appliedTag);
+    if (appliedTags[day]!.isEmpty) {
+      appliedTags.remove(day);
+    }
+    notifyListeners();
+  }
+
+  /// NOTE: if this ever gets used, the ordering of orphaned tags has to be
+  ///       figured out, best to assign them values after
+  ///       max(tags.order.nonNulls) to preserve visual location
+  void removeCategory(int id) {
+    for (final Tag tag in tags.values) {
+      if (tag.category == id) {
+        tag.category = null;
+      }
+    }
+    categories.remove(id);
+    notifyListeners();
+  }
+
+  void toggleTo(AppliedToggle appliedTag, bool value) {
+    appliedTag.option = value;
+    notifyListeners();
+  }
+
+  void changeListOption(AppliedList appliedTag, int index) {
+    appliedTag.option = index;
+    notifyListeners();
+  }
+
+  void toggleMultiOption(AppliedMulti appliedTag, int index) {
+    if (appliedTag.options.contains(index)) {
+      appliedTag.options.remove(index);
+    } else {
+      appliedTag.options.add(index);
+    }
+    notifyListeners();
+  }
+
+  void clear() {
+    tags.clear();
+    appliedTags.clear();
+    categories.clear();
+    nextTagId = 0;
+    nextCategory = 0;
+    notifyListeners();
+  }
+
+  void changeOrder<T extends Tag>(T tagData, int index) {
+    tagData.order = index;
+    notifyListeners();
+  }
+
+  Map<int, Tag> tags;
+  Map<DateTime, List<AppliedTag>> appliedTags;
+  Map<int, TagCategory> categories;
+  int nextTagId;
+  int nextCategory;
+}
+
+// --- HELPER TYPES ---
+typedef TagFactory<T extends Tag> = T Function(
+  int id,
+  String name,
+  IconData icon,
+  int order, {
+  required List<String> list,
+  int? category,
+});
+
+enum TagTypes {
+  list,
+  multi,
+  toggle,
+}
+
+// --- TAG ---
+sealed class Tag {
+  Tag(this.id, this.name, this.icon, this.order, {this.category})
+      : key = ValueKey<int>(id);
+
+  factory Tag.fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
-    final TagTypes type = TagType.fromJson(json);
+    final String type = json['type'];
     switch (type) {
-      case TagTypes.list:
-        return TagData.list(
-          json['id'],
-          json['name'],
-          List<String>.from(json['listData']),
-          availableIcons[codePoint]!,
-          json['order'],
-          json['category'],
-        );
-      case TagTypes.toggle:
-        return TagData.toggle(
+      case 'list':
+        return ListTag(
           json['id'],
           json['name'],
           availableIcons[codePoint]!,
           json['order'],
-          json['category'],
+          list: List<String>.from(json['list']),
+          category: json['category'],
         );
-      case TagTypes.multi:
-        return TagData.multi(
+      case 'multi':
+        return MultiTag(
           json['id'],
           json['name'],
-          List<String>.from(json['listData']),
           availableIcons[codePoint]!,
           json['order'],
-          json['category'],
+          list: List<String>.from(json['list']),
+          category: json['category'],
         );
+      case 'toggle':
+        return ToggleTag(
+          json['id'],
+          json['name'],
+          availableIcons[codePoint]!,
+          json['order'],
+          category: json['category'],
+        );
+      default:
+        throw AssertionError('invalid type in json');
     }
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'id': id,
-      'name': name,
-      'type': type.toJson(),
-      'icon': icon.codePoint,
-      'order': order,
-      'category': categoryId,
-      if (listData != null) 'listData': listData,
-    };
-  }
-
-  List<String> get list {
-    if (listData != null) {
-      return listData!;
+    switch (this) {
+      case final MultiTag multi:
+        return <String, dynamic>{
+          'id': id,
+          'name': name,
+          'type': 'multi',
+          'icon': icon.codePoint,
+          'order': order,
+          'list': multi.list,
+          'category': category,
+        };
+      case final ListTag list:
+        return <String, dynamic>{
+          'id': id,
+          'name': name,
+          'type': 'list',
+          'icon': icon.codePoint,
+          'order': order,
+          'list': list.list,
+          'category': category,
+        };
+      case ToggleTag():
+        return <String, dynamic>{
+          'id': id,
+          'name': name,
+          'type': 'toggle',
+          'icon': icon.codePoint,
+          'order': order,
+          'category': category,
+        };
     }
-    throw UnsupportedError('called list on non-list type');
   }
 
-  final String name;
-  final TagTypes type;
   final IconData icon;
+  final Key key;
+  final String name;
   final int id;
 
   int order;
-  int? categoryId;
-  final List<String>? listData;
-
-  final Key key;
+  int? category;
 }
 
-class AppliedTagData {
-  AppliedTagData.list(this.id, int this.listOption, this.tag);
+// Interface class
+sealed class TagWithList extends Tag {
+  TagWithList(
+    super.id,
+    super.name,
+    super.icon,
+    super.order, {
+    required this.list,
+    super.category,
+  });
 
-  AppliedTagData.toggle(this.id, bool this.toggleOption, this.tag);
+  final List<String> list;
+}
 
-  AppliedTagData.multi(this.id, List<int> this.multiOptions, this.tag);
+class ListTag extends TagWithList {
+  ListTag(
+    super.id,
+    super.name,
+    super.icon,
+    super.order, {
+    required super.list,
+    super.category,
+  });
+}
 
-  factory AppliedTagData.fromJson(
+class MultiTag extends TagWithList {
+  MultiTag(
+    super.id,
+    super.name,
+    super.icon,
+    super.order, {
+    required super.list,
+    super.category,
+  });
+}
+
+class ToggleTag extends Tag {
+  ToggleTag(
+    super.id,
+    super.name,
+    super.icon,
+    super.order, {
+    // This is used match TagFactory signature, do not use
+    // ignore: avoid_unused_constructor_parameters
+    List<String>? list,
+    super.category,
+  });
+}
+
+// --- APPLIED TAG ---
+sealed class AppliedTag {
+  const AppliedTag(this.id);
+
+  factory AppliedTag.fromJson(
     Map<String, dynamic> json,
-    Map<int, TagData> tags,
+    Map<int, Tag> tags,
   ) {
     final int id = json['id'];
-    switch (tags[id]?.type) {
-      case null:
-        throw StateError(
-          'tag does not exist while creating its AppliedTagData',
-        );
-      case TagTypes.list:
-        return AppliedTagData.list(id, json['listOption'], tags[id]!);
-      case TagTypes.toggle:
-        return AppliedTagData.toggle(id, json['toggleOption'], tags[id]!);
-      case TagTypes.multi:
-        return AppliedTagData.multi(
-          id,
-          List<int>.from(json['multiOptions']),
-          tags[id]!,
-        );
+    final Tag tag = tags[id]!;
+    switch (tag) {
+      case ListTag():
+        return AppliedList(id, json['listOption'], tag);
+      case MultiTag():
+        return AppliedMulti(id, List<int>.from(json['multiOptions']), tag);
+      case ToggleTag():
+        return AppliedToggle(id, json['toggleOption'], tag);
     }
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'id': id,
-      if (listOption != null) 'listOption': listOption,
-      if (toggleOption != null) 'toggleOption': toggleOption,
-      if (multiOptions != null) 'multiOptions': multiOptions,
-    };
-  }
-
-  String string(BuildContext context) {
-    final TagManager tagManager = context.watch<TagManager>();
-    final TagData tag = tagManager.tags[id]!;
-    switch (tag.type) {
-      case TagTypes.list:
-        return tag.list[listOption!];
-      case TagTypes.toggle:
-        return tag.name;
-      case TagTypes.multi:
-        return multiOptions!.map((int index) => tag.listData![index]).join();
+    switch (this) {
+      case final AppliedList list:
+        return <String, dynamic>{
+          'id': id,
+          'listOption': list.option,
+        };
+      case final AppliedMulti multi:
+        return <String, dynamic>{
+          'id': id,
+          'multiOptions': multi.options,
+        };
+      case final AppliedToggle toggle:
+        return <String, dynamic>{
+          'id': id,
+          'toggleOption': toggle.option,
+        };
     }
   }
 
-  String get name => tag.name;
-  TagTypes get type => tag.type;
-  IconData get icon => tag.icon;
-  int? get categoryId => tag.categoryId;
+  String string() {
+    switch (this) {
+      case final AppliedList list:
+        return list.tag.list[list.option];
+      case final AppliedMulti multi:
+        return multi.options
+            .map((int index) => multi.tag.list[index])
+            .join(',');
+      case final AppliedToggle toggle:
+        return toggle.tag.name;
+    }
+  }
 
   final int id;
-  final TagData tag;
+}
 
-  int? listOption;
-  bool? toggleOption;
-  List<int>? multiOptions;
+class AppliedList extends AppliedTag {
+  AppliedList(super.id, this.option, this.tag);
+
+  int option;
+  final ListTag tag;
+}
+
+class AppliedMulti extends AppliedTag {
+  AppliedMulti(super.id, this.options, this.tag);
+
+  List<int> options;
+  final MultiTag tag;
+}
+
+class AppliedToggle extends AppliedTag {
+  AppliedToggle(super.id, this.option, this.tag);
+
+  bool option;
+  final ToggleTag tag;
 }
 
 class TagCategory {
