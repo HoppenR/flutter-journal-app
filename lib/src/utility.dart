@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'graph.dart';
 import 'graph/dashboard.dart';
 import 'settings.dart';
 import 'tag.dart';
@@ -21,17 +20,17 @@ class UserPrefs {
     required this.dashboards,
     required this.categories,
     required this.nextTagId,
-    required this.nextCategoryId,
+    required this.nextCategory,
   });
 
   final Locale? locale;
   final Color? theme;
-  final Map<int, TagData> tagData;
-  final Map<DateTime, List<AppliedTagData>> appliedTags;
+  final Map<int, Tag> tagData;
+  final Map<DateTime, List<AppliedTag>> appliedTags;
   final List<ChartDashboardData> dashboards;
   final Map<int, TagCategory> categories;
   final int nextTagId;
-  final int nextCategoryId;
+  final int nextCategory;
 }
 
 Future<void> saveLocale(Locale locale) async {
@@ -55,7 +54,7 @@ Future<void> saveTagData(BuildContext context) async {
   }
   final TagManager tagManager = context.read<TagManager>();
   final List<Map<String, dynamic>> tagDataJson = tagManager.tags.values
-      .map((TagData tagData) => tagData.toJson())
+      .map((Tag tagData) => tagData.toJson())
       .toList();
 
   await prefs.setString('tagData', json.encode(tagDataJson));
@@ -70,10 +69,10 @@ Future<void> saveAppliedTags(BuildContext context) async {
   final TagManager tagManager = context.read<TagManager>();
   final Map<String, List<Map<String, dynamic>>> appliedTagsJson =
       tagManager.appliedTags.map(
-    (DateTime key, List<AppliedTagData> value) {
+    (DateTime key, List<AppliedTag> value) {
       return MapEntry<String, List<Map<String, dynamic>>>(
         key.toIso8601String(),
-        value.map((AppliedTagData tag) => tag.toJson()).toList(growable: false),
+        value.map((AppliedTag tag) => tag.toJson()).toList(growable: false),
       );
     },
   );
@@ -130,7 +129,7 @@ Future<void> saveNextCategoryId(BuildContext context) async {
     throw AssertionError();
   }
   final TagManager tagManager = context.read<TagManager>();
-  final int initialTagId = tagManager.nextCategoryId;
+  final int initialTagId = tagManager.nextCategory;
   prefs.setInt('nextCategoryId', initialTagId);
 }
 
@@ -146,40 +145,40 @@ Future<Color?> loadTheme() async {
   return theme != null ? SettingsPage.themes[theme] : null;
 }
 
-Future<Map<int, TagData>> loadTagData() async {
+Future<Map<int, Tag>> loadTagData() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? savedData = prefs.getString('tagData');
 
   if (savedData == null) {
-    return <int, TagData>{};
+    return <int, Tag>{};
   }
 
-  return Map<int, TagData>.fromEntries(
+  return Map<int, Tag>.fromEntries(
     (json.decode(savedData) as List<dynamic>).map(
       (dynamic value) {
-        final TagData tagData = TagData.fromJson(value);
-        return MapEntry<int, TagData>(tagData.id, tagData);
+        final Tag tagData = Tag.fromJson(value);
+        return MapEntry<int, Tag>(tagData.id, tagData);
       },
     ),
   );
 }
 
-Future<Map<DateTime, List<AppliedTagData>>> loadAppliedTags(
-  Map<int, TagData> tags,
+Future<Map<DateTime, List<AppliedTag>>> loadAppliedTags(
+  Map<int, Tag> tags,
 ) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   final String? savedData = prefs.getString('appliedTags');
 
   if (savedData == null) {
-    return <DateTime, List<AppliedTagData>>{};
+    return <DateTime, List<AppliedTag>>{};
   }
 
   return (json.decode(savedData) as Map<String, dynamic>).map(
     (String key, dynamic value) {
-      return MapEntry<DateTime, List<AppliedTagData>>(
+      return MapEntry<DateTime, List<AppliedTag>>(
         DateTime.parse(key),
         (value as List<dynamic>).map((dynamic item) {
-          return AppliedTagData.fromJson(item as Map<String, dynamic>, tags);
+          return AppliedTag.fromJson(item as Map<String, dynamic>, tags);
         }).toList(growable: true),
       );
     },
@@ -232,7 +231,7 @@ Future<int> loadNextCategoryId() async {
 Future<UserPrefs> loadUserPrefs(BuildContext context) {
   final Future<Locale?> localeFuture = loadLocale();
   final Future<Color?> themeFuture = loadTheme();
-  final Future<Map<int, TagData>> tagDataFuture = loadTagData();
+  final Future<Map<int, Tag>> tagDataFuture = loadTagData();
   final Future<List<ChartDashboardData>> dashboardsFuture =
       loadChartDashboardData();
   final Future<Map<int, TagCategory>> categoriesFuture = loadCategories();
@@ -240,9 +239,9 @@ Future<UserPrefs> loadUserPrefs(BuildContext context) {
   final Future<int> nextTagIdFuture = loadNextTagId();
   final Future<int> nextCategoryIdFuture = loadNextCategoryId();
 
-  return tagDataFuture.then((Map<int, TagData> tagData) {
+  return tagDataFuture.then((Map<int, Tag> tagData) {
     return loadAppliedTags(tagData)
-        .then((Map<DateTime, List<AppliedTagData>> appliedTags) {
+        .then((Map<DateTime, List<AppliedTag>> appliedTags) {
       return Future.wait(
         <Future<dynamic>>[
           localeFuture,
@@ -261,7 +260,7 @@ Future<UserPrefs> loadUserPrefs(BuildContext context) {
           dashboards: values[2] as List<ChartDashboardData>,
           categories: values[3] as Map<int, TagCategory>,
           nextTagId: values[4] as int,
-          nextCategoryId: values[5] as int,
+          nextCategory: values[5] as int,
         );
       });
     });

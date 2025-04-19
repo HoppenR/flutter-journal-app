@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
-import 'graph.dart';
 import 'graph/configuration.dart';
 import 'graph/dashboard.dart';
 import 'tag.dart';
@@ -16,8 +15,7 @@ class AddTagForm extends StatefulWidget {
 
 class AddTagFormState extends State<AddTagForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final List<TextEditingController> _optionControllers =
-      <TextEditingController>[
+  final List<TextEditingController> _options = <TextEditingController>[
     TextEditingController(),
   ];
   final TextEditingController _nameController = TextEditingController();
@@ -30,7 +28,7 @@ class AddTagFormState extends State<AddTagForm> {
   @override
   void dispose() {
     _nameController.dispose();
-    for (final TextEditingController controller in _optionControllers) {
+    for (final TextEditingController controller in _options) {
       controller.dispose();
     }
     super.dispose();
@@ -125,30 +123,19 @@ class AddTagFormState extends State<AddTagForm> {
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
           // NOTE: selectedType validator asserts not null before this
-          int addedId;
-          switch (_selectedType!) {
-            case TagTypes.list:
-              addedId = tagManager.addTagList(
-                _nameController.text,
-                _optionControllers
-                    .map((TextEditingController controller) => controller.text)
-                    .toList(growable: false),
-                _selectedIcon,
-              );
-            case TagTypes.toggle:
-              addedId = tagManager.addTagToggle(
-                _nameController.text,
-                _selectedIcon,
-              );
-            case TagTypes.multi:
-              addedId = tagManager.addTagMulti(
-                _nameController.text,
-                _optionControllers
-                    .map((TextEditingController controller) => controller.text)
-                    .toList(growable: false),
-                _selectedIcon,
-              );
-          }
+          final TagFactory<Tag> factory = switch (_selectedType!) {
+            TagTypes.list => ListTag.new,
+            TagTypes.multi => MultiTag.new,
+            TagTypes.toggle => ToggleTag.new,
+          };
+          final int addedId = tagManager.addTag(
+            factory,
+            _nameController.text,
+            _selectedIcon,
+            _options
+                .map((TextEditingController controller) => controller.text)
+                .toList(growable: false),
+          );
           dashboardManager.addDashboard(
             ChartDashboardData(
               title: _nameController.text,
@@ -181,7 +168,8 @@ class AddTagFormState extends State<AddTagForm> {
 
   List<Widget>? _buildOptionFields(BuildContext context) {
     switch (_selectedType) {
-      case null || TagTypes.toggle:
+      case null:
+      case TagTypes.toggle:
         return null;
       case TagTypes.list || TagTypes.multi:
         return <Widget>[
@@ -195,7 +183,7 @@ class AddTagFormState extends State<AddTagForm> {
             icon: const Icon(Icons.add),
             onPressed: () {
               setState(() {
-                _optionControllers.add(TextEditingController());
+                _options.add(TextEditingController());
               });
             },
           ),
@@ -205,13 +193,13 @@ class AddTagFormState extends State<AddTagForm> {
 
   List<Row> _buildOptionInputs(BuildContext context) {
     return List<Row>.generate(
-      _optionControllers.length,
+      _options.length,
       (int index) {
         return Row(
           children: <Widget>[
             Expanded(
               child: TextFormField(
-                controller: _optionControllers[index],
+                controller: _options[index],
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context).tagAddOption,
                 ),
@@ -228,7 +216,7 @@ class AddTagFormState extends State<AddTagForm> {
                 icon: const Icon(Icons.remove_circle),
                 onPressed: () {
                   setState(() {
-                    _optionControllers.removeAt(index);
+                    _options.removeAt(index);
                   });
                 },
               ),

@@ -118,23 +118,23 @@ List<ScatterSpot> _getScatterSpots(
 ) {
   final List<ScatterSpot> spots = <ScatterSpot>[];
   final TagManager tagManager = context.watch<TagManager>();
-  for (final MapEntry<DateTime, List<AppliedTagData>> entry
+  for (final MapEntry<DateTime, List<AppliedTag>> entry
       in tagManager.appliedTags.entries) {
     if (entry.key.year != now.year || entry.key.month != now.month) {
       continue;
     }
-    for (final AppliedTagData appliedTag in entry.value) {
+    for (final AppliedTag appliedTag in entry.value) {
       final int tagIndex = conf.ids.indexOf(appliedTag.id);
       if (tagIndex != -1) {
-        switch (appliedTag.type) {
-          case TagTypes.list:
+        switch (appliedTag) {
+          case AppliedList():
             break;
-          case TagTypes.toggle:
-            if (!appliedTag.toggleOption!) {
+          case AppliedMulti():
+            if (appliedTag.options.isEmpty) {
               continue;
             }
-          case TagTypes.multi:
-            if (appliedTag.multiOptions!.isEmpty) {
+          case AppliedToggle():
+            if (!appliedTag.option) {
               continue;
             }
         }
@@ -257,13 +257,15 @@ BarChartGroupData _buildBarChartGroupData(
   return BarChartGroupData(
     x: x,
     barRods: <BarChartRodData>[
-      ...ys.asMap().entries.map((MapEntry<int, double> entry) {
-        return BarChartRodData(
-          toY: entry.value,
-          color: colors[entry.key % colors.length],
-          width: baseWidth,
-        );
-      })
+      ...ys.indexed.map(
+        ((int, double) entry) {
+          return BarChartRodData(
+            toY: entry.$2,
+            color: colors[entry.$1 % colors.length],
+            width: baseWidth,
+          );
+        },
+      )
     ],
   );
 }
@@ -278,22 +280,22 @@ List<List<double>> _generateBarGroupData(
   return List<List<double>>.generate(7, (int index) {
     return conf.ids.map((int tagId) {
       double counter = 0.0;
-      for (final MapEntry<DateTime, List<AppliedTagData>> entry
+      for (final MapEntry<DateTime, List<AppliedTag>> entry
           in tagManager.appliedTags.entries) {
         if (entry.key.year == now.year &&
             entry.key.month == now.month &&
             entry.key.weekday - 1 == index) {
-          for (final AppliedTagData data in entry.value) {
-            if (data.tag.id == tagId) {
-              switch (data.type) {
-                case TagTypes.list:
+          for (final AppliedTag data in entry.value) {
+            if (data.id == tagId) {
+              switch (data) {
+                case AppliedList():
                   break;
-                case TagTypes.toggle:
-                  if (!data.toggleOption!) {
+                case AppliedMulti():
+                  if (data.options.isEmpty) {
                     continue;
                   }
-                case TagTypes.multi:
-                  if (data.multiOptions!.isEmpty) {
+                case AppliedToggle():
+                  if (!data.option) {
                     continue;
                   }
               }
@@ -340,13 +342,13 @@ Widget buildMonthLineChart(
       baselineY: 0.0,
       minX: -0.99,
       maxX: 6.99,
-      lineBarsData: percentData.asMap().entries.map(
-        (MapEntry<int, List<double>> entry) {
+      lineBarsData: percentData.indexed.map(
+        ((int, List<double>) entry) {
           return LineChartBarData(
-            color: colors[entry.key % colors.length],
+            color: colors[entry.$1 % colors.length],
             isCurved: true,
             barWidth: 6.0,
-            spots: _buildLineChartBarData(context, entry.key, entry.value),
+            spots: _buildLineChartBarData(context, entry.$1, entry.$2),
           );
         },
       ).toList(growable: false),
@@ -405,22 +407,22 @@ List<List<double>> _generateLineChartData(
   return conf.ids.map((int tagId) {
     return List<double>.generate(7, (int index) {
       double counter = 0.0;
-      for (final MapEntry<DateTime, List<AppliedTagData>> entry
+      for (final MapEntry<DateTime, List<AppliedTag>> entry
           in tagManager.appliedTags.entries) {
         if (entry.key.year == now.year &&
             entry.key.month == now.month &&
             entry.key.weekday - 1 == index) {
-          for (final AppliedTagData data in entry.value) {
-            if (data.tag.id == tagId) {
-              switch (data.type) {
-                case TagTypes.list:
+          for (final AppliedTag data in entry.value) {
+            if (data.id == tagId) {
+              switch (data) {
+                case AppliedList():
                   break;
-                case TagTypes.toggle:
-                  if (!data.toggleOption!) {
+                case AppliedMulti():
+                  if (data.options.isEmpty) {
                     continue;
                   }
-                case TagTypes.multi:
-                  if (data.multiOptions!.isEmpty) {
+                case AppliedToggle():
+                  if (!data.option) {
                     continue;
                   }
               }
@@ -454,25 +456,25 @@ Widget buildMonthHabitRadar(
   // Habit will be shown on outer area.
   final TagManager tagManager = context.watch<TagManager>();
   final Map<int, RadarGraphData> radarChartData = <int, RadarGraphData>{
-    for (final MapEntry<int, TagData> entry in tagManager.tags.entries)
+    for (final MapEntry<int, Tag> entry in tagManager.tags.entries)
       if (conf.ids.contains(entry.key))
         entry.key: RadarGraphData(name: entry.value.name, count: 0.0)
   };
-  for (final MapEntry<DateTime, List<AppliedTagData>> entry
+  for (final MapEntry<DateTime, List<AppliedTag>> entry
       in tagManager.appliedTags.entries) {
     if (entry.key.year != now.year || entry.key.month != now.month) {
       continue;
     }
-    for (final AppliedTagData appliedTag in entry.value) {
-      switch (appliedTag.type) {
-        case TagTypes.list:
+    for (final AppliedTag appliedTag in entry.value) {
+      switch (appliedTag) {
+        case AppliedList():
           break;
-        case TagTypes.toggle:
-          if (!appliedTag.toggleOption!) {
+        case AppliedMulti():
+          if (appliedTag.options.isEmpty) {
             continue;
           }
-        case TagTypes.multi:
-          if (appliedTag.multiOptions!.isEmpty) {
+        case AppliedToggle():
+          if (!appliedTag.option) {
             continue;
           }
       }
@@ -575,25 +577,24 @@ Widget buildMonthCategoryRadar(
       if (conf.ids.contains(entry.key))
         entry.key: RadarGraphData(name: entry.value.name, count: 0.0)
   };
-  for (final MapEntry<DateTime, List<AppliedTagData>> entry
+  for (final MapEntry<DateTime, List<AppliedTag>> entry
       in tagManager.appliedTags.entries) {
     if (entry.key.year != now.year || entry.key.month != now.month) {
       continue;
     }
-    for (final AppliedTagData appliedTag in entry.value) {
-      switch (appliedTag.type) {
-        case TagTypes.list:
-          break;
-        case TagTypes.toggle:
-          if (!appliedTag.toggleOption!) {
-            continue;
+    for (final AppliedTag appliedTag in entry.value) {
+      switch (appliedTag) {
+        case AppliedList():
+          radarChartData[appliedTag.tag.category]?.count += 1;
+        case AppliedMulti():
+          if (appliedTag.options.isNotEmpty) {
+            radarChartData[appliedTag.tag.category]?.count += 1;
           }
-        case TagTypes.multi:
-          if (appliedTag.multiOptions!.isEmpty) {
-            continue;
+        case AppliedToggle():
+          if (appliedTag.option) {
+            radarChartData[appliedTag.tag.category]?.count += 1;
           }
       }
-      radarChartData[appliedTag.categoryId]?.count += 1;
     }
   }
   return RadarChart(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'src/graph.dart';
+import 'src/graph/dashboard.dart';
 import 'src/journal.dart';
 import 'src/tag.dart';
 import 'src/utility.dart';
@@ -35,14 +35,14 @@ class InitializationWidget extends StatelessWidget {
         final Color? initialTheme = snapshot.data!.theme;
 
         return MultiProvider(
-          providers: <ChangeNotifierProvider<dynamic>>[
+          providers: <ChangeNotifierProvider<ChangeNotifier>>[
             ChangeNotifierProvider<TagManager>(
               create: (_) => TagManager(
                 tags: snapshot.data!.tagData,
                 appliedTags: snapshot.data!.appliedTags,
                 categories: snapshot.data!.categories,
                 nextTagId: snapshot.data!.nextTagId,
-                nextCategoryId: snapshot.data!.nextCategoryId,
+                nextCategory: snapshot.data!.nextCategory,
               ),
             ),
             ChangeNotifierProvider<ChartDashboardManager>(

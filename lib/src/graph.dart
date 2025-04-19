@@ -1,44 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'graph/configuration.dart';
 import 'graph/dashboard.dart';
 import 'graph/grid.dart';
 
-class ChartDashboardManager extends ChangeNotifier {
-  ChartDashboardManager({
-    required this.dashboards,
-  });
-
-  List<ChartDashboardData> dashboards;
-
-  void addDashboard(ChartDashboardData dashboard) {
-    dashboards.add(dashboard);
-    notifyListeners();
-  }
-
-  void removeDashboard(ChartDashboardData dashboard) {
-    dashboards.remove(dashboard);
-    notifyListeners();
-  }
-
-  void removeTagFromDashboards(int tagId) {
-    dashboards.removeWhere((ChartDashboardData dashboard) {
-      dashboard.configurations.removeWhere((GraphConfiguration config) {
-        config.ids.remove(tagId);
-        return config.ids.length < config.type.minimumItemAmt;
-      });
-      return dashboard.configurations.isEmpty;
-    });
-    notifyListeners();
-  }
-
-  void clear() {
-    dashboards.clear();
-    notifyListeners();
-  }
-}
-
+// TODO(Hop): Button to remove a dashboard with
+// dashboardManager.removeDashboard
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
 

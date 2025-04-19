@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n/app_localizations.dart';
-import '../graph.dart';
 import '../tag.dart';
 import 'configuration.dart';
 import 'dashboard.dart';
@@ -14,6 +13,9 @@ class AddDashboardForm extends StatefulWidget {
   AddDashboardFormState createState() => AddDashboardFormState();
 }
 
+// TODO: Create an empty dashboard here, and allow adding charts one by one
+// instead, remove tagFormNumber and instead find the first available offset
+// with an empty space of 1.
 class AddDashboardFormState extends State<AddDashboardForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final List<int?> _selectedIds = <int?>[null];
@@ -268,13 +270,13 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   ) {
     final TagManager tagManager = context.watch<TagManager>();
     return tagManager.tags.entries.where(
-      (MapEntry<int, TagData> val) {
+      (MapEntry<int, Tag> val) {
         // Must include its own selection as a possible value
         return val.key == _selectedIds[index] ||
             !_selectedIds.contains(val.key);
       },
     ).map(
-      (MapEntry<int, TagData> entry) {
+      (MapEntry<int, Tag> entry) {
         return DropdownMenuItem<int>(
           value: entry.key,
           child: Text(entry.value.name),

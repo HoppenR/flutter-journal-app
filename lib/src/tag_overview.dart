@@ -5,23 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'generated/l10n/app_localizations.dart';
-import 'graph.dart';
+import 'graph/dashboard.dart';
 import 'tag.dart';
 import 'utility.dart';
 
-enum OverviewItemType { tag, header }
+sealed class OverviewItem {}
 
-class OverviewItem {
-  OverviewItem.tag(TagData this.tag)
-      : type = OverviewItemType.tag,
-        headerCategoryId = null;
-  OverviewItem.header(int this.headerCategoryId)
-      : type = OverviewItemType.header,
-        tag = null;
+class OverviewTag extends OverviewItem {
+  OverviewTag({required this.tag});
 
-  final OverviewItemType type;
-  final int? headerCategoryId;
-  final TagData? tag;
+  final Tag tag;
+}
+
+class OverviewHeader extends OverviewItem {
+  OverviewHeader({required this.category});
+
+  final int category;
 }
 
 class TagDayOverview extends StatefulWidget {
@@ -121,63 +120,65 @@ class TagDayOverviewState extends State<TagDayOverview> {
         } else {
           direction = 1;
         }
-        final TagData oldIndexItem = orderedItems[oldIndex].tag!;
+        final Tag oldIndexItem = (orderedItems[oldIndex] as OverviewTag).tag;
         final OverviewItem newIndexItem = orderedItems[newIndex];
         final TagManager tagManager = context.read<TagManager>();
 
         // Calculate the new category and order for the moved tag
-        final int? categoryId;
+        final int? category;
         final int newIndexOrd;
-        switch (newIndexItem.type) {
-          case OverviewItemType.tag:
+        switch (newIndexItem) {
+          case OverviewTag():
             // When moving downward we need to use the order of the item above
             // plus one. When moving upward we can simply take the order of the
             // other tag. This is because we increase the order of all tags
             // below, but do not decrease the order of all tags above.
             // This allows us to make the assumption that moving a tag downward
             // to a header we can simply set the order to 0.
-            categoryId = newIndexItem.tag!.categoryId;
-            newIndexOrd = newIndexItem.tag!.order + (direction == -1 ? 1 : 0);
-          case OverviewItemType.header:
+            category = newIndexItem.tag.category;
+            newIndexOrd = newIndexItem.tag.order + (direction == -1 ? 1 : 0);
+          case OverviewHeader():
             if (direction == -1) {
-              categoryId = newIndexItem.headerCategoryId;
+              category = newIndexItem.category;
               newIndexOrd = 0;
             } else if (newIndex == 0) {
-              categoryId = null;
+              category = null;
               newIndexOrd = 0;
             } else {
               final OverviewItem above = orderedItems[newIndex - 1];
-              switch (above.type) {
-                case OverviewItemType.tag:
-                  categoryId = above.tag!.categoryId;
-                  newIndexOrd = above.tag!.order + 1;
-                case OverviewItemType.header:
-                  categoryId = above.headerCategoryId;
+              switch (above) {
+                case OverviewTag():
+                  category = above.tag.category;
+                  newIndexOrd = above.tag.order + 1;
+                case OverviewHeader():
+                  category = above.category;
                   newIndexOrd = 0;
               }
             }
         }
 
-        if (categoryId != oldIndexItem.categoryId) {
-          // Make sure tags in the new category update order
-          // update categoryId
+        if (category != oldIndexItem.category) {
           if (direction == -1) {
             // no need to increase order of the replaced item, moving downward
             newIndex += 1;
           }
+          outer:
           for (int i = newIndex; i < orderedItems.length; i++) {
-            if (orderedItems[i].type == OverviewItemType.header) {
-              break;
+            final OverviewItem item = orderedItems[i];
+            switch (item) {
+              case OverviewTag():
+                final Tag tag = item.tag;
+                tagManager.changeOrder(tag, tag.order + 1);
+              case OverviewHeader():
+                break outer;
             }
-            final TagData tag = orderedItems[i].tag!;
-            tagManager.changeOrder(tag, tag.order + 1);
           }
-          oldIndexItem.categoryId = categoryId;
+          oldIndexItem.category = category;
         } else {
           // We are in the same category as the target, onl order is relevant
           // and we only have to inc/dec order of relevant items
           for (int i = newIndex; i != oldIndex; i = i + direction) {
-            final TagData tag = orderedItems[i].tag!;
+            final Tag tag = (orderedItems[i] as OverviewTag).tag;
             tagManager.changeOrder(tag, tag.order + direction);
           }
         }
@@ -186,24 +187,21 @@ class TagDayOverviewState extends State<TagDayOverview> {
       },
       itemBuilder: (BuildContext context, int index) {
         final OverviewItem item = orderedItems[index];
-        switch (item.type) {
-          case OverviewItemType.tag:
+        switch (item) {
+          case OverviewTag():
             return ReorderableDragStartListener(
               index: index,
-              key: item.tag!.key,
+              key: item.tag.key,
               child: ListTile(
                 title: _buildReorderTagRow(context, item),
                 trailing: const Icon(Icons.drag_handle),
               ),
             );
-          case OverviewItemType.header:
+          case OverviewHeader():
             return Container(
-              key: ValueKey<int?>(item.headerCategoryId),
+              key: ValueKey<int?>(item.category),
               child: Text(
-                context
-                    .watch<TagManager>()
-                    .categories[item.headerCategoryId!]!
-                    .name,
+                context.read<TagManager>().categories[item.category]!.name,
                 style: const TextStyle(fontSize: 25.0),
               ),
             );
@@ -212,11 +210,11 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  Widget _buildReorderTagRow(BuildContext context, OverviewItem entry) {
+  Widget _buildReorderTagRow(BuildContext context, OverviewTag entry) {
     final TagManager tagManager = context.watch<TagManager>();
-    final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
-        ?.firstWhereOrNull((AppliedTagData tag) => tag.id == entry.tag?.id);
-    return _buildTagRow(context, entry.tag!, appliedTagData);
+    final AppliedTag? appliedTagData = tagManager.appliedTags[widget.day]
+        ?.firstWhereOrNull((AppliedTag tag) => tag.id == entry.tag.id);
+    return _buildTagRow(context, entry.tag, appliedTagData);
   }
 
   Widget _buildDismissibleTagList(BuildContext context) {
@@ -224,15 +222,15 @@ class TagDayOverviewState extends State<TagDayOverview> {
     final List<OverviewItem> orderedItems = orderItems();
     return Column(
       children: orderedItems.map((OverviewItem entry) {
-        switch (entry.type) {
-          case OverviewItemType.tag:
+        switch (entry) {
+          case OverviewTag():
             return _buildDismissibleTagRow(
               context,
-              entry.tag!,
+              entry.tag,
             );
-          case OverviewItemType.header:
+          case OverviewHeader():
             return Text(
-              tagManager.categories[entry.headerCategoryId!]!.name,
+              tagManager.categories[entry.category]!.name,
               style: const TextStyle(fontSize: 25.0),
             );
         }
@@ -240,10 +238,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  Widget _buildDismissibleTagRow(BuildContext context, TagData tagData) {
+  Widget _buildDismissibleTagRow(BuildContext context, Tag tagData) {
     final TagManager tagManager = context.watch<TagManager>();
-    final AppliedTagData? appliedTagData = tagManager.appliedTags[widget.day]
-        ?.firstWhereOrNull((AppliedTagData tag) => tag.id == tagData.id);
+    final AppliedTag? appliedTagData = tagManager.appliedTags[widget.day]
+        ?.firstWhereOrNull((AppliedTag tag) => tag.id == tagData.id);
 
     return Dismissible(
       key: tagData.key,
@@ -299,25 +297,25 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  List<Widget> _buildTagOptions(BuildContext context, TagData tagData) {
+  List<Widget> _buildTagOptions(BuildContext context, TagWithList tagData) {
     final TagManager tagManager = context.watch<TagManager>();
     return List<Widget>.generate(
       tagData.list.length,
       (int index) {
         final bool isSelected = tagManager.appliedTags[widget.day]?.any(
-              (AppliedTagData tag) {
+              (AppliedTag tag) {
                 if (tag.id != tagData.id) {
                   return false;
                 }
-                switch (tag.type) {
-                  case TagTypes.list:
-                    return tag.listOption == index;
-                  case TagTypes.multi:
-                    return tag.multiOptions?.contains(index) ?? false;
-                  case TagTypes.toggle:
+                switch (tag) {
+                  case AppliedList(:final int option):
+                    return option == index;
+                  case AppliedMulti(:final List<int> options):
+                    return options.contains(index);
+                  case AppliedToggle():
                     throw ArgumentError.value(
-                      tag.type,
-                      'tag.type',
+                      tag,
+                      'tag',
                       'argument does not have tag options',
                     );
                 }
@@ -338,38 +336,36 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  void _handleTagSelection(BuildContext context, TagData tagData, int index) {
-    final TagManager tagManager = context.watch<TagManager>();
+  void _handleTagSelection(
+    BuildContext context,
+    TagWithList tagData,
+    int index,
+  ) {
+    final TagManager tagManager = context.read<TagManager>();
     final int tagIndex = tagManager.appliedTags[widget.day]
-            ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
+            ?.indexWhere((AppliedTag tag) => tag.id == tagData.id) ??
         -1;
 
-    switch (tagData.type) {
-      case TagTypes.list:
+    switch (tagData) {
+      case ListTag():
         if (tagIndex != -1) {
-          final AppliedTagData appliedTag =
-              tagManager.appliedTags[widget.day]![tagIndex];
+          final AppliedList appliedTag =
+              tagManager.appliedTags[widget.day]![tagIndex] as AppliedList;
           tagManager.changeListOption(appliedTag, index);
         } else {
           tagManager.applyTag(
-            AppliedTagData.list(tagData.id, index, tagData),
+            AppliedList(tagData.id, index, tagData),
             widget.day,
           );
         }
-      case TagTypes.toggle:
-        throw ArgumentError.value(
-          tagData.type,
-          'tagData.type',
-          'argument does not have tag options',
-        );
-      case TagTypes.multi:
+      case MultiTag():
         if (tagIndex != -1) {
-          final AppliedTagData appliedTag =
-              tagManager.appliedTags[widget.day]![tagIndex];
+          final AppliedMulti appliedTag =
+              tagManager.appliedTags[widget.day]![tagIndex] as AppliedMulti;
           tagManager.toggleMultiOption(appliedTag, index);
         } else {
           tagManager.applyTag(
-            AppliedTagData.multi(tagData.id, <int>[index], tagData),
+            AppliedMulti(tagData.id, <int>[index], tagData),
             widget.day,
           );
         }
@@ -377,23 +373,22 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  void _handleToggleChange(BuildContext context, TagData tagData, bool value) {
-    // HERE<++>
+  void _handleToggleChange(
+    BuildContext context,
+    ToggleTag tagData,
+    bool value,
+  ) {
     final TagManager tagManager = context.read<TagManager>();
     final int tagIndex = tagManager.appliedTags[widget.day]
-            ?.indexWhere((AppliedTagData tag) => tag.id == tagData.id) ??
+            ?.indexWhere((AppliedTag tag) => tag.id == tagData.id) ??
         -1;
 
     if (tagIndex != -1) {
-      final AppliedTagData appliedTag =
-          tagManager.appliedTags[widget.day]![tagIndex];
+      final AppliedToggle appliedTag =
+          tagManager.appliedTags[widget.day]![tagIndex] as AppliedToggle;
       tagManager.toggleTo(appliedTag, value);
     } else {
-      final AppliedTagData newTag = AppliedTagData.toggle(
-        tagData.id,
-        value,
-        tagData,
-      );
+      final AppliedTag newTag = AppliedToggle(tagData.id, value, tagData);
       tagManager.applyTag(newTag, widget.day);
     }
     _debounceSave(context);
@@ -401,8 +396,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   Widget _buildTagRow(
     BuildContext context,
-    TagData tagData,
-    AppliedTagData? appliedTagData,
+    Tag tagData,
+    AppliedTag? appliedTagData,
   ) {
     return Column(
       key: tagData.key,
@@ -437,16 +432,17 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   List<Widget> _buildTagRowContent(
     BuildContext context,
-    TagData tagData,
-    AppliedTagData? appliedTagData,
+    Tag tagData,
+    AppliedTag? appliedTagData,
   ) {
-    switch (tagData.type) {
-      case TagTypes.list:
+    switch (tagData) {
+      case ListTag():
         return _buildTagOptions(context, tagData);
-      case TagTypes.toggle:
+      case ToggleTag():
         return <Widget>[
           Switch(
-            value: appliedTagData?.toggleOption ?? false,
+            value: (appliedTagData is AppliedToggle) && appliedTagData.option ||
+                false,
             onChanged: !_editMode
                 ? (bool value) {
                     _handleToggleChange(context, tagData, value);
@@ -454,7 +450,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
                 : null,
           ),
         ];
-      case TagTypes.multi:
+      case MultiTag():
         return _buildTagOptions(context, tagData);
     }
   }
@@ -535,30 +531,28 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   List<OverviewItem> orderItems() {
     final TagManager tagManager = context.watch<TagManager>();
-    final Map<int, List<TagData>> tagsByCategory = <int, List<TagData>>{
-      for (final int key in tagManager.categories.keys) key: <TagData>[]
+    final Map<int, List<Tag>> tagsByCategory = <int, List<Tag>>{
+      for (final int key in tagManager.categories.keys) key: <Tag>[]
     };
     final List<OverviewItem> ret = <OverviewItem>[];
 
-    for (final TagData tag in tagManager.tags.values) {
-      if (tag.categoryId != null) {
-        tagsByCategory[tag.categoryId!]!.add(tag);
+    for (final Tag tag in tagManager.tags.values) {
+      if (tag.category != null) {
+        tagsByCategory[tag.category!]!.add(tag);
       } else {
-        ret.add(OverviewItem.tag(tag));
+        ret.add(OverviewTag(tag: tag));
       }
     }
-    ret.sortBy<num>((OverviewItem item) => item.tag!.order);
+    ret.sortBy<num>((OverviewItem item) => (item as OverviewTag).tag.order);
 
-    for (final List<TagData> category in tagsByCategory.values) {
-      category.sortBy<num>((TagData tag) => tag.order);
+    for (final List<Tag> category in tagsByCategory.values) {
+      category.sortBy<num>((Tag tag) => tag.order);
     }
 
-    for (final MapEntry<int, List<TagData>> entry in tagsByCategory.entries) {
-      ret.add(OverviewItem.header(entry.key));
+    for (final MapEntry<int, List<Tag>> entry in tagsByCategory.entries) {
+      ret.add(OverviewHeader(category: entry.key));
       ret.addAll(
-        entry.value.map(
-          (TagData tag) => OverviewItem.tag(tag),
-        ),
+        entry.value.map((Tag tag) => OverviewTag(tag: tag)),
       );
     }
     return ret;

@@ -20,8 +20,8 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   double _getMaxTagColumnWidth(BuildContext context) {
     final TagManager tagManager = context.watch<TagManager>();
-    final TagData longestTag = tagManager.tags.values.reduce(
-      (TagData lhs, TagData rhs) {
+    final Tag longestTag = tagManager.tags.values.reduce(
+      (Tag lhs, Tag rhs) {
         if (lhs.name.length > rhs.name.length) {
           return lhs;
         }
@@ -141,7 +141,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     double cellHeight,
   ) {
     final TagManager tagManager = context.watch<TagManager>();
-    final TagData curTag = tagManager.tags.values.elementAt(index);
+    final Tag curTag = tagManager.tags.values.elementAt(index);
     return Container(
       height: cellHeight,
       decoration: BoxDecoration(
@@ -191,8 +191,8 @@ class CalendarWeekState extends State<CalendarWeek> {
   ) {
     final TagManager tagManager = context.watch<TagManager>();
     final int targetTagId = tagManager.tags.keys.elementAt(tagIndex);
-    final AppliedTagData? tag = tagManager.appliedTags[curDay]
-        ?.firstWhereOrNull((AppliedTagData t) => t.id == targetTagId);
+    final AppliedTag? tag = tagManager.appliedTags[curDay]
+        ?.firstWhereOrNull((AppliedTag t) => t.id == targetTagId);
     final Widget? tagShorthand = _buildTagShorthand(tag);
     return Stack(
       alignment: Alignment.center,
@@ -207,35 +207,27 @@ class CalendarWeekState extends State<CalendarWeek> {
     );
   }
 
-  Widget? _buildTagShorthand(AppliedTagData? appliedTag) {
+  Widget? _buildTagShorthand(AppliedTag? appliedTag) {
     if (appliedTag == null) {
       return null;
     }
 
-    switch (appliedTag.type) {
-      case TagTypes.list:
+    switch (appliedTag) {
+      case AppliedList():
         return Text(
-          appliedTag.string(context),
+          appliedTag.string(),
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 18.0,
             color: Theme.of(context).colorScheme.secondary,
           ),
         );
-      case TagTypes.toggle:
-        return Icon(
-          appliedTag.icon,
-          color: (appliedTag.toggleOption ?? false)
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.secondary,
-          size: 40.0,
-        );
-      case TagTypes.multi:
-        if (appliedTag.multiOptions!.isEmpty) {
+      case AppliedMulti():
+        if (appliedTag.options.isEmpty) {
           return null;
-        } else if (appliedTag.multiOptions!.length == 1) {
+        } else if (appliedTag.options.length == 1) {
           return Text(
-            appliedTag.string(context),
+            appliedTag.string(),
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 18.0,
@@ -255,7 +247,7 @@ class CalendarWeekState extends State<CalendarWeek> {
               minHeight: 32.0,
             ),
             child: Text(
-              appliedTag.multiOptions!.length.toString(),
+              appliedTag.options.length.toString(),
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
@@ -265,6 +257,14 @@ class CalendarWeekState extends State<CalendarWeek> {
             ),
           );
         }
+      case AppliedToggle():
+        return Icon(
+          appliedTag.tag.icon,
+          color: (appliedTag.option)
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.secondary,
+          size: 40.0,
+        );
     }
   }
 
