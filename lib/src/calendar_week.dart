@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
 
 import 'tag.dart';
@@ -269,7 +269,7 @@ class CalendarWeekState extends State<CalendarWeek> {
   }
 
   String _getWeekdayAbbreviation(BuildContext context, DateTime date) {
-    return DateFormat.E(
+    return intl.DateFormat.E(
       Localizations.localeOf(context).languageCode,
     ).format(date);
   }

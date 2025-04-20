@@ -9,6 +9,12 @@ import 'journal.dart';
 import 'tag.dart';
 import 'utility.dart';
 
+@immutable
+class EmojiSymbols {
+  static final String moon = String.fromCharCode(0xF518);
+  static final String book = String.fromCharCode(0xF186);
+}
+
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -66,8 +72,7 @@ class SettingsPage extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Text(
-          // Book
-          String.fromCharCode(0xF518),
+          EmojiSymbols.book,
           style: TextStyle(
             fontSize: 126.0,
             color: Theme.of(context).colorScheme.primary,
@@ -77,8 +82,7 @@ class SettingsPage extends StatelessWidget {
         Positioned(
           left: 20.0,
           child: Text(
-            // Moon
-            String.fromCharCode(0xF186),
+            EmojiSymbols.moon,
             style: TextStyle(
               fontSize: 126.0,
               color: Theme.of(context).colorScheme.inversePrimary,

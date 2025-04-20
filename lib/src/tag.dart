@@ -320,7 +320,7 @@ class ToggleTag extends Tag {
     // ignore: avoid_unused_constructor_parameters
     List<String>? list,
     super.category,
-  });
+  }) : assert(list == null || list.isEmpty);
 }
 
 // --- APPLIED TAG ---

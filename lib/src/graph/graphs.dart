@@ -468,17 +468,16 @@ Widget buildMonthHabitRadar(
     for (final AppliedTag appliedTag in entry.value) {
       switch (appliedTag) {
         case AppliedList():
-          break;
+          radarChartData[appliedTag.id]?.count++;
         case AppliedMulti():
-          if (appliedTag.options.isEmpty) {
-            continue;
+          if (appliedTag.options.isNotEmpty) {
+            radarChartData[appliedTag.id]?.count++;
           }
         case AppliedToggle():
-          if (!appliedTag.option) {
-            continue;
+          if (appliedTag.option) {
+            radarChartData[appliedTag.id]?.count++;
           }
       }
-      radarChartData[appliedTag.id]?.count += 1;
     }
   }
   return RadarChart(
@@ -585,14 +584,14 @@ Widget buildMonthCategoryRadar(
     for (final AppliedTag appliedTag in entry.value) {
       switch (appliedTag) {
         case AppliedList():
-          radarChartData[appliedTag.tag.category]?.count += 1;
+          radarChartData[appliedTag.tag.category]?.count++;
         case AppliedMulti():
           if (appliedTag.options.isNotEmpty) {
-            radarChartData[appliedTag.tag.category]?.count += 1;
+            radarChartData[appliedTag.tag.category]?.count++;
           }
         case AppliedToggle():
           if (appliedTag.option) {
-            radarChartData[appliedTag.tag.category]?.count += 1;
+            radarChartData[appliedTag.tag.category]?.count++;
           }
       }
     }
