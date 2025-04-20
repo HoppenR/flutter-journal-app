@@ -178,12 +178,14 @@ class _JournalPageState extends State<JournalPage>
       floatingActionButton: FloatingActionButton(
         elevation: 8.0,
         shape: const CircleBorder(),
-        onPressed: () => _selectedViewIndex == _JournalPages.calendar
-            ? _showAddTagWindow(context)
-            : _showAddDashboardWindow(context),
-        tooltip: _selectedViewIndex == _JournalPages.calendar
-            ? AppLocalizations.of(context).addTag
-            : AppLocalizations.of(context).addDashboard,
+        onPressed: () => switch (_selectedViewIndex) {
+          _JournalPages.calendar => _showAddTagWindow(context),
+          _JournalPages.graphs => _showAddDashboardWindow(context),
+        },
+        tooltip: switch (_selectedViewIndex) {
+          _JournalPages.calendar => AppLocalizations.of(context).addTag,
+          _JournalPages.graphs => AppLocalizations.of(context).addDashboard,
+        },
         child: AnimatedIcon(
           icon: AnimatedIcons.event_add,
           progress: _fabIconAnimation,
@@ -202,14 +204,15 @@ class _JournalPageState extends State<JournalPage>
       ),
       body: Column(
         children: <Widget>[
-          if (_selectedViewIndex == _JournalPages.calendar) ...<Widget>[
-            // Calendar View
-            _buildCalendarNavigationTopBar(context),
-            _buildCalendarBody(context),
-          ] else if (_selectedViewIndex == _JournalPages.graphs) ...<Widget>[
-            // Graph view
-            const Expanded(child: GraphPage()),
-          ],
+          ...switch (_selectedViewIndex) {
+            _JournalPages.calendar => <Widget>[
+                _buildCalendarNavigationTopBar(context),
+                _buildCalendarBody(context),
+              ],
+            _JournalPages.graphs => const <Widget>[
+                Expanded(child: GraphPage()),
+              ],
+          }
         ],
       ),
     );

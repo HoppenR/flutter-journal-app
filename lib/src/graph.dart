@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'generated/l10n/app_localizations.dart';
 import 'graph/dashboard.dart';
 import 'graph/grid.dart';
+import 'utility.dart';
 
-// TODO(Hop): Button to remove a dashboard with
-// dashboardManager.removeDashboard
 class GraphPage extends StatefulWidget {
   const GraphPage({super.key});
 
@@ -48,6 +48,17 @@ class _GraphPageState extends State<GraphPage> {
                       _dashboardIndex = index;
                     });
                   },
+                  onLongPress: () async {
+                    final bool didDeleteDashboard =
+                        await _showDeleteDashboardWindow(context);
+                    if (didDeleteDashboard) {
+                      dashboardManager.removeDashboard(dashboard);
+                      _dashboardIndex = null;
+                      if (context.mounted) {
+                        saveChartDashboardData(context);
+                      }
+                    }
+                  },
                   icon: Icon(
                     dashboard.icon,
                     size: 40.0,
@@ -71,5 +82,31 @@ class _GraphPageState extends State<GraphPage> {
         ],
       ),
     );
+  }
+
+  // TODO(Hop): Move this to utility since it's used in 2-3 places?
+  Future<bool> _showDeleteDashboardWindow(BuildContext context) async {
+    final bool? didDeleteDashboard = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context).clearDataTitle),
+          content: Text(AppLocalizations.of(context).clearDataPrompt),
+          actions: <Widget>[
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: Text(AppLocalizations.of(context).promptNegative),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: Text(AppLocalizations.of(context).promptAffirmative),
+            ),
+          ],
+        );
+      },
+    );
+    return didDeleteDashboard ?? false;
   }
 }

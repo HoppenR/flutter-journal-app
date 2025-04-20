@@ -160,7 +160,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         if (category != oldIndexItem.category) {
           if (direction == -1) {
             // no need to increase order of the replaced item, moving downward
-            newIndex += 1;
+            newIndex++;
           }
           outer:
           for (int i = newIndex; i < orderedItems.length; i++) {
@@ -436,7 +436,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     AppliedTag? appliedTagData,
   ) {
     switch (tagData) {
-      case ListTag():
+      case TagWithList():
         return _buildTagOptions(context, tagData);
       case ToggleTag():
         return <Widget>[
@@ -444,14 +444,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
             value: (appliedTagData is AppliedToggle) && appliedTagData.option ||
                 false,
             onChanged: !_editMode
-                ? (bool value) {
-                    _handleToggleChange(context, tagData, value);
-                  }
+                ? (bool value) => _handleToggleChange(context, tagData, value)
                 : null,
           ),
         ];
-      case MultiTag():
-        return _buildTagOptions(context, tagData);
     }
   }
 
