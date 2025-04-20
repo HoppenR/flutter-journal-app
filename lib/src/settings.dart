@@ -72,7 +72,7 @@ class SettingsPage extends StatelessWidget {
     return Stack(
       children: <Widget>[
         Text(
-          EmojiSymbols.book,
+          EmojiSymbols.moon,
           style: TextStyle(
             fontSize: 126.0,
             color: Theme.of(context).colorScheme.primary,
@@ -82,7 +82,7 @@ class SettingsPage extends StatelessWidget {
         Positioned(
           left: 20.0,
           child: Text(
-            EmojiSymbols.moon,
+            EmojiSymbols.book,
             style: TextStyle(
               fontSize: 126.0,
               color: Theme.of(context).colorScheme.inversePrimary,

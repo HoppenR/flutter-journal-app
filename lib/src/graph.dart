@@ -84,7 +84,6 @@ class _GraphPageState extends State<GraphPage> {
     );
   }
 
-  // TODO(Hop): Move this to utility since it's used in 2-3 places?
   Future<bool> _showDeleteDashboardWindow(BuildContext context) async {
     final bool? didDeleteDashboard = await showDialog(
       context: context,
