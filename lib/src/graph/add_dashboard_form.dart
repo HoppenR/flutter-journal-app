@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../generated/l10n/app_localizations.dart';
 import '../tag/appliedtag.dart';
+import '../tag/icons.dart';
 import '../tag/manager.dart';
 import '../tag/tag.dart';
 import 'configuration.dart';
@@ -24,9 +25,12 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   final TextEditingController _nameController = TextEditingController();
 
   GraphTypes? _selectedType;
+  IconData _selectedIcon = Icons.favorite;
   GraphTimespans? _selectedTimespan;
   final List<GraphConfiguration> _configurations = <GraphConfiguration>[];
   int tagFormNumber = 0;
+
+  static const double _iconSize = 40.0;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +59,8 @@ class AddDashboardFormState extends State<AddDashboardForm> {
             _buildDashboardOptionType(context),
             _buildDashboardTimespan(context),
             ..._buildOptionFields(context),
+            Text(AppLocalizations.of(context).tagSelectIcon),
+            _buildIconSelection(context),
           ],
         ),
       ),
@@ -198,7 +204,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           dashboardManager.addDashboard(
             ChartDashboardData(
               title: _nameController.text,
-              icon: Icons.shield_moon,
+              icon: _selectedIcon,
               configurations: _configurations,
             ),
           );
@@ -306,5 +312,51 @@ class AddDashboardFormState extends State<AddDashboardForm> {
         );
       },
     ).toList(growable: false);
+  }
+
+  Widget _buildIconSelection(BuildContext context) {
+    return Expanded(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double availableWidth = constraints.maxWidth;
+          final int maxIconsInRow = availableWidth ~/ (_iconSize + 16.0);
+          return _buildIconGridBuilder(context, maxIconsInRow);
+        },
+      ),
+    );
+  }
+
+  Widget _buildIconGridBuilder(BuildContext context, int maxIconsInRow) {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: maxIconsInRow,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+      ),
+      itemCount: availableIcons.length,
+      itemBuilder: (BuildContext context, int index) {
+        final int codePoint = availableIcons.keys.elementAt(index);
+        final IconData icon = availableIcons[codePoint]!;
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedIcon = icon;
+            });
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: _selectedIcon == icon
+                    ? Theme.of(context).colorScheme.inversePrimary
+                    : Colors.transparent,
+                width: 2.0,
+              ),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Icon(icon, size: _iconSize),
+          ),
+        );
+      },
+    );
   }
 }
