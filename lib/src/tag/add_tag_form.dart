@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'generated/l10n/app_localizations.dart';
-import 'graph/configuration.dart';
-import 'graph/dashboard.dart';
+import '../generated/l10n/app_localizations.dart';
+import '../graph/configuration.dart';
+import '../graph/dashboard.dart';
+import 'icons.dart';
+import 'manager.dart';
 import 'tag.dart';
 
 class AddTagForm extends StatefulWidget {

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n/app_localizations.dart';
-import '../tag.dart';
+import '../tag/appliedtag.dart';
+import '../tag/manager.dart';
+import '../tag/tag.dart';
 import 'configuration.dart';
 import 'dashboard.dart';
 

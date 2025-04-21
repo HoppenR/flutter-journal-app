@@ -4,10 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'generated/l10n/app_localizations.dart';
-import 'graph/dashboard.dart';
+import '../generated/l10n/app_localizations.dart';
+import '../graph/dashboard.dart';
+import '../utility.dart';
+import 'appliedtag.dart';
+import 'manager.dart';
 import 'tag.dart';
-import 'utility.dart';
 
 sealed class OverviewItem {}
 

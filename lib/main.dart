@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 
 import 'src/graph/dashboard.dart';
 import 'src/journal.dart';
-import 'src/tag.dart';
+import 'src/tag/manager.dart';
 import 'src/utility.dart';
 
+// TODO: Customize palletes?
 void main() async {
   runApp(const InitializationWidget());
 }
