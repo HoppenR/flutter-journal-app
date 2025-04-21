@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:provider/provider.dart';
 
-import 'tag.dart';
-import 'tag_overview.dart';
+import 'tag/appliedtag.dart';
+import 'tag/manager.dart';
+import 'tag/tag.dart';
+import 'tag/tag_overview.dart';
 
 class CalendarWeek extends StatefulWidget {
   const CalendarWeek({super.key, required this.weekStartDate});

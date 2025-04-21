@@ -2,12 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'add_tag_form.dart';
-import 'calendar_week.dart';
+import 'calendar.dart';
 import 'generated/l10n/app_localizations.dart';
 import 'graph.dart';
 import 'graph/add_dashboard_form.dart';
 import 'settings.dart';
+import 'tag/add_tag_form.dart';
 import 'utility.dart';
 
 // --- JournalApp ---

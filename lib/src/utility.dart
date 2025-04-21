@@ -6,7 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'graph/dashboard.dart';
 import 'settings.dart';
-import 'tag.dart';
+import 'tag/appliedtag.dart';
+import 'tag/manager.dart';
+import 'tag/tag.dart';
 
 // Used to return data from loadUserPrefs in a structured way
 // tagData and appliedTags are cached in tags.dart

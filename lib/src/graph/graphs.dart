@@ -5,7 +5,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../tag.dart';
+import '../tag/appliedtag.dart';
+import '../tag/manager.dart';
+import '../tag/tag.dart';
 import 'configuration.dart';
 
 // --- HEATMAP ---

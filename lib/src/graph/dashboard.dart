@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../tag.dart';
+import '../tag/icons.dart';
 import 'configuration.dart';
 
 class ChartDashboardManager with ChangeNotifier {

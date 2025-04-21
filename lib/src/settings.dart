@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'generated/l10n/app_localizations.dart';
 import 'graph/dashboard.dart';
 import 'journal.dart';
-import 'tag.dart';
+import 'tag/manager.dart';
 import 'utility.dart';
 
 @immutable
