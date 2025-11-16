@@ -26,14 +26,14 @@ class JournalApp extends StatefulWidget {
   State<JournalApp> createState() => _JournalAppState();
 
   static void setLocale(BuildContext context, Locale? newLocale) {
-    final _JournalAppState? state =
-        context.findAncestorStateOfType<_JournalAppState>();
+    final _JournalAppState? state = context
+        .findAncestorStateOfType<_JournalAppState>();
     state?.changeLanguage(newLocale);
   }
 
   static void setTheme(BuildContext context, String? newTheme) {
-    final _JournalAppState? state =
-        context.findAncestorStateOfType<_JournalAppState>();
+    final _JournalAppState? state = context
+        .findAncestorStateOfType<_JournalAppState>();
     state?.changeTheme(newTheme);
   }
 }
@@ -98,10 +98,7 @@ class _JournalAppState extends State<JournalApp> {
 
 // --- JournalPage ---
 
-enum _JournalPages {
-  calendar,
-  graphs,
-}
+enum _JournalPages { calendar, graphs }
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key, required this.title});
@@ -134,8 +131,11 @@ class _JournalPageState extends State<JournalPage>
   void initState() {
     super.initState();
     final DateTime now = DateTime.now();
-    _initialDate = DateTime.utc(now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
+    _initialDate = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
     _initialPage = _dateToPageIndex(_initialDate);
     _lastPage = _dateToPageIndex(_lastDate);
     _focusedPageNotifier = ValueNotifier<int>(_initialPage);
@@ -206,13 +206,13 @@ class _JournalPageState extends State<JournalPage>
         children: <Widget>[
           ...switch (_selectedViewIndex) {
             _JournalPages.calendar => <Widget>[
-                _buildCalendarNavigationTopBar(context),
-                _buildCalendarBody(context),
-              ],
+              _buildCalendarNavigationTopBar(context),
+              _buildCalendarBody(context),
+            ],
             _JournalPages.graphs => const <Widget>[
-                Expanded(child: GraphPage()),
-              ],
-          }
+              Expanded(child: GraphPage()),
+            ],
+          },
         ],
       ),
     );
@@ -330,14 +330,10 @@ class _JournalPageState extends State<JournalPage>
         }
       },
       child: Text(
-        AppLocalizations.of(context).yearAndWeek(
-          currentDate.year,
-          _dateToWeekNumber(currentDate),
-        ),
-        style: const TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-        ),
+        AppLocalizations.of(
+          context,
+        ).yearAndWeek(currentDate.year, _dateToWeekNumber(currentDate)),
+        style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
       ),
     );
   }

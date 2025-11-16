@@ -42,9 +42,7 @@ class AddTagFormState extends State<AddTagForm> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(AppLocalizations.of(context).addTag),
-        actions: <Widget>[
-          _buildTagFormValidateButton(context),
-        ],
+        actions: <Widget>[_buildTagFormValidateButton(context)],
       ),
       body: _buildTagFormBody(context),
     );
@@ -119,8 +117,8 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagFormValidateButton(BuildContext context) {
     final TagManager tagManager = context.read<TagManager>();
-    final ChartDashboardManager dashboardManager =
-        context.read<ChartDashboardManager>();
+    final ChartDashboardManager dashboardManager = context
+        .read<ChartDashboardManager>();
     return TextButton(
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
@@ -194,39 +192,35 @@ class AddTagFormState extends State<AddTagForm> {
   }
 
   List<Row> _buildOptionInputs(BuildContext context) {
-    return List<Row>.generate(
-      _options.length,
-      (int index) {
-        return Row(
-          children: <Widget>[
-            Expanded(
-              child: TextFormField(
-                controller: _options[index],
-                decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context).tagAddOption,
-                ),
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context).tagOptionMissing;
-                  }
-                  return null;
-                },
+    return List<Row>.generate(_options.length, (int index) {
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: TextFormField(
+              controller: _options[index],
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context).tagAddOption,
               ),
+              validator: (String? value) {
+                if (value == null || value.isEmpty) {
+                  return AppLocalizations.of(context).tagOptionMissing;
+                }
+                return null;
+              },
             ),
-            if (index > 0)
-              IconButton(
-                icon: const Icon(Icons.remove_circle),
-                onPressed: () {
-                  setState(() {
-                    _options.removeAt(index);
-                  });
-                },
-              ),
-          ],
-        );
-      },
-      growable: false,
-    );
+          ),
+          if (index > 0)
+            IconButton(
+              icon: const Icon(Icons.remove_circle),
+              onPressed: () {
+                setState(() {
+                  _options.removeAt(index);
+                });
+              },
+            ),
+        ],
+      );
+    }, growable: false);
   }
 
   Widget _buildIconSelection(BuildContext context) {

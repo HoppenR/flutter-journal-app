@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'appliedtag.dart';
 import 'tag.dart';
 
-typedef TagFactory<T extends Tag> = T Function(
-  int id,
-  String name,
-  IconData icon,
-  int order, {
-  required List<String> list,
-  int? category,
-});
+typedef TagFactory<T extends Tag> =
+    T Function(
+      int id,
+      String name,
+      IconData icon,
+      int order, {
+      required List<String> list,
+      int? category,
+    });
 
 /// A TagManager class for storing and interacting with tags
 /// with functionality for propagating updates to watchers
@@ -46,10 +47,7 @@ class TagManager with ChangeNotifier {
 
   int addCategory(String name) {
     final int category = nextCategory++;
-    categories[category] = TagCategory(
-      name: name,
-      id: category,
-    );
+    categories[category] = TagCategory(name: name, id: category);
     notifyListeners();
     return category;
   }
@@ -103,8 +101,8 @@ class TagManager with ChangeNotifier {
   //       Right now: We swap them, but this should be changed to reordering
   //       like in ReorderableList
   void swapListOptions(TagWithList tag, int ix1, int ix2) {
-  print(ix1);
-  print(ix2);
+    print(ix1);
+    print(ix2);
     // swap any appliedTagData options
     for (final List<AppliedTag> appliedTags in appliedTags.values) {
       for (final AppliedTag appliedTag in appliedTags) {

@@ -20,15 +20,7 @@ Widget buildYearHeatMap(
   List<Color> colors,
 ) {
   Widget makeRowBetweenMonths(int start, int end) {
-    return _buildMonthRowHeatMap(
-      context,
-      conf,
-      size,
-      now,
-      colors,
-      start,
-      end,
-    );
+    return _buildMonthRowHeatMap(context, conf, size, now, colors, start, end);
   }
 
   return Column(
@@ -81,9 +73,7 @@ Widget buildMonthHeatMap(
       maxY: 5.0,
       minX: 0.0,
       minY: 0.0,
-      titlesData: const FlTitlesData(
-        show: false,
-      ),
+      titlesData: const FlTitlesData(show: false),
       gridData: FlGridData(
         verticalInterval: 1.0,
         horizontalInterval: 1.0,
@@ -94,19 +84,9 @@ Widget buildMonthHeatMap(
           return _getGraphLine(context, value);
         },
       ),
-      scatterTouchData: ScatterTouchData(
-        enabled: false,
-      ),
-      borderData: FlBorderData(
-        show: false,
-      ),
-      scatterSpots: _getScatterSpots(
-        context,
-        conf,
-        size,
-        now,
-        color,
-      ),
+      scatterTouchData: ScatterTouchData(enabled: false),
+      borderData: FlBorderData(show: false),
+      scatterSpots: _getScatterSpots(context, conf, size, now, color),
     ),
   );
 }
@@ -172,10 +152,7 @@ ScatterSpot _makeSpot(
   return ScatterSpot(
     x + 0.5,
     -y + 4.5,
-    dotPainter: FlDotCirclePainter(
-      radius: baseRadius,
-      color: color,
-    ),
+    dotPainter: FlDotCirclePainter(radius: baseRadius, color: color),
   );
 }
 
@@ -187,24 +164,20 @@ Widget buildMonthBarChart(
   DateTime now,
   List<Color> colors,
 ) {
-  final List<List<double>> weekData = _generateBarGroupData(
-    context,
-    conf,
-    now,
-  );
+  final List<List<double>> weekData = _generateBarGroupData(context, conf, now);
 
   final double maxValue = weekData.fold(
     1.0,
     (double acc, List<double> right) => max(acc, right.max),
   );
 
-  final List<List<double>> percentData = weekData.map(
-    (List<double> barValues) {
-      return barValues
-          .map((double value) => value * 100.0 / maxValue)
-          .toList(growable: false);
-    },
-  ).toList(growable: false);
+  final List<List<double>> percentData = weekData
+      .map((List<double> barValues) {
+        return barValues
+            .map((double value) => value * 100.0 / maxValue)
+            .toList(growable: false);
+      })
+      .toList(growable: false);
 
   return BarChart(
     BarChartData(
@@ -219,9 +192,7 @@ Widget buildMonthBarChart(
         _buildBarChartGroupData(context, 5, percentData[5], size, colors),
         _buildBarChartGroupData(context, 6, percentData[6], size, colors),
       ],
-      borderData: FlBorderData(
-        show: false,
-      ),
+      borderData: FlBorderData(show: false),
       gridData: FlGridData(
         verticalInterval: 0.125,
         getDrawingHorizontalLine: (double value) {
@@ -259,15 +230,13 @@ BarChartGroupData _buildBarChartGroupData(
   return BarChartGroupData(
     x: x,
     barRods: <BarChartRodData>[
-      ...ys.indexed.map(
-        ((int, double) entry) {
-          return BarChartRodData(
-            toY: entry.$2,
-            color: colors[entry.$1 % colors.length],
-            width: baseWidth,
-          );
-        },
-      )
+      ...ys.indexed.map(((int, double) entry) {
+        return BarChartRodData(
+          toY: entry.$2,
+          color: colors[entry.$1 % colors.length],
+          width: baseWidth,
+        );
+      }),
     ],
   );
 }
@@ -280,34 +249,36 @@ List<List<double>> _generateBarGroupData(
 ) {
   final TagManager tagManager = context.watch<TagManager>();
   return List<List<double>>.generate(7, (int index) {
-    return conf.ids.map((int tagId) {
-      double counter = 0.0;
-      for (final MapEntry<DateTime, List<AppliedTag>> entry
-          in tagManager.appliedTags.entries) {
-        if (entry.key.year == now.year &&
-            entry.key.month == now.month &&
-            entry.key.weekday - 1 == index) {
-          for (final AppliedTag data in entry.value) {
-            if (data.id == tagId) {
-              switch (data) {
-                case AppliedList():
-                  break;
-                case AppliedMulti():
-                  if (data.options.isEmpty) {
-                    continue;
+    return conf.ids
+        .map((int tagId) {
+          double counter = 0.0;
+          for (final MapEntry<DateTime, List<AppliedTag>> entry
+              in tagManager.appliedTags.entries) {
+            if (entry.key.year == now.year &&
+                entry.key.month == now.month &&
+                entry.key.weekday - 1 == index) {
+              for (final AppliedTag data in entry.value) {
+                if (data.id == tagId) {
+                  switch (data) {
+                    case AppliedList():
+                      break;
+                    case AppliedMulti():
+                      if (data.options.isEmpty) {
+                        continue;
+                      }
+                    case AppliedToggle():
+                      if (!data.option) {
+                        continue;
+                      }
                   }
-                case AppliedToggle():
-                  if (!data.option) {
-                    continue;
-                  }
+                  counter++;
+                }
               }
-              counter++;
             }
           }
-        }
-      }
-      return counter;
-    }).toList(growable: false);
+          return counter;
+        })
+        .toList(growable: false);
   }, growable: false);
 }
 
@@ -329,13 +300,13 @@ Widget buildMonthLineChart(
     (double acc, List<double> right) => max(acc, right.max),
   );
 
-  final List<List<double>> percentData = weekData.map(
-    (List<double> barValues) {
-      return barValues
-          .map((double value) => value * 100.0 / maxValue)
-          .toList(growable: false);
-    },
-  ).toList(growable: false);
+  final List<List<double>> percentData = weekData
+      .map((List<double> barValues) {
+        return barValues
+            .map((double value) => value * 100.0 / maxValue)
+            .toList(growable: false);
+      })
+      .toList(growable: false);
 
   return LineChart(
     LineChartData(
@@ -344,19 +315,17 @@ Widget buildMonthLineChart(
       baselineY: 0.0,
       minX: -0.99,
       maxX: 6.99,
-      lineBarsData: percentData.indexed.map(
-        ((int, List<double>) entry) {
-          return LineChartBarData(
-            color: colors[entry.$1 % colors.length],
-            isCurved: true,
-            barWidth: 6.0,
-            spots: _buildLineChartBarData(context, entry.$1, entry.$2),
-          );
-        },
-      ).toList(growable: false),
-      borderData: FlBorderData(
-        show: false,
-      ),
+      lineBarsData: percentData.indexed
+          .map(((int, List<double>) entry) {
+            return LineChartBarData(
+              color: colors[entry.$1 % colors.length],
+              isCurved: true,
+              barWidth: 6.0,
+              spots: _buildLineChartBarData(context, entry.$1, entry.$2),
+            );
+          })
+          .toList(growable: false),
+      borderData: FlBorderData(show: false),
       gridData: FlGridData(
         verticalInterval: 1.0,
         getDrawingHorizontalLine: (double value) {
@@ -406,36 +375,38 @@ List<List<double>> _generateLineChartData(
   DateTime now,
 ) {
   final TagManager tagManager = context.watch<TagManager>();
-  return conf.ids.map((int tagId) {
-    return List<double>.generate(7, (int index) {
-      double counter = 0.0;
-      for (final MapEntry<DateTime, List<AppliedTag>> entry
-          in tagManager.appliedTags.entries) {
-        if (entry.key.year == now.year &&
-            entry.key.month == now.month &&
-            entry.key.weekday - 1 == index) {
-          for (final AppliedTag data in entry.value) {
-            if (data.id == tagId) {
-              switch (data) {
-                case AppliedList():
-                  break;
-                case AppliedMulti():
-                  if (data.options.isEmpty) {
-                    continue;
+  return conf.ids
+      .map((int tagId) {
+        return List<double>.generate(7, (int index) {
+          double counter = 0.0;
+          for (final MapEntry<DateTime, List<AppliedTag>> entry
+              in tagManager.appliedTags.entries) {
+            if (entry.key.year == now.year &&
+                entry.key.month == now.month &&
+                entry.key.weekday - 1 == index) {
+              for (final AppliedTag data in entry.value) {
+                if (data.id == tagId) {
+                  switch (data) {
+                    case AppliedList():
+                      break;
+                    case AppliedMulti():
+                      if (data.options.isEmpty) {
+                        continue;
+                      }
+                    case AppliedToggle():
+                      if (!data.option) {
+                        continue;
+                      }
                   }
-                case AppliedToggle():
-                  if (!data.option) {
-                    continue;
-                  }
+                  counter++;
+                }
               }
-              counter++;
             }
           }
-        }
-      }
-      return counter;
-    }, growable: false);
-  }).toList(growable: false);
+          return counter;
+        }, growable: false);
+      })
+      .toList(growable: false);
 }
 
 // --- RADAR GRAPH ---
@@ -460,7 +431,7 @@ Widget buildMonthHabitRadar(
   final Map<int, RadarGraphData> radarChartData = <int, RadarGraphData>{
     for (final MapEntry<int, Tag> entry in tagManager.tags.entries)
       if (conf.ids.contains(entry.key))
-        entry.key: RadarGraphData(name: entry.value.name, count: 0.0)
+        entry.key: RadarGraphData(name: entry.value.name, count: 0.0),
   };
   for (final MapEntry<DateTime, List<AppliedTag>> entry
       in tagManager.appliedTags.entries) {
@@ -500,16 +471,14 @@ Widget buildMonthHabitRadar(
           entryRadius: 0.0,
           fillColor: color.withAlpha(200),
           borderColor: color,
-          dataEntries: radarChartData.entries.map(
-            (MapEntry<int, RadarGraphData> arg) {
-              return RadarEntry(value: arg.value.count);
-            },
-          ).toList(growable: false),
-        )
+          dataEntries: radarChartData.entries
+              .map((MapEntry<int, RadarGraphData> arg) {
+                return RadarEntry(value: arg.value.count);
+              })
+              .toList(growable: false),
+        ),
       ],
-      borderData: FlBorderData(
-        show: false,
-      ),
+      borderData: FlBorderData(show: false),
     ),
   );
 }
@@ -576,7 +545,7 @@ Widget buildMonthCategoryRadar(
     for (final MapEntry<int, TagCategory> entry
         in tagManager.categories.entries)
       if (conf.ids.contains(entry.key))
-        entry.key: RadarGraphData(name: entry.value.name, count: 0.0)
+        entry.key: RadarGraphData(name: entry.value.name, count: 0.0),
   };
   for (final MapEntry<DateTime, List<AppliedTag>> entry
       in tagManager.appliedTags.entries) {
@@ -616,16 +585,14 @@ Widget buildMonthCategoryRadar(
           entryRadius: 0,
           fillColor: color.withAlpha(200),
           borderColor: color,
-          dataEntries: radarChartData.entries.map(
-            (MapEntry<int, RadarGraphData> arg) {
-              return RadarEntry(value: arg.value.count);
-            },
-          ).toList(growable: false),
-        )
+          dataEntries: radarChartData.entries
+              .map((MapEntry<int, RadarGraphData> arg) {
+                return RadarEntry(value: arg.value.count);
+              })
+              .toList(growable: false),
+        ),
       ],
-      borderData: FlBorderData(
-        show: false,
-      ),
+      borderData: FlBorderData(show: false),
     ),
   );
 }

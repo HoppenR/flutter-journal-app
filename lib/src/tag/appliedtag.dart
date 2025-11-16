@@ -3,10 +3,7 @@ import 'tag.dart';
 sealed class AppliedTag {
   const AppliedTag(this.id);
 
-  factory AppliedTag.fromJson(
-    Map<String, dynamic> json,
-    Map<int, Tag> tags,
-  ) {
+  factory AppliedTag.fromJson(Map<String, dynamic> json, Map<int, Tag> tags) {
     final int id = json['id'];
     final Tag tag = tags[id]!;
     switch (tag) {
@@ -22,20 +19,11 @@ sealed class AppliedTag {
   Map<String, dynamic> toJson() {
     switch (this) {
       case final AppliedList list:
-        return <String, dynamic>{
-          'id': id,
-          'listOption': list.option,
-        };
+        return <String, dynamic>{'id': id, 'listOption': list.option};
       case final AppliedMulti multi:
-        return <String, dynamic>{
-          'id': id,
-          'multiOptions': multi.options,
-        };
+        return <String, dynamic>{'id': id, 'multiOptions': multi.options};
       case final AppliedToggle toggle:
-        return <String, dynamic>{
-          'id': id,
-          'toggleOption': toggle.option,
-        };
+        return <String, dynamic>{'id': id, 'toggleOption': toggle.option};
     }
   }
 

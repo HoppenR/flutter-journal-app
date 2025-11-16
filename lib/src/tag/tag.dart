@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'icons.dart';
 
-enum TagTypes {
-  list,
-  multi,
-  toggle,
-}
+enum TagTypes { list, multi, toggle }
 
 sealed class Tag {
   Tag(this.id, this.name, this.icon, this.order, {this.category})
-      : key = ValueKey<int>(id);
+    : key = ValueKey<int>(id);
 
   factory Tag.fromJson(Map<String, dynamic> json) {
     final int codePoint = json['icon'];
@@ -142,17 +138,11 @@ class TagCategory {
   TagCategory({required this.name, required this.id});
 
   factory TagCategory.fromJson(Map<String, dynamic> json) {
-    return TagCategory(
-      name: json['name'],
-      id: json['id'],
-    );
+    return TagCategory(name: json['name'], id: json['id']);
   }
 
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'name': name,
-      'id': id,
-    };
+    return <String, dynamic>{'name': name, 'id': id};
   }
 
   final String name;
