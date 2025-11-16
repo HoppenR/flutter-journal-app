@@ -49,7 +49,7 @@ class SettingsPage extends StatelessWidget {
   Widget _buildSettingsContent(BuildContext context) {
     return SizedBox.expand(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: .center,
         children: <Widget>[
           Text(
             AppLocalizations.of(context).appTitle,
@@ -63,6 +63,8 @@ class SettingsPage extends StatelessWidget {
           _buildClearPreferencesDropdown(context),
           const SizedBox(height: 16.0),
           _buildAboutSection(context),
+          const SizedBox(height: 16.0),
+          const Icon(Icons.cruelty_free),
         ],
       ),
     );
@@ -100,14 +102,14 @@ class SettingsPage extends StatelessWidget {
       requestFocusOnTap: false,
       initialSelection: Localizations.localeOf(context).languageCode,
       leadingIcon: const Icon(Icons.language),
-      dropdownMenuEntries: AppLocalizations.supportedLocales.map(
-        (Locale locale) {
-          return DropdownMenuEntry<String>(
-            value: locale.languageCode,
-            label: locale.languageCode,
-          );
-        },
-      ).toList(growable: false),
+      dropdownMenuEntries: AppLocalizations.supportedLocales
+          .map((Locale locale) {
+            return DropdownMenuEntry<String>(
+              value: locale.languageCode,
+              label: locale.languageCode,
+            );
+          })
+          .toList(growable: false),
       onSelected: (String? newValue) {
         if (newValue != null) {
           JournalApp.setLocale(context, Locale(newValue));
@@ -124,46 +126,45 @@ class SettingsPage extends StatelessWidget {
         alignment: WrapAlignment.center,
         spacing: 10.0,
         runSpacing: 10.0,
-        children: themes.keys.map((String theme) {
-          return GestureDetector(
-            onTap: () {
-              JournalApp.setTheme(context, theme);
-            },
-            child: Theme(
-              data: ThemeData.from(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: themes[theme]!,
-                ),
-              ),
-              child: Builder(builder: (BuildContext context) {
-                return Transform.rotate(
-                  angle: math.pi / 4.0,
-                  child: Container(
-                    width: 30.0,
-                    height: 30.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: <Color>[
-                          Theme.of(context).colorScheme.inversePrimary,
-                          Theme.of(context).colorScheme.inversePrimary,
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primary,
-                        ],
-                        stops: const <double>[
-                          0.0,
-                          0.5,
-                          0.5,
-                          1.0,
-                        ],
-                      ),
+        children: themes.keys
+            .map((String theme) {
+              return GestureDetector(
+                onTap: () {
+                  JournalApp.setTheme(context, theme);
+                },
+                child: Theme(
+                  data: ThemeData.from(
+                    colorScheme: ColorScheme.fromSeed(
+                      seedColor: themes[theme]!,
                     ),
                   ),
-                );
-              }),
-            ),
-          );
-        }).toList(growable: false),
+                  child: Builder(
+                    builder: (BuildContext context) {
+                      return Transform.rotate(
+                        angle: math.pi / 4.0,
+                        child: Container(
+                          width: 30.0,
+                          height: 30.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: <Color>[
+                                Theme.of(context).colorScheme.inversePrimary,
+                                Theme.of(context).colorScheme.inversePrimary,
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.primary,
+                              ],
+                              stops: const <double>[0.0, 0.5, 0.5, 1.0],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            })
+            .toList(growable: false),
       ),
     );
   }
@@ -183,7 +184,7 @@ class SettingsPage extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),
-        )
+        ),
       ],
     );
   }
@@ -193,9 +194,7 @@ class SettingsPage extends StatelessWidget {
       style: TextButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.onError,
         backgroundColor: Theme.of(context).colorScheme.error,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         fixedSize: const Size(152.0, 48.0),
       ),
       icon: const Icon(Icons.delete),
@@ -219,8 +218,8 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildClearPreferencesDialog(BuildContext context) {
     final TagManager tagManager = context.watch<TagManager>();
-    final ChartDashboardManager dashboardManager =
-        context.read<ChartDashboardManager>();
+    final ChartDashboardManager dashboardManager = context
+        .read<ChartDashboardManager>();
     return AlertDialog(
       title: Text(AppLocalizations.of(context).clearDataTitle),
       content: Text(AppLocalizations.of(context).clearDataPrompt),

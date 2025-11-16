@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../generated/l10n/app_localizations.dart';
 import '../graph/dashboard.dart';
+import '../reorderable_wrap.dart';
 import '../utility.dart';
 import 'appliedtag.dart';
 import 'manager.dart';
@@ -34,6 +35,9 @@ class TagDayOverview extends StatefulWidget {
   TagDayOverviewState createState() => TagDayOverviewState();
 }
 
+// TODO:
+// Separate the debounced save into the callbacks necessary only.
+// Perhaps a List<Function>...
 class TagDayOverviewState extends State<TagDayOverview> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Timer? _debouncedSaveTimer;
@@ -105,9 +109,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     );
   }
 
-  Widget _buildReorderableTagList(
-    BuildContext context,
-  ) {
+  Widget _buildReorderableTagList(BuildContext context) {
     final List<OverviewItem> orderedItems = orderItems();
     return ReorderableListView.builder(
       itemCount: orderedItems.length,
@@ -117,7 +119,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
         // possible now
         final int direction;
         if (oldIndex < newIndex) {
-          newIndex -= 1;
+          newIndex--;
           direction = -1;
         } else {
           direction = 1;
@@ -216,7 +218,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     final TagManager tagManager = context.watch<TagManager>();
     final AppliedTag? appliedTagData = tagManager.appliedTags[widget.day]
         ?.firstWhereOrNull((AppliedTag tag) => tag.id == entry.tag.id);
-    return _buildTagRow(context, entry.tag, appliedTagData);
+    return _buildReorderableTagRow(context, entry.tag, appliedTagData);
   }
 
   Widget _buildDismissibleTagList(BuildContext context) {
@@ -297,6 +299,60 @@ class TagDayOverviewState extends State<TagDayOverview> {
       },
       child: _buildTagRow(context, tagData, appliedTagData),
     );
+  }
+
+  Widget _buildTagRow(
+    BuildContext context,
+    Tag tagData,
+    AppliedTag? appliedTagData,
+  ) {
+    return Column(
+      key: tagData.key,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(tagData.icon, size: 40.0),
+            Expanded(
+              child: Text(
+                tagData.name,
+                style: const TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        Wrap(
+          runSpacing: 4.0,
+          spacing: 8.0,
+          children: _buildTagRowContent(context, tagData, appliedTagData),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildTagRowContent(
+    BuildContext context,
+    Tag tagData,
+    AppliedTag? appliedTagData,
+  ) {
+    switch (tagData) {
+      case TagWithList():
+        return _buildTagOptions(context, tagData);
+      case ToggleTag():
+        return <Widget>[
+          Switch(
+            value: (appliedTagData is AppliedToggle) && appliedTagData.option,
+            onChanged: (bool value) => _handleToggleChange(
+              context,
+              tagData,
+              value,
+            ),
+          ),
+        ];
+    }
   }
 
   List<Widget> _buildTagOptions(BuildContext context, TagWithList tagData) {
@@ -396,7 +452,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
     _debounceSave(context);
   }
 
-  Widget _buildTagRow(
+  Widget _buildReorderableTagRow(
     BuildContext context,
     Tag tagData,
     AppliedTag? appliedTagData,
@@ -419,38 +475,12 @@ class TagDayOverviewState extends State<TagDayOverview> {
             ),
           ],
         ),
-        Wrap(
-          runSpacing: 4.0,
-          spacing: 8.0,
-          children: _buildTagRowContent(
-            context,
-            tagData,
-            appliedTagData,
-          ),
-        ),
+        switch (tagData) {
+          TagWithList() => ReorderableWrap(tag: tagData),
+          ToggleTag() => const Switch(value: false, onChanged: null),
+        },
       ],
     );
-  }
-
-  List<Widget> _buildTagRowContent(
-    BuildContext context,
-    Tag tagData,
-    AppliedTag? appliedTagData,
-  ) {
-    switch (tagData) {
-      case TagWithList():
-        return _buildTagOptions(context, tagData);
-      case ToggleTag():
-        return <Widget>[
-          Switch(
-            value: (appliedTagData is AppliedToggle) && appliedTagData.option ||
-                false,
-            onChanged: !_editMode
-                ? (bool value) => _handleToggleChange(context, tagData, value)
-                : null,
-          ),
-        ];
-    }
   }
 
   Widget _buildCategoryNameInput(BuildContext context) {

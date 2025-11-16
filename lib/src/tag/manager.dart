@@ -94,6 +94,53 @@ class TagManager with ChangeNotifier {
     notifyListeners();
   }
 
+  // TODO: This doesn't work properly
+  //       If we have tag.options = [a,b,c]
+  //       and appliedLists = [{option = 0}, {option=1}, {option=2}]
+  //       then we move c to before a, then we get
+  //       If we have tag.options = [c,a,b]
+  //       and appliedLists = [{option = 2}, {option=1}, {option=0}]
+  //       Right now: We swap them, but this should be changed to reordering
+  //       like in ReorderableList
+  void swapListOptions(TagWithList tag, int ix1, int ix2) {
+  print(ix1);
+  print(ix2);
+    // swap any appliedTagData options
+    for (final List<AppliedTag> appliedTags in appliedTags.values) {
+      for (final AppliedTag appliedTag in appliedTags) {
+        switch (appliedTag) {
+          case AppliedList():
+            if (appliedTag.option == ix1) {
+              appliedTag.option = ix2;
+            } else if (appliedTag.option == ix2) {
+              appliedTag.option = ix1;
+            }
+          case AppliedMulti():
+            final bool contains1 = appliedTag.options.contains(ix1);
+            final bool contains2 = appliedTag.options.contains(ix2);
+            if (contains1 && !contains2) {
+              appliedTag.options.remove(ix1);
+              appliedTag.options.add(ix2);
+            } else if (contains2 && !contains1) {
+              appliedTag.options.remove(ix2);
+              appliedTag.options.add(ix1);
+            }
+          case AppliedToggle():
+            break;
+        }
+      }
+    }
+    // We should move all other content over...
+    // final String item = tag.list.removeAt(ix1);
+    // tag.list.insert(ix2, item);
+
+    // But for now: Switch the content
+    final String tmp = tag.list[ix1];
+    tag.list[ix1] = tag.list[ix2];
+    tag.list[ix2] = tmp;
+    notifyListeners();
+  }
+
   void toggleMultiOption(AppliedMulti appliedTag, int index) {
     if (appliedTag.options.contains(index)) {
       appliedTag.options.remove(index);

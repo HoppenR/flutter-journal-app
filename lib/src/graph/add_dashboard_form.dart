@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../generated/l10n/app_localizations.dart';
-import '../tag/appliedtag.dart';
 import '../tag/icons.dart';
 import '../tag/manager.dart';
 import '../tag/tag.dart';
@@ -85,7 +84,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
 
   Widget _buildDashboardOptionType(BuildContext context) {
     return DropdownButtonFormField<GraphTypes>(
-      value: _selectedType,
+      initialValue: _selectedType,
       hint: Text(AppLocalizations.of(context).chartSelectType),
       items: <DropdownMenuItem<GraphTypes>>[
         DropdownMenuItem<GraphTypes>(
@@ -151,7 +150,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           children: <Widget>[
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: _selectedIds[index],
+                initialValue: _selectedIds[index],
                 items: _selectedTimespan == GraphTimespans.year &&
                         _selectedType == GraphTypes.radar
                     ? _buildCategorySelectDropdowns(context, index)
@@ -241,7 +240,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
 
   Widget _buildDashboardTimespan(BuildContext context) {
     return DropdownButtonFormField<GraphTimespans>(
-      value: _selectedTimespan,
+      initialValue: _selectedTimespan,
       // TODO: Localize
       hint: const Text('timespan(month works fully)'),
       items: const <DropdownMenuItem<GraphTimespans>>[

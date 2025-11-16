@@ -135,5 +135,26 @@ class ToggleTag extends Tag {
     // ignore: avoid_unused_constructor_parameters
     List<String>? list,
     super.category,
-  }) : assert(list == null || list.isEmpty);
+  });
+}
+
+class TagCategory {
+  TagCategory({required this.name, required this.id});
+
+  factory TagCategory.fromJson(Map<String, dynamic> json) {
+    return TagCategory(
+      name: json['name'],
+      id: json['id'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'name': name,
+      'id': id,
+    };
+  }
+
+  final String name;
+  final int id;
 }
