@@ -87,7 +87,7 @@ class AddTagFormState extends State<AddTagForm> {
 
   Widget _buildTagOptionType(BuildContext context) {
     return DropdownButtonFormField<TagTypes>(
-      value: _selectedType,
+      initialValue: _selectedType,
       hint: Text(AppLocalizations.of(context).tagSelectType),
       items: <DropdownMenuItem<TagTypes>>[
         DropdownMenuItem<TagTypes>(
