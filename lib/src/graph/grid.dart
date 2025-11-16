@@ -22,15 +22,15 @@ class ChartDashboardGrid extends StatelessWidget {
         );
         return SizedBox.expand(
           child: Stack(
-            children: dashboard.configurations.map(
-              (GraphConfiguration conf) {
-                return DraggableResizableGraph(
-                  dashboard: dashboard,
-                  gridSize: gridBoxSize,
-                  conf: conf,
-                );
-              },
-            ).toList(growable: false),
+            children: dashboard.configurations
+                .map((GraphConfiguration conf) {
+                  return DraggableResizableGraph(
+                    dashboard: dashboard,
+                    gridSize: gridBoxSize,
+                    conf: conf,
+                  );
+                })
+                .toList(growable: false),
           ),
         );
       },
@@ -105,10 +105,7 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
     );
   }
 
-  Widget _buildGraphContainer(
-    BuildContext context,
-    List<Color> colors,
-  ) {
+  Widget _buildGraphContainer(BuildContext context, List<Color> colors) {
     return Positioned(
       left: _containerPosition.dx,
       top: _containerPosition.dy,
@@ -122,14 +119,17 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
           final RenderBox? box = context.findRenderObject() as RenderBox?;
           final Offset newPreviewOffset =
               box!.globalToLocal(details.globalPosition) - _dragOffset;
-          final bool inBoundsX = _containerSize.width + newPreviewOffset.dx <=
+          final bool inBoundsX =
+              _containerSize.width + newPreviewOffset.dx <=
                   widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
               newPreviewOffset.dx >= 0;
-          final bool inBoundsY = _containerSize.height + newPreviewOffset.dy <=
+          final bool inBoundsY =
+              _containerSize.height + newPreviewOffset.dy <=
                   widget.gridSize.height * ChartDashboardGrid.gridCellsY &&
               newPreviewOffset.dy >= 0;
-          final Offset snappedPreviewOffset =
-              _snapToGridOffset(newPreviewOffset);
+          final Offset snappedPreviewOffset = _snapToGridOffset(
+            newPreviewOffset,
+          );
           setState(() {
             if (inBoundsX && inBoundsY) {
               _previewPosition = snappedPreviewOffset;
@@ -248,12 +248,12 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
 
               final Size newPreviewSize =
                   _containerSize + details.localPosition + (-_dragOffset);
-              final bool inBoundsX = newPreviewSize.width +
-                          _containerPosition.dx <=
+              final bool inBoundsX =
+                  newPreviewSize.width + _containerPosition.dx <=
                       widget.gridSize.width * ChartDashboardGrid.gridCellsX &&
                   newPreviewSize.width >= widget.gridSize.width;
-              final bool inBoundsY = newPreviewSize.height +
-                          _containerPosition.dy <=
+              final bool inBoundsY =
+                  newPreviewSize.height + _containerPosition.dy <=
                       widget.gridSize.height * ChartDashboardGrid.gridCellsY &&
                   newPreviewSize.height >= widget.gridSize.height;
               final Size snappedPreviewSize = _snapToGridSize(newPreviewSize);
@@ -330,10 +330,7 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
     );
   }
 
-  Widget _buildGraph(
-    BuildContext context,
-    List<Color> colors,
-  ) {
+  Widget _buildGraph(BuildContext context, List<Color> colors) {
     // TODO: User should be able to customize time.
     //       perhaps by sliding the graph to the sides, it might inc/dec by month/year
     //       depending on the GraphTimespan?
@@ -389,19 +386,9 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
         //       alternatively make it an option at tag creation
         switch (widget.conf.timeSpan) {
           case GraphTimespans.month:
-            return buildMonthHabitRadar(
-              context,
-              widget.conf,
-              time,
-              colors[0],
-            );
+            return buildMonthHabitRadar(context, widget.conf, time, colors[0]);
           case GraphTimespans.year:
-            return buildYearCategoryRadar(
-              context,
-              widget.conf,
-              time,
-              colors,
-            );
+            return buildYearCategoryRadar(context, widget.conf, time, colors);
         }
     }
   }
@@ -430,7 +417,8 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
   Size _snapToGridSize(Size offset) {
     final double snappedX =
         (offset.width / widget.gridSize.width).round() * widget.gridSize.width;
-    final double snappedY = (offset.height / widget.gridSize.height).round() *
+    final double snappedY =
+        (offset.height / widget.gridSize.height).round() *
         widget.gridSize.height;
     return Size(snappedX, snappedY);
   }

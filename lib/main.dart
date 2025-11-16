@@ -20,11 +20,9 @@ class InitializationWidget extends StatelessWidget {
       future: loadUserPrefs(context),
       builder: (BuildContext context, AsyncSnapshot<UserPrefs> snapshot) {
         // Show a loading icon until UserPrefs finishes loading
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == .waiting) {
           return const MaterialApp(
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
           );
         }
 
@@ -47,9 +45,8 @@ class InitializationWidget extends StatelessWidget {
               ),
             ),
             ChangeNotifierProvider<ChartDashboardManager>(
-              create: (_) => ChartDashboardManager(
-                dashboards: snapshot.data!.dashboards,
-              ),
+              create: (_) =>
+                  ChartDashboardManager(dashboards: snapshot.data!.dashboards),
             ),
           ],
           child: JournalApp(

@@ -22,14 +22,12 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   double _getMaxTagColumnWidth(BuildContext context) {
     final TagManager tagManager = context.watch<TagManager>();
-    final Tag longestTag = tagManager.tags.values.reduce(
-      (Tag lhs, Tag rhs) {
-        if (lhs.name.length > rhs.name.length) {
-          return lhs;
-        }
-        return rhs;
-      },
-    );
+    final Tag longestTag = tagManager.tags.values.reduce((Tag lhs, Tag rhs) {
+      if (lhs.name.length > rhs.name.length) {
+        return lhs;
+      }
+      return rhs;
+    });
 
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
@@ -56,28 +54,26 @@ class CalendarWeekState extends State<CalendarWeek> {
   Widget build(BuildContext context) {
     const double gridEdgeInset = 8.0;
     final TagManager tagManager = context.watch<TagManager>();
-    return LayoutBuilder(builder: (
-      BuildContext context,
-      BoxConstraints constraints,
-    ) {
-      final int tagCount = tagManager.tags.length;
-      final double totalSpacing = (tagCount - 1) * 4.0;
-      final double cellHeight =
-          (constraints.maxHeight - 2 * gridEdgeInset - totalSpacing) / tagCount;
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final int tagCount = tagManager.tags.length;
+        final double totalSpacing = (tagCount - 1) * 4.0;
+        final double cellHeight =
+            (constraints.maxHeight - 2 * gridEdgeInset - totalSpacing) /
+            tagCount;
 
-      return Padding(
-        padding: const EdgeInsets.all(gridEdgeInset),
-        child: Row(
-          children: <Widget>[
-            _buildTagBannerColumn(context, cellHeight, tagCount),
-            const SizedBox(width: 4.0),
-            Expanded(
-              child: _buildCalendarGrid(context, cellHeight),
-            ),
-          ],
-        ),
-      );
-    });
+        return Padding(
+          padding: const EdgeInsets.all(gridEdgeInset),
+          child: Row(
+            children: <Widget>[
+              _buildTagBannerColumn(context, cellHeight, tagCount),
+              const SizedBox(width: 4.0),
+              Expanded(child: _buildCalendarGrid(context, cellHeight)),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildCalendarGrid(BuildContext context, double cellHeight) {
@@ -178,23 +174,20 @@ class CalendarWeekState extends State<CalendarWeek> {
 
   ButtonStyle _buttonStyle(BuildContext context) {
     return TextButton.styleFrom(
-      backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-            alpha: 0.1,
-          ),
+      backgroundColor: Theme.of(
+        context,
+      ).colorScheme.primary.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       padding: EdgeInsets.zero,
     );
   }
 
-  Widget _buttonContent(
-    BuildContext context,
-    DateTime curDay,
-    int tagIndex,
-  ) {
+  Widget _buttonContent(BuildContext context, DateTime curDay, int tagIndex) {
     final TagManager tagManager = context.watch<TagManager>();
     final int targetTagId = tagManager.tags.keys.elementAt(tagIndex);
-    final AppliedTag? tag = tagManager.appliedTags[curDay]
-        ?.firstWhereOrNull((AppliedTag t) => t.id == targetTagId);
+    final AppliedTag? tag = tagManager.appliedTags[curDay]?.firstWhereOrNull(
+      (AppliedTag t) => t.id == targetTagId,
+    );
     final Widget? tagShorthand = _buildTagShorthand(tag);
     return Stack(
       alignment: Alignment.center,
@@ -244,10 +237,7 @@ class CalendarWeekState extends State<CalendarWeek> {
               shape: BoxShape.circle,
               border: Border.all(),
             ),
-            constraints: const BoxConstraints(
-              minWidth: 32.0,
-              minHeight: 32.0,
-            ),
+            constraints: const BoxConstraints(minWidth: 32.0, minHeight: 32.0),
             child: Text(
               appliedTag.options.length.toString(),
               style: const TextStyle(

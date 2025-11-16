@@ -18,8 +18,8 @@ class _GraphPageState extends State<GraphPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ChartDashboardManager dashboardManager =
-        context.watch<ChartDashboardManager>();
+    final ChartDashboardManager dashboardManager = context
+        .watch<ChartDashboardManager>();
 
     if (_dashboardIndex != null &&
         _dashboardIndex! >= dashboardManager.dashboards.length) {
@@ -59,10 +59,7 @@ class _GraphPageState extends State<GraphPage> {
                       }
                     }
                   },
-                  icon: Icon(
-                    dashboard.icon,
-                    size: 40.0,
-                  ),
+                  icon: Icon(dashboard.icon, size: 40.0),
                 );
               },
             ),

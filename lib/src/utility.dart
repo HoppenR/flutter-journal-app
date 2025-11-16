@@ -69,15 +69,14 @@ Future<void> saveAppliedTags(BuildContext context) async {
     throw AssertionError();
   }
   final TagManager tagManager = context.read<TagManager>();
-  final Map<String, List<Map<String, dynamic>>> appliedTagsJson =
-      tagManager.appliedTags.map(
-    (DateTime key, List<AppliedTag> value) {
-      return MapEntry<String, List<Map<String, dynamic>>>(
-        key.toIso8601String(),
-        value.map((AppliedTag tag) => tag.toJson()).toList(growable: false),
-      );
-    },
-  );
+  final Map<String, List<Map<String, dynamic>>> appliedTagsJson = tagManager
+      .appliedTags
+      .map((DateTime key, List<AppliedTag> value) {
+        return MapEntry<String, List<Map<String, dynamic>>>(
+          key.toIso8601String(),
+          value.map((AppliedTag tag) => tag.toJson()).toList(growable: false),
+        );
+      });
 
   await prefs.setString('appliedTags', json.encode(appliedTagsJson));
 }
@@ -100,8 +99,8 @@ Future<void> saveChartDashboardData(BuildContext context) async {
     throw AssertionError();
   }
 
-  final ChartDashboardManager dashboardManager =
-      context.read<ChartDashboardManager>();
+  final ChartDashboardManager dashboardManager = context
+      .read<ChartDashboardManager>();
 
   final List<dynamic> dashboardsJson = dashboardManager.dashboards
       .map((ChartDashboardData dashboard) => dashboard.toJson())
@@ -156,12 +155,10 @@ Future<Map<int, Tag>> loadTagData() async {
   }
 
   return Map<int, Tag>.fromEntries(
-    (json.decode(savedData) as List<dynamic>).map(
-      (dynamic value) {
-        final Tag tagData = Tag.fromJson(value);
-        return MapEntry<int, Tag>(tagData.id, tagData);
-      },
-    ),
+    (json.decode(savedData) as List<dynamic>).map((dynamic value) {
+      final Tag tagData = Tag.fromJson(value);
+      return MapEntry<int, Tag>(tagData.id, tagData);
+    }),
   );
 }
 
@@ -175,16 +172,19 @@ Future<Map<DateTime, List<AppliedTag>>> loadAppliedTags(
     return <DateTime, List<AppliedTag>>{};
   }
 
-  return (json.decode(savedData) as Map<String, dynamic>).map(
-    (String key, dynamic value) {
-      return MapEntry<DateTime, List<AppliedTag>>(
-        DateTime.parse(key),
-        (value as List<dynamic>).map((dynamic item) {
-          return AppliedTag.fromJson(item as Map<String, dynamic>, tags);
-        }).toList(growable: true),
-      );
-    },
-  );
+  return (json.decode(savedData) as Map<String, dynamic>).map((
+    String key,
+    dynamic value,
+  ) {
+    return MapEntry<DateTime, List<AppliedTag>>(
+      DateTime.parse(key),
+      (value as List<dynamic>)
+          .map((dynamic item) {
+            return AppliedTag.fromJson(item as Map<String, dynamic>, tags);
+          })
+          .toList(growable: true),
+    );
+  });
 }
 
 Future<int> loadNextTagId() async {
@@ -215,12 +215,10 @@ Future<Map<int, TagCategory>> loadCategories() async {
   }
 
   return Map<int, TagCategory>.fromEntries(
-    (json.decode(savedData) as List<dynamic>).map(
-      (dynamic value) {
-        final TagCategory category = TagCategory.fromJson(value);
-        return MapEntry<int, TagCategory>(category.id, category);
-      },
-    ),
+    (json.decode(savedData) as List<dynamic>).map((dynamic value) {
+      final TagCategory category = TagCategory.fromJson(value);
+      return MapEntry<int, TagCategory>(category.id, category);
+    }),
   );
 }
 
@@ -242,18 +240,17 @@ Future<UserPrefs> loadUserPrefs(BuildContext context) {
   final Future<int> nextCategoryIdFuture = loadNextCategoryId();
 
   return tagDataFuture.then((Map<int, Tag> tagData) {
-    return loadAppliedTags(tagData)
-        .then((Map<DateTime, List<AppliedTag>> appliedTags) {
-      return Future.wait(
-        <Future<dynamic>>[
-          localeFuture,
-          themeFuture,
-          dashboardsFuture,
-          categoriesFuture,
-          nextTagIdFuture,
-          nextCategoryIdFuture
-        ],
-      ).then((List<dynamic> values) {
+    return loadAppliedTags(tagData).then((
+      Map<DateTime, List<AppliedTag>> appliedTags,
+    ) {
+      return Future.wait(<Future<dynamic>>[
+        localeFuture,
+        themeFuture,
+        dashboardsFuture,
+        categoriesFuture,
+        nextTagIdFuture,
+        nextCategoryIdFuture,
+      ]).then((List<dynamic> values) {
         return UserPrefs(
           locale: values[0] as Locale?,
           theme: values[1] as Color?,
@@ -276,9 +273,6 @@ Future<void> clearPreferences(BuildContext context) async {
 
 Future<void> showSnackBar(BuildContext context, String message) async {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      behavior: SnackBarBehavior.floating,
-    ),
+    SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
   );
 }

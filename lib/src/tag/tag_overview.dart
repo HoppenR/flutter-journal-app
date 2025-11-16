@@ -83,7 +83,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
                   }
                 },
                 icon: const Icon(Icons.add),
-              )
+              ),
             ],
             Text(AppLocalizations.of(context).editModeToggle),
             Switch(
@@ -225,20 +225,19 @@ class TagDayOverviewState extends State<TagDayOverview> {
     final TagManager tagManager = context.watch<TagManager>();
     final List<OverviewItem> orderedItems = orderItems();
     return Column(
-      children: orderedItems.map((OverviewItem entry) {
-        switch (entry) {
-          case OverviewTag():
-            return _buildDismissibleTagRow(
-              context,
-              entry.tag,
-            );
-          case OverviewHeader():
-            return Text(
-              tagManager.categories[entry.category]!.name,
-              style: const TextStyle(fontSize: 25.0),
-            );
-        }
-      }).toList(growable: false),
+      children: orderedItems
+          .map((OverviewItem entry) {
+            switch (entry) {
+              case OverviewTag():
+                return _buildDismissibleTagRow(context, entry.tag);
+              case OverviewHeader():
+                return Text(
+                  tagManager.categories[entry.category]!.name,
+                  style: const TextStyle(fontSize: 25.0),
+                );
+            }
+          })
+          .toList(growable: false),
     );
   }
 
@@ -290,9 +289,9 @@ class TagDayOverviewState extends State<TagDayOverview> {
       ),
       onDismissed: (DismissDirection direction) {
         if (direction == DismissDirection.startToEnd) {
-          context
-              .read<ChartDashboardManager>()
-              .removeTagFromDashboards(tagData.id);
+          context.read<ChartDashboardManager>().removeTagFromDashboards(
+            tagData.id,
+          );
           tagManager.removeTag(tagData.id);
           _debounceSave(context);
         }
@@ -345,11 +344,8 @@ class TagDayOverviewState extends State<TagDayOverview> {
         return <Widget>[
           Switch(
             value: (appliedTagData is AppliedToggle) && appliedTagData.option,
-            onChanged: (bool value) => _handleToggleChange(
-              context,
-              tagData,
-              value,
-            ),
+            onChanged: (bool value) =>
+                _handleToggleChange(context, tagData, value),
           ),
         ];
     }
@@ -357,41 +353,33 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
   List<Widget> _buildTagOptions(BuildContext context, TagWithList tagData) {
     final TagManager tagManager = context.watch<TagManager>();
-    return List<Widget>.generate(
-      tagData.list.length,
-      (int index) {
-        final bool isSelected = tagManager.appliedTags[widget.day]?.any(
-              (AppliedTag tag) {
-                if (tag.id != tagData.id) {
-                  return false;
-                }
-                switch (tag) {
-                  case AppliedList(:final int option):
-                    return option == index;
-                  case AppliedMulti(:final List<int> options):
-                    return options.contains(index);
-                  case AppliedToggle():
-                    throw ArgumentError.value(
-                      tag,
-                      'tag',
-                      'argument does not have tag options',
-                    );
-                }
-              },
-            ) ??
-            false;
-        return ChoiceChip(
-          label: Text(tagData.list[index]),
-          selected: isSelected,
-          onSelected: (bool selected) => _handleTagSelection(
-            context,
-            tagData,
-            index,
-          ),
-        );
-      },
-      growable: false,
-    );
+    return List<Widget>.generate(tagData.list.length, (int index) {
+      final bool isSelected =
+          tagManager.appliedTags[widget.day]?.any((AppliedTag tag) {
+            if (tag.id != tagData.id) {
+              return false;
+            }
+            switch (tag) {
+              case AppliedList(:final int option):
+                return option == index;
+              case AppliedMulti(:final List<int> options):
+                return options.contains(index);
+              case AppliedToggle():
+                throw ArgumentError.value(
+                  tag,
+                  'tag',
+                  'argument does not have tag options',
+                );
+            }
+          }) ??
+          false;
+      return ChoiceChip(
+        label: Text(tagData.list[index]),
+        selected: isSelected,
+        onSelected: (bool selected) =>
+            _handleTagSelection(context, tagData, index),
+      );
+    }, growable: false);
   }
 
   void _handleTagSelection(
@@ -400,8 +388,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
     int index,
   ) {
     final TagManager tagManager = context.read<TagManager>();
-    final int tagIndex = tagManager.appliedTags[widget.day]
-            ?.indexWhere((AppliedTag tag) => tag.id == tagData.id) ??
+    final int tagIndex =
+        tagManager.appliedTags[widget.day]?.indexWhere(
+          (AppliedTag tag) => tag.id == tagData.id,
+        ) ??
         -1;
 
     switch (tagData) {
@@ -437,8 +427,10 @@ class TagDayOverviewState extends State<TagDayOverview> {
     bool value,
   ) {
     final TagManager tagManager = context.read<TagManager>();
-    final int tagIndex = tagManager.appliedTags[widget.day]
-            ?.indexWhere((AppliedTag tag) => tag.id == tagData.id) ??
+    final int tagIndex =
+        tagManager.appliedTags[widget.day]?.indexWhere(
+          (AppliedTag tag) => tag.id == tagData.id,
+        ) ??
         -1;
 
     if (tagIndex != -1) {
@@ -560,7 +552,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
   List<OverviewItem> orderItems() {
     final TagManager tagManager = context.watch<TagManager>();
     final Map<int, List<Tag>> tagsByCategory = <int, List<Tag>>{
-      for (final int key in tagManager.categories.keys) key: <Tag>[]
+      for (final int key in tagManager.categories.keys) key: <Tag>[],
     };
     final List<OverviewItem> ret = <OverviewItem>[];
 
@@ -579,9 +571,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
 
     for (final MapEntry<int, List<Tag>> entry in tagsByCategory.entries) {
       ret.add(OverviewHeader(category: entry.key));
-      ret.addAll(
-        entry.value.map((Tag tag) => OverviewTag(tag: tag)),
-      );
+      ret.addAll(entry.value.map((Tag tag) => OverviewTag(tag: tag)));
     }
     return ret;
   }
