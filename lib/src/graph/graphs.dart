@@ -460,7 +460,7 @@ Widget buildMonthHabitRadar(
           text: radarChartData.entries.elementAt(index).value.name,
         );
       },
-      radarShape: RadarShape.polygon,
+      radarShape: .polygon,
       tickCount: 3,
       ticksTextStyle: const TextStyle(color: Colors.transparent),
       tickBorderData: const BorderSide(width: 0.4),
@@ -574,7 +574,7 @@ Widget buildMonthCategoryRadar(
           text: radarChartData.entries.elementAt(index).value.name,
         );
       },
-      radarShape: RadarShape.polygon,
+      radarShape: .polygon,
       tickCount: 3,
       ticksTextStyle: const TextStyle(color: Colors.transparent),
       tickBorderData: const BorderSide(width: 0.4),

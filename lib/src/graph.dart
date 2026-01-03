@@ -30,14 +30,14 @@ class _GraphPageState extends State<GraphPage> {
         ? dashboardManager.dashboards[_dashboardIndex!]
         : null;
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const .all(16.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: .center,
         children: <Widget>[
           SizedBox(
             height: 80.0,
             child: ListView.builder(
-              scrollDirection: Axis.horizontal,
+              scrollDirection: .horizontal,
               itemCount: dashboardManager.dashboards.length,
               itemBuilder: (BuildContext context, int index) {
                 final ChartDashboardData dashboard =

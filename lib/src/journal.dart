@@ -221,7 +221,7 @@ class _JournalPageState extends State<JournalPage>
   Widget _buildCalendarNavigationButton(BuildContext context) {
     return InkWell(
       customBorder: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: .circular(8.0),
         side: const BorderSide(width: 8.0),
       ),
       onTap: () {
@@ -242,7 +242,7 @@ class _JournalPageState extends State<JournalPage>
   Widget _buildGraphsNavigationButton(BuildContext context) {
     return InkWell(
       customBorder: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: .circular(8.0),
         side: const BorderSide(width: 8.0),
       ),
       onTap: () {
@@ -276,7 +276,7 @@ class _JournalPageState extends State<JournalPage>
 
   Widget _buildCalendarNavigationTopBar(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: .spaceBetween,
       children: <Widget>[
         IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -312,7 +312,7 @@ class _JournalPageState extends State<JournalPage>
     final DateTime currentDate = _pageIndexToDate(pageIndex);
     return InkWell(
       customBorder: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: .circular(8.0),
         side: const BorderSide(width: 8.0),
       ),
       onTap: () {
@@ -333,7 +333,7 @@ class _JournalPageState extends State<JournalPage>
         AppLocalizations.of(
           context,
         ).yearAndWeek(currentDate.year, _dateToWeekNumber(currentDate)),
-        style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 20.0, fontWeight: .bold),
       ),
     );
   }

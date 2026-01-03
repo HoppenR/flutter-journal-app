@@ -52,7 +52,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       child: Form(
         key: _formKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: <Widget>[
             _buildDashboardFormName(context),
             _buildDashboardOptionType(context),
@@ -88,19 +88,19 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       hint: Text(AppLocalizations.of(context).chartSelectType),
       items: <DropdownMenuItem<GraphTypes>>[
         DropdownMenuItem<GraphTypes>(
-          value: GraphTypes.lineChart,
+          value: .lineChart,
           child: Text(AppLocalizations.of(context).chartTypeLine),
         ),
         DropdownMenuItem<GraphTypes>(
-          value: GraphTypes.weekdayBarChart,
+          value: .weekdayBarChart,
           child: Text(AppLocalizations.of(context).chartTypeBar),
         ),
         DropdownMenuItem<GraphTypes>(
-          value: GraphTypes.heatmap,
+          value: .heatmap,
           child: Text(AppLocalizations.of(context).chartTypeHeatmap),
         ),
         DropdownMenuItem<GraphTypes>(
-          value: GraphTypes.radar,
+          value: .radar,
           child: Text(AppLocalizations.of(context).chartTypeRadar),
         ),
       ],
@@ -143,50 +143,47 @@ class AddDashboardFormState extends State<AddDashboardForm> {
   }
 
   List<Row> _buildOptionInputs(BuildContext context) {
-    return List<Row>.generate(
-      _selectedIds.length,
-      (int index) {
-        return Row(
-          children: <Widget>[
-            Expanded(
-              child: DropdownButtonFormField<int>(
-                initialValue: _selectedIds[index],
-                items: _selectedTimespan == GraphTimespans.year &&
-                        _selectedType == GraphTypes.radar
-                    ? _buildCategorySelectDropdowns(context, index)
-                    : _buildTagSelectDropdowns(context, index),
-                onChanged: (int? newValue) {
-                  setState(() {
-                    _selectedIds[index] = newValue;
-                  });
-                },
-                validator: (int? value) {
-                  if (value == null) {
-                    return AppLocalizations.of(context).tagOptionMissing;
-                  }
-                  return null;
-                },
-              ),
+    return List<Row>.generate(_selectedIds.length, (int index) {
+      return Row(
+        children: <Widget>[
+          Expanded(
+            child: DropdownButtonFormField<int>(
+              initialValue: _selectedIds[index],
+              items:
+                  _selectedTimespan == GraphTimespans.year &&
+                      _selectedType == GraphTypes.radar
+                  ? _buildCategorySelectDropdowns(context, index)
+                  : _buildTagSelectDropdowns(context, index),
+              onChanged: (int? newValue) {
+                setState(() {
+                  _selectedIds[index] = newValue;
+                });
+              },
+              validator: (int? value) {
+                if (value == null) {
+                  return AppLocalizations.of(context).tagOptionMissing;
+                }
+                return null;
+              },
             ),
-            if (index >= (_selectedType?.minimumItemAmt ?? 1))
-              IconButton(
-                icon: const Icon(Icons.remove_circle),
-                onPressed: () {
-                  setState(() {
-                    _selectedIds.removeAt(index);
-                  });
-                },
-              ),
-          ],
-        );
-      },
-      growable: false,
-    );
+          ),
+          if (index >= (_selectedType?.minimumItemAmt ?? 1))
+            IconButton(
+              icon: const Icon(Icons.remove_circle),
+              onPressed: () {
+                setState(() {
+                  _selectedIds.removeAt(index);
+                });
+              },
+            ),
+        ],
+      );
+    }, growable: false);
   }
 
   Widget _buildTagFormValidateButton(BuildContext context) {
-    final ChartDashboardManager dashboardManager =
-        context.read<ChartDashboardManager>();
+    final ChartDashboardManager dashboardManager = context
+        .read<ChartDashboardManager>();
     return TextButton(
       onPressed: () {
         if (_formKey.currentState?.validate() ?? false) {
@@ -245,11 +242,11 @@ class AddDashboardFormState extends State<AddDashboardForm> {
       hint: const Text('timespan(month works fully)'),
       items: const <DropdownMenuItem<GraphTimespans>>[
         DropdownMenuItem<GraphTimespans>(
-          value: GraphTimespans.year,
+          value: .year,
           child: Text('current year'),
         ),
         DropdownMenuItem<GraphTimespans>(
-          value: GraphTimespans.month,
+          value: .month,
           child: Text('current month'),
         ),
       ],
@@ -276,20 +273,19 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     int index,
   ) {
     final TagManager tagManager = context.watch<TagManager>();
-    return tagManager.tags.entries.where(
-      (MapEntry<int, Tag> val) {
-        // Must include its own selection as a possible value
-        return val.key == _selectedIds[index] ||
-            !_selectedIds.contains(val.key);
-      },
-    ).map(
-      (MapEntry<int, Tag> entry) {
-        return DropdownMenuItem<int>(
-          value: entry.key,
-          child: Text(entry.value.name),
-        );
-      },
-    ).toList(growable: false);
+    return tagManager.tags.entries
+        .where((MapEntry<int, Tag> val) {
+          // Must include its own selection as a possible value
+          return val.key == _selectedIds[index] ||
+              !_selectedIds.contains(val.key);
+        })
+        .map((MapEntry<int, Tag> entry) {
+          return DropdownMenuItem<int>(
+            value: entry.key,
+            child: Text(entry.value.name),
+          );
+        })
+        .toList(growable: false);
   }
 
   List<DropdownMenuItem<int>> _buildCategorySelectDropdowns(
@@ -297,20 +293,19 @@ class AddDashboardFormState extends State<AddDashboardForm> {
     int index,
   ) {
     final TagManager tagManager = context.watch<TagManager>();
-    return tagManager.categories.entries.where(
-      (MapEntry<int, TagCategory> val) {
-        // Must include its own selection as a possible value
-        return val.key == _selectedIds[index] ||
-            !_selectedIds.contains(val.key);
-      },
-    ).map(
-      (MapEntry<int, TagCategory> entry) {
-        return DropdownMenuItem<int>(
-          value: entry.key,
-          child: Text(entry.value.name),
-        );
-      },
-    ).toList(growable: false);
+    return tagManager.categories.entries
+        .where((MapEntry<int, TagCategory> val) {
+          // Must include its own selection as a possible value
+          return val.key == _selectedIds[index] ||
+              !_selectedIds.contains(val.key);
+        })
+        .map((MapEntry<int, TagCategory> entry) {
+          return DropdownMenuItem<int>(
+            value: entry.key,
+            child: Text(entry.value.name),
+          );
+        })
+        .toList(growable: false);
   }
 
   Widget _buildIconSelection(BuildContext context) {
@@ -344,7 +339,7 @@ class AddDashboardFormState extends State<AddDashboardForm> {
           },
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(
+              border: .all(
                 color: _selectedIcon == icon
                     ? Theme.of(context).colorScheme.inversePrimary
                     : Colors.transparent,

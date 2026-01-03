@@ -123,7 +123,7 @@ class SettingsPage extends StatelessWidget {
       width: 270.0,
       height: 60.0,
       child: Wrap(
-        alignment: WrapAlignment.center,
+        alignment: .center,
         spacing: 10.0,
         runSpacing: 10.0,
         children: themes.keys
@@ -146,7 +146,7 @@ class SettingsPage extends StatelessWidget {
                           width: 30.0,
                           height: 30.0,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            shape: .circle,
                             gradient: LinearGradient(
                               colors: <Color>[
                                 Theme.of(context).colorScheme.inversePrimary,
@@ -175,14 +175,14 @@ class SettingsPage extends StatelessWidget {
         Text(
           AppLocalizations.of(context).aboutTitle,
           style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
+          textAlign: .center,
         ),
         SizedBox(
           width: 256.0,
           child: Text(
             AppLocalizations.of(context).aboutDescription,
             style: Theme.of(context).textTheme.bodySmall,
-            textAlign: TextAlign.center,
+            textAlign: .center,
           ),
         ),
       ],
@@ -194,7 +194,7 @@ class SettingsPage extends StatelessWidget {
       style: TextButton.styleFrom(
         foregroundColor: Theme.of(context).colorScheme.onError,
         backgroundColor: Theme.of(context).colorScheme.error,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        shape: RoundedRectangleBorder(borderRadius: .circular(8.0)),
         fixedSize: const Size(152.0, 48.0),
       ),
       icon: const Icon(Icons.delete),

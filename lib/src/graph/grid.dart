@@ -194,7 +194,7 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
         width: _previewSize.width,
         height: _previewSize.height,
         decoration: BoxDecoration(
-          border: Border.all(
+          border: .all(
             color: Theme.of(context).colorScheme.inversePrimary,
             width: 3,
           ),
@@ -211,7 +211,7 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
       height: 30,
       child: Container(
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          shape: .circle,
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
@@ -312,11 +312,11 @@ class _DraggableResizableGraphState extends State<DraggableResizableGraph> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHigh,
                 border: _resizeMode
-                    ? Border.all(
+                    ? .all(
                         color: Theme.of(context).colorScheme.primary,
                         width: 4.0,
                       )
-                    : Border.all(
+                    : .all(
                         color: Theme.of(context).colorScheme.inversePrimary,
                         width: 2.0,
                       ),

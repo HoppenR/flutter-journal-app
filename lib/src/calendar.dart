@@ -63,7 +63,7 @@ class CalendarWeekState extends State<CalendarWeek> {
             tagCount;
 
         return Padding(
-          padding: const EdgeInsets.all(gridEdgeInset),
+          padding: const .all(gridEdgeInset),
           child: Row(
             children: <Widget>[
               _buildTagBannerColumn(context, cellHeight, tagCount),
@@ -143,11 +143,11 @@ class CalendarWeekState extends State<CalendarWeek> {
     return Container(
       height: cellHeight,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: .circular(8.0),
         color: Theme.of(context).colorScheme.inversePrimary,
       ),
       child: Stack(
-        alignment: Alignment.center,
+        alignment: .center,
         children: <Widget>[
           AnimatedOpacity(
             duration: const Duration(milliseconds: 300),
@@ -164,7 +164,7 @@ class CalendarWeekState extends State<CalendarWeek> {
             child: Text(
               curTag.name,
               style: const TextStyle(fontSize: 16.0),
-              overflow: TextOverflow.ellipsis,
+              overflow: .ellipsis,
             ),
           ),
         ],
@@ -177,8 +177,8 @@ class CalendarWeekState extends State<CalendarWeek> {
       backgroundColor: Theme.of(
         context,
       ).colorScheme.primary.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: .circular(8.0)),
+      padding: .zero,
     );
   }
 
@@ -190,7 +190,7 @@ class CalendarWeekState extends State<CalendarWeek> {
     );
     final Widget? tagShorthand = _buildTagShorthand(tag);
     return Stack(
-      alignment: Alignment.center,
+      alignment: .center,
       children: <Widget>[
         if (tagIndex == 0)
           Positioned(
@@ -211,7 +211,7 @@ class CalendarWeekState extends State<CalendarWeek> {
       case AppliedList():
         return Text(
           appliedTag.string(),
-          overflow: TextOverflow.ellipsis,
+          overflow: .ellipsis,
           style: TextStyle(
             fontSize: 18.0,
             color: Theme.of(context).colorScheme.secondary,
@@ -223,7 +223,7 @@ class CalendarWeekState extends State<CalendarWeek> {
         } else if (appliedTag.options.length == 1) {
           return Text(
             appliedTag.string(),
-            overflow: TextOverflow.ellipsis,
+            overflow: .ellipsis,
             style: TextStyle(
               fontSize: 18.0,
               color: Theme.of(context).colorScheme.secondary,
@@ -231,11 +231,11 @@ class CalendarWeekState extends State<CalendarWeek> {
           );
         } else {
           return Container(
-            padding: const EdgeInsets.all(4.0),
+            padding: const .all(4.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.inversePrimary,
-              shape: BoxShape.circle,
-              border: Border.all(),
+              shape: .circle,
+              border: .all(),
             ),
             constraints: const BoxConstraints(minWidth: 32.0, minHeight: 32.0),
             child: Text(
@@ -243,9 +243,9 @@ class CalendarWeekState extends State<CalendarWeek> {
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
-                fontWeight: FontWeight.bold,
+                fontWeight: .bold,
               ),
-              textAlign: TextAlign.center,
+              textAlign: .center,
             ),
           );
         }
