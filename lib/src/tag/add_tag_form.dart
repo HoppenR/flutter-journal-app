@@ -54,7 +54,7 @@ class AddTagFormState extends State<AddTagForm> {
       child: Form(
         key: _formKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: <Widget>[
             _buildTagFormName(context),
             _buildTagOptionType(context),
@@ -89,15 +89,15 @@ class AddTagFormState extends State<AddTagForm> {
       hint: Text(AppLocalizations.of(context).tagSelectType),
       items: <DropdownMenuItem<TagTypes>>[
         DropdownMenuItem<TagTypes>(
-          value: TagTypes.list,
+          value: .list,
           child: Text(AppLocalizations.of(context).tagTypeList),
         ),
         DropdownMenuItem<TagTypes>(
-          value: TagTypes.toggle,
+          value: .toggle,
           child: Text(AppLocalizations.of(context).tagTypeToggle),
         ),
         DropdownMenuItem<TagTypes>(
-          value: TagTypes.multi,
+          value: .multi,
           child: Text(AppLocalizations.of(context).tagTypeMulti),
         ),
       ],
@@ -142,17 +142,17 @@ class AddTagFormState extends State<AddTagForm> {
               icon: _selectedIcon,
               configurations: <GraphConfiguration>[
                 GraphConfiguration(
-                  type: GraphTypes.lineChart,
+                  type: .lineChart,
                   ids: <int>[addedId],
-                  offset: Offset.zero,
+                  offset: .zero,
                 ),
                 GraphConfiguration(
-                  type: GraphTypes.weekdayBarChart,
+                  type: .weekdayBarChart,
                   ids: <int>[addedId],
                   offset: const Offset(1.0, 0.0),
                 ),
                 GraphConfiguration(
-                  type: GraphTypes.heatmap,
+                  type: .heatmap,
                   ids: <int>[addedId],
                   offset: const Offset(2.0, 0.0),
                 ),
@@ -176,7 +176,7 @@ class AddTagFormState extends State<AddTagForm> {
           const SizedBox(height: 16.0),
           Text(
             AppLocalizations.of(context).tagOptions,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: .bold),
           ),
           ..._buildOptionInputs(context),
           IconButton(
@@ -254,13 +254,13 @@ class AddTagFormState extends State<AddTagForm> {
           },
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(
+              border: .all(
                 color: _selectedIcon == icon
                     ? Theme.of(context).colorScheme.inversePrimary
                     : Colors.transparent,
                 width: 2.0,
               ),
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: .circular(8.0),
             ),
             child: Icon(icon, size: _iconSize),
           ),

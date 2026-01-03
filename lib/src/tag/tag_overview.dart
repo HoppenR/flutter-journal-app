@@ -262,7 +262,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
       },
       background: Container(
         decoration: BoxDecoration(
-          color: Color.alphaBlend(
+          color: .alphaBlend(
             Theme.of(context).colorScheme.primary.withAlpha(108),
             Theme.of(context).colorScheme.inversePrimary,
           ),
@@ -307,7 +307,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
   ) {
     return Column(
       key: tagData.key,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: <Widget>[
         Row(
           children: <Widget>[
@@ -315,10 +315,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
             Expanded(
               child: Text(
                 tagData.name,
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 18.0, fontWeight: .bold),
               ),
             ),
           ],
@@ -451,7 +448,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
   ) {
     return Column(
       key: tagData.key,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: <Widget>[
         Row(
           children: <Widget>[
@@ -459,10 +456,7 @@ class TagDayOverviewState extends State<TagDayOverview> {
             Expanded(
               child: Text(
                 tagData.name,
-                style: const TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 18.0, fontWeight: .bold),
               ),
             ),
           ],
