@@ -9,6 +9,8 @@ return {
         dart_bin,
         'language-server',
         '--protocol=lsp',
+        "--client-id=nvim.lsp",
+        "--client-version=" .. vim.version().major .. "." .. vim.version().minor,
     },
     filetypes = { 'dart' },
     root_dir = journal_root,

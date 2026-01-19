@@ -46,6 +46,7 @@
               export NIX_DART_BIN="${pkgs.flutter338}/bin/dart"
               export PUB_CACHE="$JOURNAL_HOME/.pub-cache"
               export XDG_CONFIG_DIRS="$JOURNAL_HOME/.nvim_config:$XDG_CONFIG_DIRS"
+              export ANALYZER_STATE_LOCATION_OVERRIDE="$HOME/.cache/nvim/dartServer"
 
               echo "Using Flutter from: ${pkgs.flutter338}"
               echo "Added neovim config: $JOURNAL_HOME/.nvim_config"
