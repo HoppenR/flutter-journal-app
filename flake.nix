@@ -18,26 +18,23 @@
         {
           default = pkgs.mkShell {
             name = "flutter338-devshell";
-            buildInputs = [
-              pkgs.flutter338
-              pkgs.git
-              pkgs.unzip
-              (pkgs.writeShellScriptBin "build-web" ''
+            buildInputs = with pkgs; [
+              flutter338
+              git
+              unzip
+              jdk17 # For Android
+
+              (writeShellScriptBin "build-web" ''
                 exec flutter build web --base-href /journal/ --wasm --release "$@"
               '')
-
-              pkgs.jdk17 # For Android
             ];
 
-            shellHook = ''
+            shellHook = /* bash */ ''
               function cleanup() {
                 echo "󰃢 Cleaning up Flutter/Dart artifacts..."
                 set -x
                 if [[ -d "$HOME/.dart-tool" ]]; then
                   rm --recursive --interactive=once "$HOME/.dart-tool"
-                fi
-                if [[ -d "$HOME/.pub-cache" ]]; then 
-                  rm --recursive --interactive=once "$HOME/.pub-cache"
                 fi
                 if [[ -f "$HOME/.flutter" ]]; then
                   rm --interactive "$HOME/.flutter"
@@ -45,8 +42,18 @@
               }
               trap cleanup EXIT
 
+              export JOURNAL_HOME=$(git rev-parse --show-toplevel) || exit
+              export NIX_DART_BIN="${pkgs.flutter338}/bin/dart"
+              export PUB_CACHE="$JOURNAL_HOME/.pub-cache"
+              export XDG_CONFIG_DIRS="$JOURNAL_HOME/.nvim_config:$XDG_CONFIG_DIRS"
+
               echo "Using Flutter from: ${pkgs.flutter338}"
-              flutter --version
+              echo "Added neovim config: $JOURNAL_HOME/.nvim_config"
+              echo "Run 'flutter pub get' if this is your first time."
+              ${pkgs.flutter338}/bin/flutter --version
+
+              command zsh
+              exit
             '';
           };
         }
