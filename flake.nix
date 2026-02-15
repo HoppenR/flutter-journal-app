@@ -25,8 +25,6 @@
             '')
           ];
 
-          NIX_DART_BIN = "${pkgs.flutter338}/bin/dart";
-
           shellHook = /* bash */ ''
             export JOURNAL_HOME=$(git rev-parse --show-toplevel) || exit
             export XDG_CONFIG_DIRS="$JOURNAL_HOME/.nvim_config:$XDG_CONFIG_DIRS"

@@ -1,12 +1,9 @@
 local journal_root = os.getenv("JOURNAL_HOME")
-local dart_bin = os.getenv("NIX_DART_BIN")
-
-if not (journal_root and dart_bin) then return end
 
 return {
     name = 'dartls',
     cmd = {
-        dart_bin,
+        'dart',
         'language-server',
         '--protocol=lsp',
         "--client-id=nvim.lsp",
