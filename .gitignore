@@ -13,6 +13,16 @@ migrate_working_dir/
 # Generated files
 lib/src/generated
 
+# Gradle related
+android/build/
+**/build/reports/
+.gradle/
+
+# Nix related
+.envrc
+.direnv
+_nix_profile*
+
 # IntelliJ related
 *.iml
 *.ipr
